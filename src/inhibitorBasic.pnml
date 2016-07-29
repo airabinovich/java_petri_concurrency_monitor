@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-F54-330C5-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>inhibitorBasic</text>
+  </name>
+ <page id="g-F54-330F5-1">
+  <place id="p-F54-33101-2">
+   <name>
+    <text>p10</text>
+    <graphics>
+    <offset x="0" y="-10" />
+    </graphics>
+   </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="105" y="105"/>
+   </graphics>
+  </place>
+  <place id="p-F54-33159-3">
+  <name>
+   <text>p11</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="330" y="110"/>
+   </graphics>
+  </place>
+  <place id="p-F54-3317D-4">
+  <name>
+   <text>p12</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="145" y="255"/>
+   </graphics>
+  </place>
+  <place id="p-F54-3319A-5">
+  <name>
+   <text>p13</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="285" y="260"/>
+   </graphics>
+  </place>
+  <place id="p-F54-331B1-6">
+  <name>
+   <text>p9</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="220" y="90"/>
+   </graphics>
+  </place>
+  <transition id="t-F54-331CC-7">
+  <name>
+   <text>t6</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;A,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="145" y="180"/>
+   </graphics>
+  </transition>
+  <transition id="t-F54-331F1-8">
+  <name>
+   <text>t7</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;A,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="285" y="180"/>
+   </graphics>
+  </transition>
+  <transition id="t-F54-33211-9">
+  <name>
+   <text>t8</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,N&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="35" y="180"/>
+   </graphics>
+  </transition>
+  <transition id="t-F54-3322F-10">
+  <name>
+   <text>t9</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,N&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="415" y="155"/>
+   </graphics>
+  </transition>
+  <arc id="e-F54-33254-11" source="p-F54-331B1-6" target="t-F54-331CC-7">
+  </arc>
+  <arc id="e-F54-33261-12" source="p-F54-3319A-5" target="t-F54-3322F-10">
+  </arc>
+  <arc id="e-F54-33269-13" source="t-F54-3322F-10" target="p-F54-33159-3">
+  </arc>
+  <arc id="e-F54-3326F-14" source="t-F54-3322F-10" target="p-F54-331B1-6">
+   <graphics>
+    <position x="411" y="84" />
+    <position x="254" y="58" />
+   </graphics>  </arc>
+  <arc id="e-F54-332A0-15" source="p-F54-331B1-6" target="t-F54-331F1-8">
+  </arc>
+  <arc id="e-F54-332A8-16" source="p-F54-33101-2" target="t-F54-331CC-7">
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="e-F54-332B0-17" source="p-F54-33159-3" target="t-F54-331F1-8">
+  </arc>
+  <arc id="e-F54-332B7-18" source="t-F54-331CC-7" target="p-F54-3317D-4">
+  </arc>
+  <arc id="e-F54-332BD-19" source="p-F54-3317D-4" target="t-F54-33211-9">
+  </arc>
+  <arc id="e-F54-332C4-20" source="t-F54-33211-9" target="p-F54-33101-2">
+  </arc>
+  <arc id="e-F54-332CA-21" source="t-F54-33211-9" target="p-F54-331B1-6">
+   <graphics>
+    <position x="15" y="90" />
+    <position x="111" y="28" />
+   </graphics>  </arc>
+  <arc id="e-F54-332ED-22" source="t-F54-331F1-8" target="p-F54-3319A-5">
+  </arc>
+ </page>
+ </net>
+</pnml>
