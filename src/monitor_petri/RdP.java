@@ -6,11 +6,22 @@ public class RdP {
 	private Transicion[] transiciones;
 	private Arco[] arcos;
 	private Transicion[] sensibilizada;
+	private Integer[][] preI;
+	private Integer[][] posI;
+	private Integer[][] I;
 	private Integer[] marca;
 	private Integer[] marca_inicial;
 	
-	public RdP(){
-		
+	public RdP(Plaza[] _places, Transicion[] _transitions, Arco[] _arcs,
+			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I){
+		this.plazas = _places;
+		this.transiciones = _transitions;
+		this.arcos = _arcs;
+		this.marca_inicial = _initialMarking.clone();
+		this.marca = _initialMarking;
+		this.preI = _preI;
+		this.posI = _posI;
+		this.I = _I;
 	}
 	
 	public boolean disparo(Transicion t) {

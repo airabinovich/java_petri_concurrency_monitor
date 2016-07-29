@@ -22,8 +22,15 @@ import java.util.regex.Pattern;
 public class PNMLreader{
 	
 	private static final String PLACES = "places";
+	private static final String INITIAL_MARKING = "initialMarking";
+	
 	private static final String TRANSITIONS = "transitions";
+	private static final String LABEL = "label";
+	
 	private static final String ARCS = "arcs";
+	private static final String WEIGHT = "inscription";
+	private static final String SOURCE = "source";
+	private static final String TARGET = "target";
 	
 	private Plaza[] plazas; 
 	private Transicion[] transiciones;
@@ -41,7 +48,7 @@ public class PNMLreader{
 		}
 	}
 	
-	public Triplet<Plaza[], Transicion[], Arco[]> read_file(){
+	public Triplet<Plaza[], Transicion[], Arco[]> parseFileAndGetPetriObjects(){
 		try {
 			Triplet<Plaza[], Transicion[], Arco[]> ret = null;
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -101,7 +108,7 @@ public class PNMLreader{
 					transitions.add(getTransition(id, child, nl));
 				}
 				else if(child.getNodeName().equals(ARCS)){
-					arcs.add(getArc(id, child));
+					arcs.add(getArc(id, child, nl));
 				}
 			}
 		}
@@ -109,11 +116,17 @@ public class PNMLreader{
 				places.toArray(this.plazas), transitions.toArray(this.transiciones), arcs.toArray(this.arcos));
 	}
 	
+	/**
+	 * Parses a node and returns the containing place as an object
+	 * @param id the object id embedded in the PNML
+	 * @param placeNode Node object from PNML
+	 * @param nl placeNode children nodes as NodeList
+	 * @return
+	 */
 	private Plaza getPlace(String id, Node placeNode, NodeList nl){
 		Integer m_inicial = 0;
 		for(int i=0; i<nl.getLength(); i++){
-			if(nl.item(i).getNodeName() == "initialMarking"){
-				System.out.println(nl.item(i).getNodeName());
+			if(nl.item(i).getNodeName().equals(INITIAL_MARKING)){
 				m_inicial = Integer.parseInt(nl.item(i).getTextContent().trim());
 				return new Plaza(id, m_inicial);
 			}
@@ -121,6 +134,13 @@ public class PNMLreader{
 		return null;
 	}
 	
+	/**
+	 * Parses a node and returns the containing transition as an object
+	 * @param id the object id embedded in the PNML
+	 * @param transitionNode Node object from PNML
+	 * @param nl transitionNode children nodes as NodeList
+	 * @return
+	 */
 	private Transicion getTransition(String id, Node transitionNode, NodeList nl){
 		
 		final String labelRegexString = "[A-Z]";
@@ -128,7 +148,7 @@ public class PNMLreader{
 		//Una transicion es NO automatica y NO informa, a menos que se diga lo contrario
 		boolean isAutomatic = false, isInformed = false;
 		for(int i=0; i<nl.getLength(); i++){
-			if(nl.item(i).getNodeName().equals("label")){
+			if(nl.item(i).getNodeName().equals(LABEL)){
 				String transitionLabels = nl.item(i).getTextContent().trim();
 				Matcher labelMatcher = labelRegex.matcher(transitionLabels);
 				while(labelMatcher.find()){
@@ -142,11 +162,29 @@ public class PNMLreader{
 		return null;
 	}
 	
-	private Arco getArc(String id, Node arcNode){
-		if(arcNode == null){
+	/**
+	 * Parses a node and returns the containing arc as an object
+	 * @param id the object id embedded in the PNML
+	 * @param arcNode Node object from PNML
+	 * @param nl arcNode children nodes as NodeList
+	 * @return
+	 */
+	private Arco getArc(String id, Node arcNode, NodeList nl){
+		Element arcElement = (Element)arcNode;
+		String source = arcElement.getAttribute(SOURCE);
+		String target = arcElement.getAttribute(TARGET);
+		if(source.isEmpty() || target.isEmpty()){
 			return null;
 		}
-		Element arcElement = (Element)arcNode;
-		return new Arco(id, arcElement.getAttribute("source"), arcElement.getAttribute("target"));
+		
+		Integer weight = 0;
+		for(int i=0; i<nl.getLength(); i++){
+			if(nl.item(i).getNodeName().equals(WEIGHT)){
+				weight = Integer.parseInt(nl.item(i).getTextContent().trim());
+				break;
+			}
+		}
+		
+		return new Arco(id, source, target, weight);
 	}
 }
