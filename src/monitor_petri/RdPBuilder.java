@@ -52,8 +52,28 @@ public class RdPBuilder {
 		Integer[][] pre = new Integer[placesAmount][transitionsAmount];
 		Integer[][] pos = new Integer[placesAmount][transitionsAmount];
 		Integer[][] inc = new Integer[placesAmount][transitionsAmount];
+		for(int a=0; a<arcos.length; a++){
+			for(int i=0; i<plazas.length; i++){
+				if(arcos[a].getId_source().equals(plazas[i].getId())){
+					for(int j=0; j<transiciones.length; j++){
+						if(arcos[a].getId_target().equals(transiciones[j].getId())){
+							pre[plazas[i].getIndice()][transiciones[j].getIndice()] = arcos[a].getWeight();
+						}						
+					}
+				}
+			}
+			for(int j=0; j<transiciones.length; j++){
+				if(arcos[a].getId_source().equals(transiciones[j].getId())){
+					for(int i=0; i<plazas.length; i++){
+						if(arcos[a].getId_target().equals(plazas[j].getId())){
+							pos[plazas[i].getIndice()][transiciones[j].getIndice()] = arcos[a].getWeight();
+						}						
+					}
+				}
+			}
+		}
 		
-		return new Triplet<Integer[][], Integer[][], Integer[][]>(pre, pos, inc);
+		return new Triplet<Integer[][], Integer[][], Integer[][]>(pre, pos, getIncMatrix(pre,pos,plazas.length,transiciones.length));
 	}
 	
 	/**
@@ -68,5 +88,15 @@ public class RdPBuilder {
 		}
 		Integer[] ret = new Integer[initialMarking.size()];
 		return initialMarking.toArray(ret);
+	}
+	
+	private Integer[][] getIncMatrix(Integer[][] pre, Integer[][] pos, Integer p, Integer t){
+		Integer[][] inc = new Integer[p][t];
+		for(int i=0;i<p;i++){
+	        for(int j=0;j<t;j++){
+	                inc[i][j]=pre[i][j]-pos[i][j];
+	        }
+		}
+		return inc;
 	}
 }

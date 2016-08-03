@@ -27,4 +27,12 @@ public class Arco {
 	public void setWeight(Integer weight) {
 		this.weight = weight;
 	}
+
+	public String getId_source() {
+		return id_source;
+	}
+
+	public String getId_target() {
+		return id_target;
+	}
 }
