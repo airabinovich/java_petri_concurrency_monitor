@@ -1,12 +1,12 @@
 package monitor_petri;
 
-import org.javatuples.Septet;;
+import org.javatuples.Septet;
 
 public class main {
 
 	public static void main(String[] args) {
 
-		String pnmlFile = "./src/inhibitorBasic.pnml";
+		String pnmlFile = "./src/readerWriter.pnml";
 		RdPBuilder petriNetBuilder;
 		RdP petriNet;
 		try {
@@ -26,6 +26,9 @@ public class main {
 			//GestorMonitor monitor = new GestorMonitor(red, politica);
 			System.out.println("FIN");
 		} catch (SecurityException e) {
+			System.out.println("Excecution error: " + e.getMessage());
+			e.printStackTrace();
+		} catch (Exception e){
 			System.out.println("Excecution error: " + e.getMessage());
 			e.printStackTrace();
 		}

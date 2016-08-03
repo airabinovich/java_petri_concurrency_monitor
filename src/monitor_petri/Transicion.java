@@ -1,13 +1,15 @@
 package monitor_petri;
 
 public class Transicion{
-		
+	
+	private int indice;
 	private String id;
 	private Etiqueta etiqueta;
 	
-	public Transicion(String i, Etiqueta e){
-		etiqueta = e;
-		id = i;
+	public Transicion(String _id, Etiqueta _e, int _i){
+		this.etiqueta = _e;
+		this.id = _id;
+		this.indice = _i;
 	}
 	public Etiqueta getEtiqueta() {
 		return etiqueta;
@@ -22,4 +24,10 @@ public class Transicion{
 		return this.id = id;
 	}
 	
+	/**
+	 * @return the index
+	 */
+	public int getIndice() {
+		return indice;
+	}
 }

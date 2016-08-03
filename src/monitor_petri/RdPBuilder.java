@@ -9,9 +9,6 @@ import org.javatuples.Septet;
 
 public class RdPBuilder {
 	
-	private Plaza[] plazas;
-	private Transicion[] transiciones;
-	private Arco[] arcos;
 	private PNMLreader reader;
 	
 	public RdPBuilder(String pathToPNML){
@@ -24,7 +21,8 @@ public class RdPBuilder {
 	
 	public Septet<Plaza[], Transicion[], Arco[], Integer[], Integer[][], Integer[][], Integer[][]> buildPetriNetObjects(){
 		
-		return PNML2PNObjects().add(rdpObjetcts2Matrixes(plazas, transiciones, arcos));
+		Quartet<Plaza[], Transicion[], Arco[], Integer[]> petriObjects = PNML2PNObjects();
+		return petriObjects.add(rdpObjetcts2Matrixes(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2()));
 	}
 	
 	/**
@@ -49,7 +47,12 @@ public class RdPBuilder {
 	 * @return a 3-tuple containing <PreI matrix, PosI matrix, I matrix>
 	 */
 	private Triplet<Integer[][], Integer[][], Integer[][]> rdpObjetcts2Matrixes(Plaza[] plazas, Transicion[] transiciones, Arco[] arcos){
-		Integer[][] pre = null, pos = null, inc = null;		
+		int placesAmount = plazas.length;
+		int transitionsAmount = transiciones.length;
+		Integer[][] pre = new Integer[placesAmount][transitionsAmount];
+		Integer[][] pos = new Integer[placesAmount][transitionsAmount];
+		Integer[][] inc = new Integer[placesAmount][transitionsAmount];
+		
 		return new Triplet<Integer[][], Integer[][], Integer[][]>(pre, pos, inc);
 	}
 	
@@ -63,6 +66,7 @@ public class RdPBuilder {
 		for(Plaza place : places){
 			initialMarking.add(place.getMarcado());
 		}
-		return (Integer[])initialMarking.toArray();
+		Integer[] ret = new Integer[initialMarking.size()];
+		return initialMarking.toArray(ret);
 	}
 }

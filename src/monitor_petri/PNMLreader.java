@@ -21,20 +21,22 @@ import java.util.regex.Pattern;
 
 public class PNMLreader{
 	
-	private static final String PLACES = "places";
+	private static final String ID = "id";
+	private static final String PAGE = "page";
+	private static final String NAME = "name";
+	private static final String NET = "net";
+			
+	private static final String PLACE = "place";
 	private static final String INITIAL_MARKING = "initialMarking";
 	
-	private static final String TRANSITIONS = "transitions";
+	private static final String TRANSITION = "transition";
 	private static final String LABEL = "label";
 	
-	private static final String ARCS = "arcs";
+	private static final String ARC = "arc";
 	private static final String WEIGHT = "inscription";
 	private static final String SOURCE = "source";
 	private static final String TARGET = "target";
 	
-	private Plaza[] plazas; 
-	private Transicion[] transiciones;
-	private Arco[] arcos;
 	File pnmlFile;
 	
 	public PNMLreader(String pnmlPath) throws FileNotFoundException, SecurityException{
@@ -48,6 +50,10 @@ public class PNMLreader{
 		}
 	}
 	
+	/**
+	 * parses PNML file and returns all petri objects embedded
+	 * @return a Triplet containing places, transitions and arcs inside the PNML
+	 */
 	public Triplet<Plaza[], Transicion[], Arco[]> parseFileAndGetPetriObjects(){
 		try {
 			Triplet<Plaza[], Transicion[], Arco[]> ret = null;
@@ -65,7 +71,7 @@ public class PNMLreader{
 			doc.getDocumentElement().normalize();
 			
 			// gets every net in the file. We'll only get the first one
-			NodeList nets = doc.getElementsByTagName("net");
+			NodeList nets = doc.getElementsByTagName(NET);
 		
 			if (nets.getLength() > 0){
 		
@@ -75,7 +81,7 @@ public class PNMLreader{
 					NodeList netChildren = net.getChildNodes();
 					NodeList netElements = null;
 					for(int index = 0; index < netChildren.getLength(); index++){
-						if(netChildren.item(index).getNodeName().equals("page")){
+						if(netChildren.item(index).getNodeName().equals(PAGE)){
 							netElements = netChildren.item(index).getChildNodes();
 						}
 					}
@@ -90,6 +96,11 @@ public class PNMLreader{
 	    }
 	}
 	
+	/**
+	 * Parses a list of nodes and returns information about places, transitions and arcs embedded
+	 * @param netElements a list of nodes children of page node
+	 * @return a Triplet containing all places, transitions and arcs inside netElements
+	 */
 	private Triplet<Plaza[], Transicion[], Arco[]> getPetriObjectsFromNodeList(NodeList netElements){
 		ArrayList<Plaza> places = new ArrayList<Plaza>();
 		ArrayList<Transicion> transitions = new ArrayList<Transicion>();
@@ -98,22 +109,33 @@ public class PNMLreader{
 			Node child = netElements.item(index);
 			if(child.getNodeType() == Node.ELEMENT_NODE ){
 				NodeList nl = child.getChildNodes();
-				String id = ((Element)(child)).getAttribute("id");
+				String id = ((Element)(child)).getAttribute(ID);
 				//child tiene el elemento que necesitamos (plaza, transicion o arco)
-				System.out.println(child.getNodeName());
-				if(child.getNodeName().equals(PLACES)){
+				if(child.getNodeName().equals(PLACE)){
 					places.add(getPlace(id, child, nl));
 				}
-				else if(child.getNodeName().equals(TRANSITIONS)){
+				else if(child.getNodeName().equals(TRANSITION)){
 					transitions.add(getTransition(id, child, nl));
 				}
-				else if(child.getNodeName().equals(ARCS)){
+				else if(child.getNodeName().equals(ARC)){
 					arcs.add(getArc(id, child, nl));
 				}
 			}
 		}
-		return new Triplet<Plaza[], Transicion[], Arco[]>(
-				places.toArray(this.plazas), transitions.toArray(this.transiciones), arcs.toArray(this.arcos));
+		
+		//sort places and transitions using their indexes
+		places.sort((Plaza p1, Plaza p2) -> (p1.getIndice() - p2.getIndice()));
+		transitions.sort((Transicion t1, Transicion t2) -> (t1.getIndice() - t2.getIndice()));
+		
+		Plaza[] retPlaces = new Plaza[places.size()];
+		Transicion[] retTransitions = new Transicion[transitions.size()];
+		Arco[] retArcs = new Arco[arcs.size()];
+
+		retPlaces = places.toArray(retPlaces);
+		retTransitions = transitions.toArray(retTransitions);
+		retArcs = arcs.toArray(retArcs);
+		
+		return new Triplet<Plaza[], Transicion[], Arco[]>(retPlaces, retTransitions, retArcs);
 	}
 	
 	/**
@@ -125,13 +147,26 @@ public class PNMLreader{
 	 */
 	private Plaza getPlace(String id, Node placeNode, NodeList nl){
 		Integer m_inicial = 0;
+		Integer placeIndex = null;
 		for(int i=0; i<nl.getLength(); i++){
-			if(nl.item(i).getNodeName().equals(INITIAL_MARKING)){
-				m_inicial = Integer.parseInt(nl.item(i).getTextContent().trim());
-				return new Plaza(id, m_inicial);
+			String currentNodeName = nl.item(i).getNodeName();
+			if(currentNodeName.equals(INITIAL_MARKING)){
+				try{
+					m_inicial = Integer.parseInt(nl.item(i).getTextContent().trim());
+				} catch (NumberFormatException ex){
+					return null;
+				}
+			}
+			else if(currentNodeName.equals(NAME)){
+				placeIndex = getPetriObjectIndexFromName(nl.item(i).getTextContent().trim());
 			}
 		}
-		return null;
+		
+		if(placeIndex == null){
+			return null;
+		}
+		
+		return new Plaza(id, m_inicial, placeIndex);
 	}
 	
 	/**
@@ -145,10 +180,13 @@ public class PNMLreader{
 		
 		final String labelRegexString = "[A-Z]";
 		final Pattern labelRegex = Pattern.compile(labelRegexString, Pattern.CASE_INSENSITIVE);
+		
+		Integer transitionIndex = null;
 		//Una transicion es NO automatica y NO informa, a menos que se diga lo contrario
 		boolean isAutomatic = false, isInformed = false;
 		for(int i=0; i<nl.getLength(); i++){
-			if(nl.item(i).getNodeName().equals(LABEL)){
+			String currentNodeName = nl.item(i).getNodeName();
+			if(currentNodeName.equals(LABEL)){
 				String transitionLabels = nl.item(i).getTextContent().trim();
 				Matcher labelMatcher = labelRegex.matcher(transitionLabels);
 				while(labelMatcher.find()){
@@ -156,10 +194,18 @@ public class PNMLreader{
 					isAutomatic = label.equalsIgnoreCase("A") ? true : isAutomatic;
 					isInformed = label.equalsIgnoreCase("I") ? true : isInformed;
 				}
-				return new Transicion(id, new Etiqueta(isAutomatic, isInformed));
+			}
+			else if(currentNodeName.equals(NAME)){
+				transitionIndex = getPetriObjectIndexFromName(nl.item(i).getTextContent().trim());
 			}
 		}
-		return null;
+		
+		if(transitionIndex == null){
+			// if transitionIndex is null, the PNML is ill-formed
+			return null;
+		}
+		
+		return new Transicion(id, new Etiqueta(isAutomatic, isInformed), transitionIndex);
 	}
 	
 	/**
@@ -177,7 +223,7 @@ public class PNMLreader{
 			return null;
 		}
 		
-		Integer weight = 0;
+		Integer weight = 1;
 		for(int i=0; i<nl.getLength(); i++){
 			if(nl.item(i).getNodeName().equals(WEIGHT)){
 				weight = Integer.parseInt(nl.item(i).getTextContent().trim());
@@ -185,6 +231,25 @@ public class PNMLreader{
 			}
 		}
 		
+		if(weight < 1){
+			return null;
+		}
+		
 		return new Arco(id, source, target, weight);
+	}
+	
+	/**
+	 * Parses the place or transition's name (e.g: t10, p5) and returns the index embedded
+	 * @param name place or transition name to be parsed
+	 * @return place or transition Index
+	 */
+	private Integer getPetriObjectIndexFromName(String objectName){
+		// gets object's name which contains its number
+		try{
+			// trims the letter away and parses the number
+			return Integer.parseInt(objectName.substring(1, objectName.length()));
+		} catch (NumberFormatException ex){
+			return null;
+		}
 	}
 }

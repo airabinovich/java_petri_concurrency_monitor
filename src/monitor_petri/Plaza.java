@@ -2,12 +2,14 @@ package monitor_petri;
 
 public class Plaza {
 	
+	private int indice;
 	private String id;
 	private int marcado;
 
-	public Plaza(String i, int m){
-		id = i;
-		marcado = m;
+	public Plaza(String _id, int _m, int _i){
+		this.id = _id;
+		this.marcado = _m;
+		this.indice = _i;
 	}
 	
 	public int getMarcado() {
@@ -23,6 +25,13 @@ public class Plaza {
 	}
 	public String setId(String id) {
 		return this.id = id;
+	}
+
+	/**
+	 * @return the indice
+	 */
+	public int getIndice() {
+		return indice;
 	}
 
 }
