@@ -10,7 +10,6 @@ import monitor_petri.Transicion;
 import org.javatuples.Triplet;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import java.io.File;
@@ -91,7 +90,6 @@ public class PNMLreader{
 			
 			return ret;
 	    } catch (Exception e) {
-	    	e.printStackTrace();
 	    	return null;
 	    }
 	}
