@@ -70,11 +70,9 @@ public class RdPBuilder {
 			boolean arcDone = false;
 			for(int i = 0; i < placesAmount ; i++){
 				if(arcDone){ break;}
-				String placeId = plazas[i].getId();
-				if(arcSource.equals(placeId)){
+				if(arcSource.equals(plazas[i].getId())){
 					for(int j = 0; j < transitionsAmount; j++){
-						String transitionId = transiciones[j].getId();
-						if(arcTarget.equals(transitionId)){
+						if(arcTarget.equals(transiciones[j].getId())){
 							// I don't use the place not transition index
 							// because there might not be all of them
 							// e.g: t2 doesn't exist and t5 is the last but it will be on position 4 instead of 5
@@ -91,11 +89,9 @@ public class RdPBuilder {
 			}
 			for(int j = 0; j < transitionsAmount; j++){
 				if(arcDone){ break;	}
-				String transitionId = transiciones[j].getId();
-				if(arcSource.equals(transitionId)){
+				if(arcSource.equals(transiciones[j].getId())){
 					for(int i = 0; i < placesAmount; i++){
-						String placeId = plazas[i].getId();
-						if(arcTarget.equals(placeId)){
+						if(arcTarget.equals(plazas[i].getId())){
 							pos[i][j] = arc.getWeight();
 							arcDone = true;
 							break;

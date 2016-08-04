@@ -35,4 +35,12 @@ public class Arco {
 	public String getId_target() {
 		return id_target;
 	}
+
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+
 }
