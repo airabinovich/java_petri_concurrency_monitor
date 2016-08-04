@@ -5,8 +5,7 @@ import org.javatuples.Septet;
 public class main {
 
 	public static void main(String[] args) {
-
-		String pnmlFile = "./src/readerWriter.pnml";
+		String pnmlFile = "resources/petriNets/readerWriter.pnml";
 		RdPBuilder petriNetBuilder;
 		RdP petriNet;
 		try {

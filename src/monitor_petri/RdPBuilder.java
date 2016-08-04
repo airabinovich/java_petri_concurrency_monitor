@@ -47,33 +47,72 @@ public class RdPBuilder {
 	 * @return a 3-tuple containing <PreI matrix, PosI matrix, I matrix>
 	 */
 	private Triplet<Integer[][], Integer[][], Integer[][]> rdpObjetcts2Matrixes(Plaza[] plazas, Transicion[] transiciones, Arco[] arcos){
-		int placesAmount = plazas.length;
-		int transitionsAmount = transiciones.length;
+		final int placesAmount = plazas.length;
+		final int transitionsAmount = transiciones.length;
 		Integer[][] pre = new Integer[placesAmount][transitionsAmount];
 		Integer[][] pos = new Integer[placesAmount][transitionsAmount];
 		Integer[][] inc = new Integer[placesAmount][transitionsAmount];
-		for(int a=0; a<arcos.length; a++){
-			for(int i=0; i<plazas.length; i++){
-				if(arcos[a].getId_source().equals(plazas[i].getId())){
-					for(int j=0; j<transiciones.length; j++){
-						if(arcos[a].getId_target().equals(transiciones[j].getId())){
-							pre[plazas[i].getIndice()][transiciones[j].getIndice()] = arcos[a].getWeight();
-						}						
+		
+		for(int i = 0; i < placesAmount; i++){
+			for(int j = 0; j < transitionsAmount; j++){
+				// since not all fields will be filled in the following loops
+				// and since Integer default value is null
+				// I need to fill the matrixes with zeros
+				pre[i][j] = 0;
+				pos[i][j] = 0;
+				inc[i][j] = 0;
+			}
+		}
+		
+		for( Arco arc : arcos){
+			String arcSource = arc.getId_source();
+			String arcTarget = arc.getId_target();
+			boolean arcDone = false;
+			for(int i = 0; i < placesAmount ; i++){
+				if(arcDone){ break;}
+				String placeId = plazas[i].getId();
+				if(arcSource.equals(placeId)){
+					for(int j = 0; j < transitionsAmount; j++){
+						String transitionId = transiciones[j].getId();
+						if(arcTarget.equals(transitionId)){
+							// I don't use the place not transition index
+							// because there might not be all of them
+							// e.g: t2 doesn't exist and t5 is the last but it will be on position 4 instead of 5
+							pre[i][j] = arc.getWeight();
+							arcDone = true;
+							break;
+						}
 					}
 				}
 			}
-			for(int j=0; j<transiciones.length; j++){
-				if(arcos[a].getId_source().equals(transiciones[j].getId())){
-					for(int i=0; i<plazas.length; i++){
-						if(arcos[a].getId_target().equals(plazas[j].getId())){
-							pos[plazas[i].getIndice()][transiciones[j].getIndice()] = arcos[a].getWeight();
-						}						
+			if(arcDone){
+				// if I already filled a pre matrix field, I won't fill any pos matrix field with this arc's info
+				continue;
+			}
+			for(int j = 0; j < transitionsAmount; j++){
+				if(arcDone){ break;	}
+				String transitionId = transiciones[j].getId();
+				if(arcSource.equals(transitionId)){
+					for(int i = 0; i < placesAmount; i++){
+						String placeId = plazas[i].getId();
+						if(arcTarget.equals(placeId)){
+							pos[i][j] = arc.getWeight();
+							arcDone = true;
+							break;
+						}
 					}
 				}
 			}
 		}
 		
-		return new Triplet<Integer[][], Integer[][], Integer[][]>(pre, pos, getIncMatrix(pre,pos,plazas.length,transiciones.length));
+		// now we have both matrixes pre and pos, let's get inc = pos - pre
+		for(int i = 0; i < placesAmount; i++){
+			for(int j = 0; j < transitionsAmount; j++){
+				inc[i][j] = pos[i][j] - pre[i][j];
+			}
+		}
+		
+		return new Triplet<Integer[][], Integer[][], Integer[][]>(pre, pos, inc);
 	}
 	
 	/**
@@ -90,13 +129,4 @@ public class RdPBuilder {
 		return initialMarking.toArray(ret);
 	}
 	
-	private Integer[][] getIncMatrix(Integer[][] pre, Integer[][] pos, Integer p, Integer t){
-		Integer[][] inc = new Integer[p][t];
-		for(int i=0;i<p;i++){
-	        for(int j=0;j<t;j++){
-	                inc[i][j]=pre[i][j]-pos[i][j];
-	        }
-		}
-		return inc;
-	}
 }
