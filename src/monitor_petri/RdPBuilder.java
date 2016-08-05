@@ -11,12 +11,19 @@ public class RdPBuilder {
 	
 	private PNMLreader reader;
 	
-	public RdPBuilder(String pathToPNML){
+	public RdPBuilder(String pathToPNML) throws NullPointerException{
 		try {
-			reader = new PNMLreader(pathToPNML);
+			this.reader = new PNMLreader(pathToPNML);
 		} catch (FileNotFoundException | SecurityException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public RdPBuilder(PNMLreader _reader) throws NullPointerException{
+		if(_reader == null){
+			throw new NullPointerException("Invalid reader argument");
+		}
+		this.reader = _reader;
 	}
 	
 	public Septet<Plaza[], Transicion[], Arco[], Integer[], Integer[][], Integer[][], Integer[][]> buildPetriNetObjects(){

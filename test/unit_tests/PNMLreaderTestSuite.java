@@ -128,8 +128,9 @@ public class PNMLreaderTestSuite {
 	@Test
 	public void PNMLreaderShouldThrowFileNotFoundExceptionWhenFileDoesNotExist() {
 		try {
+			@SuppressWarnings("unused")
 			PNMLreader reader = new PNMLreader("nonExistingFile");
-			fail("Exception should be thrown before this point");
+			fail("Exception should've be thrown before this point");
 		} catch (Exception e) {
 			assertEquals(e.getClass().getSimpleName(), "FileNotFoundException");
 		}

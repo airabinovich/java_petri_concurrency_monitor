@@ -38,7 +38,7 @@ public class PNMLreader{
 	
 	File pnmlFile;
 	
-	public PNMLreader(String pnmlPath) throws FileNotFoundException, SecurityException{
+	public PNMLreader(String pnmlPath) throws FileNotFoundException, SecurityException, NullPointerException{
 		pnmlFile = new File(pnmlPath);
 		
 		if(!pnmlFile.exists()){
