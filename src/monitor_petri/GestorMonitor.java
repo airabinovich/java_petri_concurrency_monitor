@@ -3,10 +3,13 @@ package monitor_petri;
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
+import Petri.PetriNet;
+import Petri.Transition;
+
 public class GestorMonitor extends Thread {
 
 	//Red de petri
-	private RdP rdp;	
+	private PetriNet rdp;	
 	//Cola de entrada es un colaDeEntrada FIFO
 	private Semaphore colaDeEntrada = new Semaphore(1,true);
 	//Array de colas de variables de condicion
@@ -15,13 +18,13 @@ public class GestorMonitor extends Thread {
 	private Politica politica;
 
 	//Constructor del gestor del monitor
-	public GestorMonitor(final RdP red, Politica p) {
+	public GestorMonitor(final PetriNet red, Politica p) {
 		// TODO Auto-generated constructor stub
 		rdp = red;
 		politica = p;
 	}
 
-	public void disparo_transicion(Transicion t){
+	public void disparo_transicion(Transition t){
 		try {
 			colaDeEntrada.acquire();
 		} catch (InterruptedException e) {
@@ -32,11 +35,11 @@ public class GestorMonitor extends Thread {
 		while(disparoDisponible){
 			// disparoDisponible es el k que dice Orlando (nombre horrible)
 			// 
-			disparoDisponible = rdp.disparo(t);
+			disparoDisponible = rdp.fire(t);
 			if(disparoDisponible){
 				//si la pudo disparar, veamos si se sensibilizó alguna automática
 				//o existe alguna automática sensibilizada de antes
-				Transicion vs[] = rdp.sensibilizadas();
+				Transition vs[] = rdp.getEnabledTransitions();
 				Cola ve[] = colasVarCond;
 				//WTF??? Transicion ee[] = etiquetas.get_etiquetas_entrada();
 				//Las transiciones ee son las que son automaticas (vector booleano T*1)
@@ -45,8 +48,8 @@ public class GestorMonitor extends Thread {
 				boolean m = (vs.length != 0) && (ve.length != 0 );//|| ee); //ESTA MAL
 				if (!m){
 					// sí hay alguna transición sensibilizada
-					Transicion t_aux = politica.cual(vs);
-					if(t_aux.getEtiqueta().isAutomatica()){
+					Transition t_aux = politica.cual(vs);
+					if(t_aux.getLabel().isAutomatic()){
 						t = t_aux;
 					}
 					else{

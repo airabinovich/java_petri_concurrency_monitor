@@ -1,15 +1,16 @@
-package monitor_petri;
+package Petri;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
-
-import monitor_petri.Arco;
-import monitor_petri.Etiqueta;
-import monitor_petri.Plaza;
-import monitor_petri.Transicion;
 
 import org.javatuples.Triplet;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+
+import Petri.Arc;
+import Petri.Label;
+import Petri.Place;
+import Petri.Transition;
+
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import java.io.File;
@@ -53,9 +54,9 @@ public class PNMLreader{
 	 * parses PNML file and returns all petri objects embedded
 	 * @return a Triplet containing places, transitions and arcs inside the PNML
 	 */
-	public Triplet<Plaza[], Transicion[], Arco[]> parseFileAndGetPetriObjects(){
+	public Triplet<Place[], Transition[], Arc[]> parseFileAndGetPetriObjects(){
 		try {
-			Triplet<Plaza[], Transicion[], Arco[]> ret = null;
+			Triplet<Place[], Transition[], Arc[]> ret = null;
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			Document doc = dBuilder.parse(pnmlFile);
@@ -99,10 +100,10 @@ public class PNMLreader{
 	 * @param netElements a list of nodes children of page node
 	 * @return a Triplet containing all places, transitions and arcs inside netElements
 	 */
-	private Triplet<Plaza[], Transicion[], Arco[]> getPetriObjectsFromNodeList(NodeList netElements){
-		ArrayList<Plaza> places = new ArrayList<Plaza>();
-		ArrayList<Transicion> transitions = new ArrayList<Transicion>();
-		ArrayList<Arco> arcs = new ArrayList<Arco>();
+	private Triplet<Place[], Transition[], Arc[]> getPetriObjectsFromNodeList(NodeList netElements){
+		ArrayList<Place> places = new ArrayList<Place>();
+		ArrayList<Transition> transitions = new ArrayList<Transition>();
+		ArrayList<Arc> arcs = new ArrayList<Arc>();
 		for(int index = 0; index < netElements.getLength(); index++){
 			Node child = netElements.item(index);
 			if(child.getNodeType() == Node.ELEMENT_NODE ){
@@ -122,18 +123,18 @@ public class PNMLreader{
 		}
 		
 		//sort places and transitions using their indexes
-		places.sort((Plaza p1, Plaza p2) -> (p1.getIndice() - p2.getIndice()));
-		transitions.sort((Transicion t1, Transicion t2) -> (t1.getIndice() - t2.getIndice()));
+		places.sort((Place p1, Place p2) -> (p1.getIndex() - p2.getIndex()));
+		transitions.sort((Transition t1, Transition t2) -> (t1.getIndex() - t2.getIndex()));
 		
-		Plaza[] retPlaces = new Plaza[places.size()];
-		Transicion[] retTransitions = new Transicion[transitions.size()];
-		Arco[] retArcs = new Arco[arcs.size()];
+		Place[] retPlaces = new Place[places.size()];
+		Transition[] retTransitions = new Transition[transitions.size()];
+		Arc[] retArcs = new Arc[arcs.size()];
 
 		retPlaces = places.toArray(retPlaces);
 		retTransitions = transitions.toArray(retTransitions);
 		retArcs = arcs.toArray(retArcs);
 		
-		return new Triplet<Plaza[], Transicion[], Arco[]>(retPlaces, retTransitions, retArcs);
+		return new Triplet<Place[], Transition[], Arc[]>(retPlaces, retTransitions, retArcs);
 	}
 	
 	/**
@@ -143,7 +144,7 @@ public class PNMLreader{
 	 * @param nl placeNode children nodes as NodeList
 	 * @return
 	 */
-	private Plaza getPlace(String id, Node placeNode, NodeList nl){
+	private Place getPlace(String id, Node placeNode, NodeList nl){
 		Integer m_inicial = 0;
 		Integer placeIndex = null;
 		for(int i=0; i<nl.getLength(); i++){
@@ -164,7 +165,7 @@ public class PNMLreader{
 			return null;
 		}
 		
-		return new Plaza(id, m_inicial, placeIndex);
+		return new Place(id, m_inicial, placeIndex);
 	}
 	
 	/**
@@ -174,7 +175,7 @@ public class PNMLreader{
 	 * @param nl transitionNode children nodes as NodeList
 	 * @return
 	 */
-	private Transicion getTransition(String id, Node transitionNode, NodeList nl){
+	private Transition getTransition(String id, Node transitionNode, NodeList nl){
 		
 		final String labelRegexString = "[A-Z]";
 		final Pattern labelRegex = Pattern.compile(labelRegexString, Pattern.CASE_INSENSITIVE);
@@ -203,7 +204,7 @@ public class PNMLreader{
 			return null;
 		}
 		
-		return new Transicion(id, new Etiqueta(isAutomatic, isInformed), transitionIndex);
+		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex);
 	}
 	
 	/**
@@ -213,7 +214,7 @@ public class PNMLreader{
 	 * @param nl arcNode children nodes as NodeList
 	 * @return
 	 */
-	private Arco getArc(String id, Node arcNode, NodeList nl){
+	private Arc getArc(String id, Node arcNode, NodeList nl){
 		Element arcElement = (Element)arcNode;
 		String source = arcElement.getAttribute(SOURCE);
 		String target = arcElement.getAttribute(TARGET);
@@ -233,7 +234,7 @@ public class PNMLreader{
 			return null;
 		}
 		
-		return new Arco(id, source, target, weight);
+		return new Arc(id, source, target, weight);
 	}
 	
 	/**
