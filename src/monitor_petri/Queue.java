@@ -2,25 +2,25 @@ package monitor_petri;
 
 import java.util.ArrayList;
 
-public class Cola {
+public class Queue {
 	
-	private ArrayList<Thread> cola = new ArrayList<Thread>();
+	private ArrayList<Thread> queue = new ArrayList<Thread>();
 	
-	public ArrayList<Thread> quienes_estan(){
-		return cola;
+	public ArrayList<Thread> whoAreIn(){
+		return queue;
 	}
 	
-	public Cola(){
+	public Queue(){
 		
 	}
 	
 	public void release(int t){
 		// TODO: revisar si realmente estoy despertando a ese thread
-		cola.get(t).notify();
+		queue.get(t).notify();
 	}
 	
 	public void wakeUp(Thread t){
-		int index = cola.indexOf(t);
+		int index = queue.indexOf(t);
 		release(index);
 	}
 	
@@ -29,7 +29,7 @@ public class Cola {
 	}
 	
 	private void goToSleep(Thread t){
-		cola.add(t);
+		queue.add(t);
 		try {
 			t.wait();
 		} catch (InterruptedException e) {

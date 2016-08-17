@@ -6,49 +6,49 @@ import java.util.concurrent.Semaphore;
 import Petri.PetriNet;
 import Petri.Transition;
 
-public class GestorMonitor extends Thread {
+public class MonitorManager extends Thread {
 
-	//Red de petri
-	private PetriNet rdp;	
-	//Cola de entrada es un colaDeEntrada FIFO
-	private Semaphore colaDeEntrada = new Semaphore(1,true);
-	//Array de colas de variables de condicion
-	private Cola[] colasVarCond;	
-	//Politica
-	private Politica politica;
+	//Petri net
+	private PetriNet pn;	
+	//inQueue is a FIFO queue
+	private Semaphore inQueue = new Semaphore(1,true);
+	//Array of condition variables queues
+	private Queue[] condVarQueue;	
+	//Politics
+	private Politics politics;
 
-	//Constructor del gestor del monitor
-	public GestorMonitor(final PetriNet red, Politica p) {
+	//Constructor
+	public MonitorManager(final PetriNet net, Politics p) {
 		// TODO Auto-generated constructor stub
-		rdp = red;
-		politica = p;
+		pn = net;
+		politics = p;
 	}
 
-	public void disparo_transicion(Transition t){
+	public void fireTransition(Transition t){
 		try {
-			colaDeEntrada.acquire();
+			inQueue.acquire();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		boolean disparoDisponible = true;
-		while(disparoDisponible){
-			// disparoDisponible es el k que dice Orlando (nombre horrible)
-			// 
-			disparoDisponible = rdp.fire(t);
-			if(disparoDisponible){
-				//si la pudo disparar, veamos si se sensibilizó alguna automática
-				//o existe alguna automática sensibilizada de antes
-				Transition vs[] = rdp.getEnabledTransitions();
-				Cola ve[] = colasVarCond;
+		boolean enabledFire = true;
+		while(enabledFire){
+			// enabledFire is "k" variable
+			enabledFire = pn.fire(t);
+			if(enabledFire){
+				//if it's possible to fire, let's see if some automatic transition were enabled 
+				//or existed before
+				Integer enabledTransitionsVector[] = pn.getEnabledTransitions();
+				Queue ve[] = condVarQueue;
+				
 				//WTF??? Transicion ee[] = etiquetas.get_etiquetas_entrada();
 				//Las transiciones ee son las que son automaticas (vector booleano T*1)
 				// quien es m? que significa?
 				//m es un vector de las transiciones que se pueden disparar entre las sensibilizas, las que estan en la cola y las automaticas
-				boolean m = (vs.length != 0) && (ve.length != 0 );//|| ee); //ESTA MAL
+				boolean m = (enabledTransitionsVector.length != 0) && (ve.length != 0 );//|| ee); //ESTA MAL
 				if (!m){
 					// sí hay alguna transición sensibilizada
-					Transition t_aux = politica.cual(vs);
+					Transition t_aux = politics.which(enabledTransitionsVector);
 					if(t_aux.getLabel().isAutomatic()){
 						t = t_aux;
 					}
@@ -60,24 +60,24 @@ public class GestorMonitor extends Thread {
 					}
 				}
 				else{
-					disparoDisponible = false;
+					enabledFire = false;
 				}
 			}
 			else{
-				colaDeEntrada.release();
+				inQueue.release();
 				// tengo que dormir al hilo actual en la cola asociada a la transición ti
 				// eso lo debemos obtener con un mapa
 				// colasVarCond[indice_a_obtener].goToSleep(Thread.getCurrentThread());
 			}
 		};
-		colaDeEntrada.release();
+		inQueue.release();
 	}
 	
-	public void set_guarda(int i, boolean k){
+	public void setGuard(int i, boolean k){
 		
 	}
 	
-	public void disparar_guarda(int i, boolean to){
+	public void fireGuard(int i, boolean to){
 		
 	}
 }

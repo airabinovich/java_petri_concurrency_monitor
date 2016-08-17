@@ -11,7 +11,7 @@ public class PetriNet {
 	private Place[] places;
 	private Transition[] transitions;
 	private Arc[] arcs;
-	private Transition[] enabledTransitions;
+	private Integer[] enabledTransitions; //Integer array, 1 if is enabled and 0 if isn't enabled
 	private Integer[][] pre;
 	private Integer[][] post;
 	private Integer[][] inc;
@@ -45,7 +45,21 @@ public class PetriNet {
 		return true;
 	}
 	
-	public Transition[] getEnabledTransitions(){
+	/**
+	 * gets the transitions array and evaluates each one if is enabled or not.
+	 * @return a boolean array that contains if each transition is enabled or not (true or false)
+	 */
+	public Integer[] getEnabledTransitions(){
+		Integer[] Tsenabled = new Integer[transitions.length];
+		for(Transition t : transitions){
+			if(isEnabled(t)){
+				Tsenabled[t.getIndex()] = 1;
+			}
+			else{
+				Tsenabled[t.getIndex()] = 0;
+			}
+		}
+		this.enabledTransitions = Tsenabled;
 		return this.enabledTransitions;
 	}
 	
@@ -115,6 +129,23 @@ public class PetriNet {
 	 */
 	public Integer[] getInitialMarking() {
 		return initialMarking;
+	}
+	
+	/**
+	 * @return if the transition is enabled or not
+	 * 
+	 * Leer filmina 19 del archivo "Redes_de_Petri_2013"
+	 */
+	public boolean isEnabled(Transition t){
+		int j = t.getIndex();
+		boolean enabled = true;
+		for (int i=0; i<places.length ; i++){
+			if (pre[i][j] > places[i].getMarking()){
+				enabled = false;
+				break;
+			}
+		}
+		return enabled;
 	}
 
 	/**
