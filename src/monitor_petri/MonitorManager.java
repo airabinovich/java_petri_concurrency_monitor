@@ -1,6 +1,5 @@
 package monitor_petri;
 
-import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
 import Petri.PetriNet;
@@ -15,10 +14,10 @@ public class MonitorManager extends Thread {
 	//Array of condition variables queues
 	private Queue[] condVarQueue;	
 	//Politics
-	private Politics politics;
+	private Policy politics;
 
 	//Constructor
-	public MonitorManager(final PetriNet net, Politics p) {
+	public MonitorManager(final PetriNet net, Policy p) {
 		// TODO Auto-generated constructor stub
 		pn = net;
 		politics = p;
@@ -38,7 +37,7 @@ public class MonitorManager extends Thread {
 			if(enabledFire){
 				//if it's possible to fire, let's see if some automatic transition were enabled 
 				//or existed before
-				Integer enabledTransitionsVector[] = pn.getEnabledTransitions();
+				Boolean enabledTransitionsVector[] = pn.getEnabledTransitions();
 				Queue ve[] = condVarQueue;
 				
 				//WTF??? Transicion ee[] = etiquetas.get_etiquetas_entrada();

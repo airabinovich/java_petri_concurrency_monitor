@@ -11,7 +11,6 @@ public class PetriNet {
 	private Place[] places;
 	private Transition[] transitions;
 	private Arc[] arcs;
-	private Integer[] enabledTransitions; //Integer array, 1 if is enabled and 0 if isn't enabled
 	private Integer[][] pre;
 	private Integer[][] post;
 	private Integer[][] inc;
@@ -31,13 +30,7 @@ public class PetriNet {
 	}
 	
 	public boolean fire(Transition t) {
-		int i;
-		for( i = 0; i< transitions.length; i++){
-			if(transitions[i].getId() == t.getId()){
-				break;
-			}
-		}
-		return fire(i);
+		return fire(t.getIndex());
 	}
 	
 	public boolean fire(int transicion){
@@ -49,18 +42,12 @@ public class PetriNet {
 	 * gets the transitions array and evaluates each one if is enabled or not.
 	 * @return a boolean array that contains if each transition is enabled or not (true or false)
 	 */
-	public Integer[] getEnabledTransitions(){
-		Integer[] Tsenabled = new Integer[transitions.length];
+	public Boolean[] getEnabledTransitions(){
+		Boolean[] enabledTransitions = new Boolean[transitions.length];
 		for(Transition t : transitions){
-			if(isEnabled(t)){
-				Tsenabled[t.getIndex()] = 1;
-			}
-			else{
-				Tsenabled[t.getIndex()] = 0;
-			}
+			enabledTransitions[t.getIndex()] = isEnabled(t);
 		}
-		this.enabledTransitions = Tsenabled;
-		return this.enabledTransitions;
+		return enabledTransitions;
 	}
 	
 	//No sabemos que hace todavia

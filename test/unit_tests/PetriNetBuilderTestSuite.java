@@ -68,7 +68,7 @@ public class PetriNetBuilderTestSuite {
 	}
 
 	@Test
-	public void RdPBuilderShouldThrowExceptionWhenNullPNMLreaderIsPassed() {
+	public void petriNetBuilderShouldThrowExceptionWhenNullPNMLreaderIsPassed() {
 		try{
 			@SuppressWarnings("unused")
 			PetriNetBuilder builder = new PetriNetBuilder((PNMLreader)null);
@@ -79,7 +79,7 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void RdPBuilderShouldThrowExceptionWhenNullStringIsPassed() {
+	public void petriNetBuilderShouldThrowExceptionWhenNullStringIsPassed() {
 		try{
 			@SuppressWarnings("unused")
 			PetriNetBuilder builder = new PetriNetBuilder((String)null);
@@ -90,7 +90,7 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void RdPBuilderShouldReturnSamePetriObjectsGottenFromPNMLreader(){
+	public void petriNetBuilderShouldReturnSamePetriObjectsGottenFromPNMLreader(){
 		try{
 			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
 			
@@ -108,7 +108,7 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void RdPBuilderShouldReturnCorrectInitialMarking(){
+	public void petriNetBuilderShouldReturnCorrectInitialMarking(){
 		try{
 			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
 			
@@ -121,7 +121,7 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void RdPBuilderShouldReturnCorrectCurrentMarking(){
+	public void petriNetBuilderShouldReturnCorrectCurrentMarking(){
 		try{
 			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
 			
@@ -134,7 +134,7 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void RdPBuilderShouldReturnCorrectPetriMatrixes(){
+	public void petriNetBuilderShouldReturnCorrectPetriMatrixes(){
 		try{
 			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
 			
@@ -148,6 +148,38 @@ public class PetriNetBuilderTestSuite {
 				Assert.assertArrayEquals(obtainedInc[i], expectedInc[i]);
 			}
 			
+		} catch(Exception e){
+			fail("No exception should've been thrown");
+		}
+	}
+	
+	@Test
+	public void petriNetBuilderShouldReturnPlacesInOrder(){
+		try{
+			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
+			
+			Place[] places = petriNet.getPlaces();
+			int patternIndex = 0;
+			for( Place p : places){
+				Assert.assertEquals(p.getIndex(), patternIndex);
+				patternIndex++;
+			}
+		} catch(Exception e){
+			fail("No exception should've been thrown");
+		}
+	}
+	
+	@Test
+	public void petriNetBuilderShouldReturnTransitionsInOrder(){
+		try{
+			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
+			
+			Transition[] transitions = petriNet.getTransitions();
+			int patternIndex = 0;
+			for( Transition t : transitions){
+				Assert.assertEquals(t.getIndex(), patternIndex);
+				patternIndex++;
+			}
 		} catch(Exception e){
 			fail("No exception should've been thrown");
 		}

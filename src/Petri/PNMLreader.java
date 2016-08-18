@@ -122,9 +122,8 @@ public class PNMLreader{
 			}
 		}
 		
-		//sort places and transitions using their indexes
-		places.sort((Place p1, Place p2) -> (p1.getIndex() - p2.getIndex()));
-		transitions.sort((Transition t1, Transition t2) -> (t1.getIndex() - t2.getIndex()));
+		places = checkFixAndSortPlacesIndexes(places);
+		transitions = checkFixAndSortTransitionsIndexes(transitions);
 		
 		Place[] retPlaces = new Place[places.size()];
 		Transition[] retTransitions = new Transition[transitions.size()];
@@ -181,7 +180,7 @@ public class PNMLreader{
 		final Pattern labelRegex = Pattern.compile(labelRegexString, Pattern.CASE_INSENSITIVE);
 		
 		Integer transitionIndex = null;
-		//Una transicion es NO automatica y NO informa, a menos que se diga lo contrario
+		//A transition is NOT automatic and NOT informed unless specified
 		boolean isAutomatic = false, isInformed = false;
 		for(int i=0; i<nl.getLength(); i++){
 			String currentNodeName = nl.item(i).getNodeName();
@@ -250,5 +249,61 @@ public class PNMLreader{
 		} catch (NumberFormatException ex){
 			return null;
 		}
+	}
+	
+	private ArrayList<Place> checkFixAndSortPlacesIndexes(ArrayList<Place> places){
+		int patternIndex = 0;
+		boolean needToFix = false;
+		
+		places.sort((Place p1, Place p2) -> (p1.getIndex() - p2.getIndex()));
+		
+		for( Place p : places){
+			if(p.getIndex() != patternIndex){
+				needToFix = true;
+				break;
+			}
+			patternIndex++;
+		}
+		
+		if(!needToFix){
+			return places;
+		}
+		
+		patternIndex = 0;
+		ArrayList<Place> newPlaces = new ArrayList<Place>();
+		for( Place p : places){
+			newPlaces.add(new Place(p.getId(), p.getMarking(), patternIndex));
+			patternIndex++;
+		}
+		
+		return newPlaces;
+	}
+	
+	private ArrayList<Transition> checkFixAndSortTransitionsIndexes(ArrayList<Transition> transitions){
+		int patternIndex = 0;
+		boolean needToFix = false;
+		
+		transitions.sort((Transition t1, Transition t2) -> (t1.getIndex() - t2.getIndex()));
+		
+		for( Transition t : transitions){
+			if( t.getIndex() != patternIndex){
+				needToFix = true;
+				break;
+			}
+			patternIndex++;
+		}
+		
+		if(!needToFix){
+			return transitions;
+		}
+		
+		patternIndex = 0;
+		ArrayList<Transition> newTransitions = new ArrayList<Transition>();
+		for( Transition t : transitions){
+			newTransitions.add(new Transition(t.getId(), t.getLabel(), patternIndex));
+			patternIndex++;
+		}
+		
+		return newTransitions;
 	}
 }
