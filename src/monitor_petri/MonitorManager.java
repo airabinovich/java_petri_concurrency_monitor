@@ -33,7 +33,7 @@ public class MonitorManager extends Thread {
 		boolean enabledFire = true;
 		while(enabledFire){
 			// enabledFire is "k" variable
-			enabledFire = pn.fire(t);
+			enabledFire = pn.fire(t); // returns true if t was fired
 			if(enabledFire){
 				//if it's possible to fire, let's see if some automatic transition were enabled 
 				//or existed before

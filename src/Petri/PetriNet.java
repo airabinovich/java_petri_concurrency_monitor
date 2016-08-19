@@ -8,16 +8,26 @@ import org.javatuples.Triplet;
 
 public class PetriNet {
 	
-	private Place[] places;
-	private Transition[] transitions;
-	private Arc[] arcs;
-	private Integer[][] pre;
-	private Integer[][] post;
-	private Integer[][] inc;
-	private Integer[] currentMarking;
-	private Integer[] initialMarking;
+	protected Place[] places;
+	protected Transition[] transitions;
+	protected Arc[] arcs;
+	protected Integer[][] pre;
+	protected Integer[][] post;
+	protected Integer[][] inc;
+	protected Integer[] currentMarking;
+	protected Integer[] initialMarking;
 	
-	private PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
+	/**
+	 * Builds a PetriNet Object. This is intended to be used by PetriNetBuilder
+	 * @param _places Array of Place objects (dimension p)
+	 * @param _transitions Array of Transition objects (dimension t)
+	 * @param _arcs Array of Arcs
+	 * @param _initialMarking Array of Integers (tokens in each place) (dimension p)
+	 * @param _preI Pre-Incidence matrix (dimension p*t)
+	 * @param _posI Post-Incidence matrix (dimension p*t)
+	 * @param _I Incidence matrix (dimension p*t)
+	 */
+	protected PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
 			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I){
 		this.places = _places;
 		this.transitions = _transitions;
@@ -29,12 +39,32 @@ public class PetriNet {
 		this.inc = _I;
 	}
 	
+	/**
+	 * Fires the transition t if it's enabled
+	 * @param t Transition to be fired
+	 * @return true if t was fired
+	 */
 	public boolean fire(Transition t) {
 		return fire(t.getIndex());
 	}
 	
-	public boolean fire(int transicion){
+	/**
+	 * Fires the transition whose index if transitionIndex if it's enabled
+	 * @param transitionIndex Transition's index to be fired
+	 * @return true if transitionIndex was fired
+	 */
+	public boolean fire(int transitionIndex){
+		// m_(i+1) = m_i + I*d
+		// when d is a vector where every element is 0 but the nth which is 1
+		// it's equivalent to pick nth column from Incidence matrix (I) 
+		// and add it to the current marking (m_i)
+		if(!isEnabled(transitionIndex)){
+			return false;
+		}
 		
+		for(int i = 0; i < currentMarking.length; i++){
+			currentMarking[i] +=  inc[i][transitionIndex];
+		}
 		return true;
 	}
 	
@@ -119,20 +149,27 @@ public class PetriNet {
 	}
 	
 	/**
-	 * @return if the transition is enabled or not
+	 * @return whether the transition is enabled or not
 	 * 
-	 * Leer filmina 19 del archivo "Redes_de_Petri_2013"
 	 */
-	public boolean isEnabled(Transition t){
-		int j = t.getIndex();
+	public boolean isEnabled(int transitionIndex){
 		boolean enabled = true;
 		for (int i=0; i<places.length ; i++){
-			if (pre[i][j] > places[i].getMarking()){
+			if (pre[i][transitionIndex] > currentMarking[i]){
 				enabled = false;
 				break;
 			}
 		}
 		return enabled;
+	}
+	
+	/**
+	 * @return whether the transition is enabled or not
+	 * 
+	 * TODO: Leer filmina 19 del archivo "Redes_de_Petri_2013"
+	 */
+	public boolean isEnabled(Transition t){
+		return isEnabled(t.getIndex());
 	}
 
 	/**
@@ -200,8 +237,7 @@ public class PetriNet {
 			
 			for(int i = 0; i < placesAmount; i++){
 				for(int j = 0; j < transitionsAmount; j++){
-					// since not all fields will be filled in the following loops
-					// and since Integer default value is null
+					// Since Integer default value is null
 					// I need to fill the matrixes with zeros
 					pre[i][j] = 0;
 					pos[i][j] = 0;
