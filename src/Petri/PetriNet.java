@@ -64,6 +64,7 @@ public class PetriNet {
 		
 		for(int i = 0; i < currentMarking.length; i++){
 			currentMarking[i] +=  inc[i][transitionIndex];
+			places[i].setMarking(currentMarking[i]);
 		}
 		return true;
 	}

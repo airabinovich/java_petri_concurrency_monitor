@@ -12,7 +12,7 @@ public class MonitorManager extends Thread {
 	//inQueue is a FIFO queue
 	private Semaphore inQueue = new Semaphore(1,true);
 	//Array of condition variables queues
-	private Queue[] condVarQueue;	
+	private FairQueue[] condVarQueue;	
 	//Politics
 	private Policy politics;
 
@@ -38,7 +38,7 @@ public class MonitorManager extends Thread {
 				//if it's possible to fire, let's see if some automatic transition were enabled 
 				//or existed before
 				Boolean enabledTransitionsVector[] = pn.getEnabledTransitions();
-				Queue ve[] = condVarQueue;
+				FairQueue ve[] = condVarQueue;
 				
 				//WTF??? Transicion ee[] = etiquetas.get_etiquetas_entrada();
 				//Las transiciones ee son las que son automaticas (vector booleano T*1)
