@@ -1,5 +1,6 @@
 package monitor_petri;
 
+import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
 import Petri.PetriNet;
@@ -13,14 +14,21 @@ public class MonitorManager extends Thread {
 	private Semaphore inQueue = new Semaphore(1,true);
 	//Array of condition variables queues
 	private FairQueue[] condVarQueue;	
-	//Politics
-	private Policy politics;
+	//Policies
+	private Policy policies;
 
 	//Constructor
 	public MonitorManager(final PetriNet net, Policy p) {
 		// TODO Auto-generated constructor stub
 		pn = net;
-		politics = p;
+		policies = p;
+		//Creates an array containing the condition variables queues which contain:
+		//a Semaphore (with 0 permits and fifo policy) if the associated transition is not automatic
+		//and null otherwise
+		condVarQueue = new FairQueue[pn.getTransitions().length];
+		for(int i=0; i<pn.getTransitions().length; i++){
+			condVarQueue[i] = new FairQueue(pn.getTransitions()[i]);
+		}
 	}
 
 	public void fireTransition(Transition t){
@@ -38,24 +46,31 @@ public class MonitorManager extends Thread {
 				//if it's possible to fire, let's see if some automatic transition were enabled 
 				//or existed before
 				Boolean enabledTransitionsVector[] = pn.getEnabledTransitions();
-				FairQueue ve[] = condVarQueue;
+				Boolean queuesState[] = getQueuesState(); //Is there someone in the queue?
+				Boolean automatics[] = pn.getAutomaticTransitions();
 				
-				//WTF??? Transicion ee[] = etiquetas.get_etiquetas_entrada();
-				//Las transiciones ee son las que son automaticas (vector booleano T*1)
-				// quien es m? que significa?
-				//m es un vector de las transiciones que se pueden disparar entre las sensibilizas, las que estan en la cola y las automaticas
-				boolean m = (enabledTransitionsVector.length != 0) && (ve.length != 0 );//|| ee); //ESTA MAL
-				if (!m){
-					// sí hay alguna transición sensibilizada
-					Transition t_aux = politics.which(enabledTransitionsVector);
-					if(t_aux.getLabel().isAutomatic()){
-						t = t_aux;
+				Boolean m[] = new Boolean[enabledTransitionsVector.length];
+				for(int i=0; i<m.length; i++){
+					m[i] = Boolean.logicalAnd(enabledTransitionsVector[i],(Boolean.logicalOr(queuesState[i], automatics[i])));
+				}
+				
+				//someEnabled is true if at least one item of m has a true value.
+				Boolean someEnabled = false;
+				for(Boolean enabled : m){
+					if(enabled){
+						someEnabled = true;
+					}
+				}
+				if (someEnabled){
+					// is there some enabled transition to be fired?
+					int t_aux_index = policies.which(m);
+					if(automatics[t_aux_index]){
+						t = pn.getTransitions()[t_aux_index];
 					}
 					else{
-						// hay sensibilizada pero no automática. Si hay algún hilo asociado hay que dispararlo
-						// tengo que despertar al primer hilo dormido en la cola asociada a la transición t_aux
-						// eso lo debemos obtener con un mapa
-						//colasVarCond.wakeUp(1);	
+						//There is a enabled but not automatic transition.
+						//So, wakes up the associated thread to transition.
+						condVarQueue[t_aux_index].wakeUp();
 					}
 				}
 				else{
@@ -68,10 +83,23 @@ public class MonitorManager extends Thread {
 				// eso lo debemos obtener con un mapa
 				// colasVarCond[indice_a_obtener].goToSleep(Thread.getCurrentThread());
 			}
-		};
+		}
 		inQueue.release();
+		condVarQueue[t.getIndex()].wakeUp();
 	}
 	
+	private Boolean[] getQueuesState() {
+		Boolean[] queues = new Boolean[condVarQueue.length];
+		Boolean empty = true;
+		for(int i=0; i<condVarQueue.length; i++){
+			if(condVarQueue[i].isEmpty()){
+				empty = false;
+			}
+			queues[i] = empty;
+		}
+		return queues;
+	}
+
 	public void setGuard(int i, boolean k){
 		
 	}

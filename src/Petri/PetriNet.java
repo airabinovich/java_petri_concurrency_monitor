@@ -10,6 +10,7 @@ public class PetriNet {
 	
 	protected Place[] places;
 	protected Transition[] transitions;
+	protected Boolean[] automaticTransitions;
 	protected Arc[] arcs;
 	protected Integer[][] pre;
 	protected Integer[][] post;
@@ -31,6 +32,7 @@ public class PetriNet {
 			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I){
 		this.places = _places;
 		this.transitions = _transitions;
+		this.automaticTransitions = getAutomatic();
 		this.arcs = _arcs;
 		this.initialMarking = _initialMarking.clone();
 		this.currentMarking = _initialMarking;
@@ -39,6 +41,18 @@ public class PetriNet {
 		this.inc = _I;
 	}
 	
+	private Boolean[] getAutomatic() {
+		Boolean[] automatics = new Boolean[transitions.length];
+		Boolean automatic = false;
+		for(int i=0; i<automatics.length; i++){
+			if(transitions[i].getLabel().isAutomatic()){
+				automatic = true;
+			}
+			automatics[i] = automatic;
+		}
+		return automatics;
+	}
+
 	/**
 	 * Fires the transition t if it's enabled
 	 * @param t Transition to be fired
@@ -79,6 +93,10 @@ public class PetriNet {
 			enabledTransitions[t.getIndex()] = isEnabled(t);
 		}
 		return enabledTransitions;
+	}
+	
+	public Boolean[] getAutomaticTransitions(){
+		return automaticTransitions;
 	}
 	
 	//No sabemos que hace todavia

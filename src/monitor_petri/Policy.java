@@ -15,9 +15,9 @@ public class Policy {
 		
 	}
 	
-	public Transition which(Boolean[] enabled){
+	public int which(Boolean[] enabled){
 		Vector<Transition> en = new Vector<Transition>();
 		en.copyInto(enabled);
-		return en.firstElement();
+		return en.firstElement().getIndex();
 	}
 }
