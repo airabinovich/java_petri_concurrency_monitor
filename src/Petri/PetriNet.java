@@ -10,13 +10,13 @@ public class PetriNet {
 	
 	protected Place[] places;
 	protected Transition[] transitions;
-	protected Boolean[] automaticTransitions;
 	protected Arc[] arcs;
 	protected Integer[][] pre;
 	protected Integer[][] post;
 	protected Integer[][] inc;
 	protected Integer[] currentMarking;
 	protected Integer[] initialMarking;
+	protected boolean[] automaticTransitions;
 	
 	/**
 	 * Builds a PetriNet Object. This is intended to be used by PetriNetBuilder
@@ -41,14 +41,10 @@ public class PetriNet {
 		this.inc = _I;
 	}
 	
-	private Boolean[] getAutomatic() {
-		Boolean[] automatics = new Boolean[transitions.length];
-		Boolean automatic = false;
+	private boolean[] getAutomatic() {
+		boolean[] automatics = new boolean[transitions.length];
 		for(int i=0; i<automatics.length; i++){
-			if(transitions[i].getLabel().isAutomatic()){
-				automatic = true;
-			}
-			automatics[i] = automatic;
+			automatics[i] = transitions[i].getLabel().isAutomatic();
 		}
 		return automatics;
 	}
@@ -95,7 +91,7 @@ public class PetriNet {
 		return enabledTransitions;
 	}
 	
-	public Boolean[] getAutomaticTransitions(){
+	public boolean[] getAutomaticTransitions(){
 		return automaticTransitions;
 	}
 	

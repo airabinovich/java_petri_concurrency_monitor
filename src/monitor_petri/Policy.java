@@ -1,9 +1,5 @@
 package monitor_petri;
 
-import java.util.Vector;
-
-import Petri.Transition;
-
 //Posiblemente sea un strategy donde tengamos distintas políticas (FIFO, LRU, etc)
 /**
  * Transitions Policy. Used for condition variables in Monitor
@@ -15,9 +11,12 @@ public class Policy {
 		
 	}
 	
-	public int which(Boolean[] enabled){
-		Vector<Transition> en = new Vector<Transition>();
-		en.copyInto(enabled);
-		return en.firstElement().getIndex();
+	public int which(boolean[] enabled){
+		for(int i = 0; i < enabled.length; i++){
+			if(enabled[i]){
+				return i;
+			}
+		}
+		return -1;
 	}
 }

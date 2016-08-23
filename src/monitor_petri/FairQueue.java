@@ -2,38 +2,39 @@ package monitor_petri;
 
 import java.util.concurrent.Semaphore;
 
-import Petri.Transition;
-
 public class FairQueue extends Thread implements VarCondQueue{
 	
 	private Semaphore sem;
 	
-	public FairQueue(Transition t){
-		if(t.getLabel().isAutomatic()){
-			sem = null;
-		}
-		else{
-			sem = new Semaphore(0,true);
-		}
+	/**
+	 * A fair sleeping queue for threads. 
+	 * A call to {@link #sleep() sleep} sends the calling thread to sleep until any threads calls {@link #wakeUp() wakeUp}
+	 */
+	public FairQueue(){
+		sem = new Semaphore(0,true);
 	}
 	
-	public void sleep() {
-		// TODO Auto-generated method stub
+	public void sleep(){
 		try {
 			sem.acquire();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} 
 	}
 
 	public void wakeUp() {
-		// TODO Auto-generated method stub
-		sem.release();
+		if(!isEmpty()){
+			sem.release();
+		}
 	}
 
+	
 	public boolean isEmpty() {
-		// TODO Auto-generated method stub
-		return sem.hasQueuedThreads();
+		return !sem.hasQueuedThreads();
+	}
+
+	@Override
+	public int getSize() {
+		return sem.getQueueLength();
 	}
 }
