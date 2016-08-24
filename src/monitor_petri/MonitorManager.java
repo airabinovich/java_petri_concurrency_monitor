@@ -1,25 +1,30 @@
 package monitor_petri;
 
-import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
 import Petri.PetriNet;
 import Petri.Transition;
 
-public class MonitorManager extends Thread {
+public class MonitorManager {
 
-	private PetriNet pn;	
-	//inQueue is a FIFO queue for the monitor access
+	/** Petri Net to command the monitor orchestration */
+	private PetriNet petri;
+	/** mutex for the monitor access with a FIFO queue associated*/
 	private Semaphore inQueue = new Semaphore(1,true);
+	/** condition variable queues where locked threads will wait */
 	private VarCondQueue[] condVarQueue;	
-	private Policy policies;
+	/**  */
+	private TransitionsPolicy transitionsPolicy;
 
-	public MonitorManager(final PetriNet net, Policy p) {
-		pn = net;
-		policies = p;
-		condVarQueue = new FairQueue[pn.getTransitions().length];
-		final boolean automaticTransitions[] = pn.getAutomaticTransitions();
-		for(int i=0; i<automaticTransitions.length; i++){
+	public MonitorManager(final PetriNet _petri, TransitionsPolicy _policy) {
+		if(_petri == null || _policy == null){
+			throw new IllegalArgumentException(this.getClass().getName() + " construcor. Invalid arguments");
+		}
+		petri = _petri;
+		transitionsPolicy = _policy;
+		condVarQueue = new FairQueue[petri.getTransitions().length];
+		final boolean automaticTransitions[] = petri.getAutomaticTransitions();
+		for(int i = 0; i < automaticTransitions.length; i++){
 			// Only non-automatic transitions have an associated queue
 			// since no thread will try to fire an automatic transition
 			// and thus will not sleep if fails
@@ -29,80 +34,101 @@ public class MonitorManager extends Thread {
 		}
 	}
 
-	public void fireTransition(Transition t){
+	/**
+	 * Tries to fire a transition.
+	 * <ul>
+	 * <li>If fails, the calling thread sleeps in the corresponding VarCondQueue</li>
+	 * <li>If succeedes, tries to fire any new enabled transition.
+	 * This may lead into two situations:</li>
+	 * <ul>
+	 * <li>The transition to fire is automatic, just fire it</li>
+	 * <li>The transition to fire is not automatic but another thread was waiting to fire it.
+	 * 		  In that case, wake up that thread and leave the monitor</li>
+	 * </ul>
+	 * @param transitionToFire the transition to fire
+	 */
+	public void fireTransition(Transition transitionToFire){
 		try {
 			inQueue.acquire();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		boolean enabledFire = true;
-		while(enabledFire){
-			// enabledFire is "k" variable
-			enabledFire = pn.fire(t); // returns true if t was fired
-			if(enabledFire){
-				//if it's possible to fire, let's see if some automatic transition were enabled 
-				//or existed before
-				Boolean enabledTransitionsVector[] = pn.getEnabledTransitions();
-				Boolean queuesState[] = getQueuesState(); //Is there anyone in the queue?
-				boolean automaticTransitions[] = pn.getAutomaticTransitions();
-				
-				boolean m[] = new boolean[enabledTransitionsVector.length];
-				for(int i=0; i<m.length; i++){
-					m[i] = enabledTransitionsVector[i] && (queuesState[i] || automaticTransitions[i]);
-				}
-				
-				//someEnabled is true if at least one item of m has a true value.
-				boolean anyEnabled = false;
-				for(boolean enabled : m){
-					if(enabled){
-						anyEnabled = true;
-						break;
+			boolean keepFiring = true;
+			while(keepFiring){
+				// keepFiring is "k" variable
+				keepFiring = petri.fire(transitionToFire); // returns true if transitionToFire was fired
+				if(keepFiring){
+					// let's see if any transition was enabled due to the last fired
+					Boolean enabledTransitions[] = petri.getEnabledTransitions();
+					boolean queueHasThreadSleeping[] = getQueuesState(); //Is there anyone in the queue?
+					boolean automaticTransitions[] = petri.getAutomaticTransitions();
+					
+					// availablesToFire is "m"
+					boolean availablesToFire[] = new boolean[enabledTransitions.length];
+					boolean anyEnabled = false;
+					for(int i = 0; i < availablesToFire.length; i++){
+						availablesToFire[i] = enabledTransitions[i] && (queueHasThreadSleeping[i] || automaticTransitions[i]);
+						anyEnabled |= availablesToFire[i];
 					}
-				}
-				if (anyEnabled){
-					// is there any enabled transition to be fired?
-					int t_aux_index = policies.which(m);
-					if(automaticTransitions[t_aux_index]){
-						t = pn.getTransitions()[t_aux_index];
+					
+					if (anyEnabled){
+						int nextTransitionToFireIndex = transitionsPolicy.which(availablesToFire);
+						if(nextTransitionToFireIndex >= 0){
+							// it should never be the other way but just to be sure
+							if(automaticTransitions[nextTransitionToFireIndex]){
+								transitionToFire = petri.getTransitions()[nextTransitionToFireIndex];
+							}
+							else{
+								// The transition chosen isn't automatic
+								// so wake up the associated thread to that transition
+								// and leave the monitor
+								condVarQueue[nextTransitionToFireIndex].wakeUp();
+								keepFiring = false;
+							}
+						}
 					}
 					else{
-						//There is a enabled but not automatic transition.
-						//So, wakes up the associated thread to transition.
-						condVarQueue[t_aux_index].wakeUp();
+						// no transition left to fire, leave the monitor
+						keepFiring = false;
 					}
 				}
 				else{
-					enabledFire = false;
+					// the fire failed, thus the thread releases the input mutex and goes to sleep
+					inQueue.release();
+					condVarQueue[transitionToFire.getIndex()].sleep();
 				}
 			}
-			else{
-				inQueue.release();
-				// tengo que dormir al hilo actual en la cola asociada a la transición ti
-				// eso se obtiene con el índice de la transición
-				// colasVarCond[indice_a_obtener].goToSleep(Thread.getCurrentThread());
-			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} finally{
+			// the firing is done, release the mutex and leave
+			inQueue.release();
 		}
-		inQueue.release();
-		condVarQueue[t.getIndex()].wakeUp();
 	}
 	
-	private Boolean[] getQueuesState() {
-		Boolean[] queues = new Boolean[condVarQueue.length];
-		Boolean empty = true;
-		for(int i=0; i<condVarQueue.length; i++){
-			if(condVarQueue[i].isEmpty()){
-				empty = false;
-			}
-			queues[i] = empty;
+	/**
+	 * Fills and returns a vector of booleans containing 
+	 * whether at least one thread is sleeping in the matching VarCondQueue
+	 * @return a vector of boolean indicating if at least a thread is sleeping in each VarCondQueue
+	 */
+	private boolean[] getQueuesState() {
+		boolean[] queuesNotEmpty = new boolean[condVarQueue.length];
+		for(int i = 0; i < condVarQueue.length; i++){
+			queuesNotEmpty[i] = !condVarQueue[i].isEmpty();
 		}
-		return queues;
+		return queuesNotEmpty;
 	}
 
+	/**
+	 * Changes the transitions policy at runtime. If null just ignores the new policy and keeps the previous
+	 * @param _transitionsPolicy the new policy to be set
+	 */
+	public void setTransitionsPolicy(TransitionsPolicy _transitionsPolicy){
+		if(_transitionsPolicy != null){
+			this.transitionsPolicy = _transitionsPolicy;
+		}
+	}
+	
 	public void setGuard(int i, boolean k){
-		
 	}
 	
 	public void fireGuard(int i, boolean to){
-		
 	}
 }
