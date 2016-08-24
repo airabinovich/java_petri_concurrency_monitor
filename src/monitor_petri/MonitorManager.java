@@ -18,7 +18,7 @@ public class MonitorManager {
 
 	public MonitorManager(final PetriNet _petri, TransitionsPolicy _policy) {
 		if(_petri == null || _policy == null){
-			throw new IllegalArgumentException(this.getClass().getName() + " construcor. Invalid arguments");
+			throw new IllegalArgumentException(this.getClass().getName() + " constructor. Invalid arguments");
 		}
 		petri = _petri;
 		transitionsPolicy = _policy;
@@ -45,10 +45,13 @@ public class MonitorManager {
 	 * <li>The transition to fire is not automatic but another thread was waiting to fire it.
 	 * 		  In that case, wake up that thread and leave the monitor</li>
 	 * </ul>
+	 * </ul>
 	 * @param transitionToFire the transition to fire
 	 */
 	public void fireTransition(Transition transitionToFire){
+		boolean releaseMutexOnExit = true;
 		try {
+			// take the mutex to access the monitor
 			inQueue.acquire();
 			boolean keepFiring = true;
 			while(keepFiring){
@@ -56,19 +59,19 @@ public class MonitorManager {
 				keepFiring = petri.fire(transitionToFire); // returns true if transitionToFire was fired
 				if(keepFiring){
 					// let's see if any transition was enabled due to the last fired
-					Boolean enabledTransitions[] = petri.getEnabledTransitions();
+					boolean enabledTransitions[] = petri.getEnabledTransitions();
 					boolean queueHasThreadSleeping[] = getQueuesState(); //Is there anyone in the queue?
 					boolean automaticTransitions[] = petri.getAutomaticTransitions();
 					
 					// availablesToFire is "m"
 					boolean availablesToFire[] = new boolean[enabledTransitions.length];
-					boolean anyEnabled = false;
+					boolean anyAvailable = false;
 					for(int i = 0; i < availablesToFire.length; i++){
 						availablesToFire[i] = enabledTransitions[i] && (queueHasThreadSleeping[i] || automaticTransitions[i]);
-						anyEnabled |= availablesToFire[i];
+						anyAvailable |= availablesToFire[i];
 					}
 					
-					if (anyEnabled){
+					if (anyAvailable){
 						int nextTransitionToFireIndex = transitionsPolicy.which(availablesToFire);
 						if(nextTransitionToFireIndex >= 0){
 							// it should never be the other way but just to be sure
@@ -78,9 +81,10 @@ public class MonitorManager {
 							else{
 								// The transition chosen isn't automatic
 								// so wake up the associated thread to that transition
-								// and leave the monitor
+								// and leave the monitor without releasing the input mutex
 								condVarQueue[nextTransitionToFireIndex].wakeUp();
 								keepFiring = false;
+								releaseMutexOnExit = false;
 							}
 						}
 					}
@@ -93,13 +97,16 @@ public class MonitorManager {
 					// the fire failed, thus the thread releases the input mutex and goes to sleep
 					inQueue.release();
 					condVarQueue[transitionToFire.getIndex()].sleep();
+					keepFiring = true;
 				}
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} finally{
 			// the firing is done, release the mutex and leave
-			inQueue.release();
+			if(releaseMutexOnExit){
+				inQueue.release();
+			}
 		}
 	}
 	
@@ -111,7 +118,12 @@ public class MonitorManager {
 	private boolean[] getQueuesState() {
 		boolean[] queuesNotEmpty = new boolean[condVarQueue.length];
 		for(int i = 0; i < condVarQueue.length; i++){
-			queuesNotEmpty[i] = !condVarQueue[i].isEmpty();
+			if(condVarQueue[i] == null){
+				queuesNotEmpty[i] = false;
+			}
+			else{
+				queuesNotEmpty[i] = !condVarQueue[i].isEmpty();
+			}
 		}
 		return queuesNotEmpty;
 	}

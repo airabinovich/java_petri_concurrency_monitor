@@ -83,8 +83,8 @@ public class PetriNet {
 	 * gets the transitions array and evaluates each one if is enabled or not.
 	 * @return a boolean array that contains if each transition is enabled or not (true or false)
 	 */
-	public Boolean[] getEnabledTransitions(){
-		Boolean[] enabledTransitions = new Boolean[transitions.length];
+	public boolean[] getEnabledTransitions(){
+		boolean[] enabledTransitions = new boolean[transitions.length];
 		for(Transition t : transitions){
 			enabledTransitions[t.getIndex()] = isEnabled(t);
 		}
