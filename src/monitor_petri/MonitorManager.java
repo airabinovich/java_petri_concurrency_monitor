@@ -49,7 +49,7 @@ public class MonitorManager {
 	 * @param transitionToFire the transition to fire
 	 */
 	public void fireTransition(Transition transitionToFire){
-		boolean releaseMutexOnExit = true;
+		int permitsToRelease = 0;
 		try {
 			// take the mutex to access the monitor
 			inQueue.acquire();
@@ -81,10 +81,10 @@ public class MonitorManager {
 							else{
 								// The transition chosen isn't automatic
 								// so wake up the associated thread to that transition
-								// and leave the monitor without releasing the input mutex
+								// and leave the monitor without releasing the input mutex (permits = 0)
 								condVarQueue[nextTransitionToFireIndex].wakeUp();
-								keepFiring = false;
-								releaseMutexOnExit = false;
+								permitsToRelease = 0;
+								return;
 							}
 						}
 					}
@@ -104,9 +104,7 @@ public class MonitorManager {
 			e.printStackTrace();
 		} finally{
 			// the firing is done, release the mutex and leave
-			if(releaseMutexOnExit){
-				inQueue.release();
-			}
+			inQueue.release(permitsToRelease);
 		}
 	}
 	
@@ -132,7 +130,7 @@ public class MonitorManager {
 	 * Changes the transitions policy at runtime. If null just ignores the new policy and keeps the previous
 	 * @param _transitionsPolicy the new policy to be set
 	 */
-	public void setTransitionsPolicy(TransitionsPolicy _transitionsPolicy){
+	public synchronized void setTransitionsPolicy(TransitionsPolicy _transitionsPolicy){
 		if(_transitionsPolicy != null){
 			this.transitionsPolicy = _transitionsPolicy;
 		}

@@ -2,7 +2,7 @@ package monitor_petri;
 
 import java.util.concurrent.Semaphore;
 
-public class FairQueue extends Thread implements VarCondQueue{
+public class FairQueue implements VarCondQueue{
 	
 	private Semaphore sem;
 	

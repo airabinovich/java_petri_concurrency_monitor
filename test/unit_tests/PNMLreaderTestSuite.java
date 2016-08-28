@@ -19,8 +19,8 @@ import Petri.Transition;
 
 public class PNMLreaderTestSuite {
 
-	private static String readerWriterPath = "resources/petriNets/readerWriter.pnml";
-	private static String readerWriterPathNonPNML = "resources/petriNets/readerWriter.ndr";
+	private static String readerWriterPath = "test/unit_tests/testResources/readerWriter.pnml";
+	private static String readerWriterPathNonPNML = "test/unit_tests/testResources/readerWriter.ndr";
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
