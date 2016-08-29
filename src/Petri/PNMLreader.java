@@ -13,11 +13,15 @@ import Petri.Transition;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import java.lang.Integer;
 
 public class PNMLreader{
 	
@@ -31,6 +35,8 @@ public class PNMLreader{
 	
 	private static final String TRANSITION = "transition";
 	private static final String LABEL = "label";
+	private static final String DELAY = "delay";
+	private static final String INTERVAL = "interval";
 	
 	private static final String ARC = "arc";
 	private static final String WEIGHT = "inscription";
@@ -179,6 +185,10 @@ public class PNMLreader{
 		final String labelRegexString = "[A-Z]";
 		final Pattern labelRegex = Pattern.compile(labelRegexString, Pattern.CASE_INSENSITIVE);
 		
+		int timeB = 0;
+		int timeE = 0;
+		int closure = 0;
+		
 		Integer transitionIndex = null;
 		//A transition is NOT automatic and NOT informed unless specified
 		boolean isAutomatic = false, isInformed = false;
@@ -196,6 +206,42 @@ public class PNMLreader{
 			else if(currentNodeName.equals(NAME)){
 				transitionIndex = getPetriObjectIndexFromName(nl.item(i).getTextContent().trim());
 			}
+			else if(currentNodeName.equals(DELAY)){
+				NodeList delay = nl.item(i).getChildNodes();
+				for(int j=0; j<delay.getLength(); j++){
+					if(delay.item(j).getNodeName().equals(INTERVAL)){
+						NamedNodeMap attributes = delay.item(j).getAttributes();
+						for(int k=0; k<attributes.getLength(); k++){
+							if(attributes.item(k).getNodeName().equals("closure")){
+								if(attributes.item(k).getTextContent().equals("open")){
+									closure = 0;
+								}
+								else if(attributes.item(k).getTextContent().equals("open-closed")){
+									closure = 1;
+								}
+								else if(attributes.item(k).getTextContent().equals("closed-open")){
+									closure = 2;
+								}
+								else if(attributes.item(k).getTextContent().equals("closed")){
+									closure = 3;
+								}
+								else{
+									closure = -1;
+								}
+							}
+						}
+						String interval = delay.item(j).getTextContent().trim().replace(" ","");
+						int indexOf = interval.indexOf("\n");
+						timeB = Integer.parseInt(interval.substring(0, indexOf),10);
+						if(interval.substring(indexOf+1).equals("infty")){
+							timeE = -1;
+						}
+						else{
+							timeE = Integer.parseInt(interval.substring(indexOf+1));
+						}
+					}
+				}				
+			}
 		}
 		
 		if(transitionIndex == null){
@@ -203,7 +249,7 @@ public class PNMLreader{
 			return null;
 		}
 		
-		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex);
+		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex, new Interval(timeB,timeE,closure));
 	}
 	
 	/**
@@ -297,10 +343,14 @@ public class PNMLreader{
 			return transitions;
 		}
 		
+		int timeB = 0;
+		int timeE = 0;
+		int closure = 0;
+		
 		patternIndex = 0;
 		ArrayList<Transition> newTransitions = new ArrayList<Transition>();
 		for( Transition t : transitions){
-			newTransitions.add(new Transition(t.getId(), t.getLabel(), patternIndex));
+			newTransitions.add(new Transition(t.getId(), t.getLabel(), patternIndex, new Interval(timeB, timeE, closure)));
 			patternIndex++;
 		}
 		

@@ -5,11 +5,13 @@ public class Transition{
 	private int index;
 	private String id;
 	private Label label;
+	private Interval interval;
 	
-	public Transition(String _id, Label _label, int _i){
+	public Transition(String _id, Label _label, int _i, Interval _interval){
 		this.label = _label;
 		this.id = _id;
 		this.index = _i;
+		this.interval = _interval;
 	}
 	
 	/**
@@ -32,5 +34,12 @@ public class Transition{
 	 */
 	public int getIndex() {
 		return index;
+	}
+	
+	/**
+	 * @return the transition's interval
+	 */
+	public Interval getInterval() {
+		return interval;
 	}
 }
