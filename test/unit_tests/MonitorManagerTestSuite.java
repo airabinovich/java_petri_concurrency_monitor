@@ -11,6 +11,7 @@ import Petri.PetriNet;
 import Petri.PetriNet.PetriNetBuilder;
 import Petri.Transition;
 import monitor_petri.FirstInLinePolicy;
+import monitor_petri.IllegalTransitionFiringError;
 import monitor_petri.MonitorManager;
 import monitor_petri.TransitionsPolicy;
 
@@ -111,9 +112,14 @@ public class MonitorManagerTestSuite {
 	}
 	
 	@Test
-	public void testFireTransitionShouldIgnoreWhenFiringAnAutomaticTransition() {
-		assert(true);
-//		Assert.fail("not implemented yet");
+	public void testFireTransitionShouldThrowErrorWhenFiringAnAutomaticTransition() {
+		try{
+			Transition t1 = petri.getTransitions()[1];
+			monitor.fireTransition(t1);
+			Assert.fail("An IllegalTransitionFiringError should've been thrown before this point");
+		} catch (Error err){
+			Assert.assertEquals("IllegalTransitionFiringError", err.getClass().getSimpleName());
+		}
 	}
 
 }

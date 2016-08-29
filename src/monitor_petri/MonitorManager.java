@@ -9,11 +9,12 @@ public class MonitorManager {
 
 	/** Petri Net to command the monitor orchestration */
 	private PetriNet petri;
-	/** mutex for the monitor access with a FIFO queue associated*/
+	/** Mutex for the monitor access with a FIFO queue associated*/
 	private Semaphore inQueue = new Semaphore(1,true);
-	/** condition variable queues where locked threads will wait */
+	/** Condition variable queues where locked threads will wait */
 	private VarCondQueue[] condVarQueue;	
-	/**  */
+	/** The policy to be used for transitions management. This will decide which transition
+	 * should be fired when there are multiple available */
 	private TransitionsPolicy transitionsPolicy;
 
 	public MonitorManager(final PetriNet _petri, TransitionsPolicy _policy) {
@@ -47,8 +48,13 @@ public class MonitorManager {
 	 * </ul>
 	 * </ul>
 	 * @param transitionToFire the transition to fire
+	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
 	 */
-	public void fireTransition(Transition transitionToFire){
+	public void fireTransition(Transition transitionToFire) throws IllegalTransitionFiringError{
+		// An attempt to fire an automatic transition is a severe error and the application should stop automatically
+		if(transitionToFire.getLabel().isAutomatic()){
+			throw new IllegalTransitionFiringError("An automatic transition has tried to be fired manually");
+		}
 		int permitsToRelease = 0;
 		try {
 			// take the mutex to access the monitor
