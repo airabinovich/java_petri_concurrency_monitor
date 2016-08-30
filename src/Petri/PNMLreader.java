@@ -37,6 +37,11 @@ public class PNMLreader{
 	private static final String LABEL = "label";
 	private static final String DELAY = "delay";
 	private static final String INTERVAL = "interval";
+	private static final String CLOSURE = "interval";
+	private static final String OPEN = "open";
+	private static final String OPENCLOSED = "open-closed";
+	private static final String CLOSEDOPEN = "closed-open";
+	private static final String INFTY = "infty";
 	
 	private static final String ARC = "arc";
 	private static final String WEIGHT = "inscription";
@@ -187,7 +192,6 @@ public class PNMLreader{
 		
 		int timeB = 0;
 		int timeE = 0;
-		int closure = 0;
 		
 		Integer transitionIndex = null;
 		//A transition is NOT automatic and NOT informed unless specified
@@ -210,34 +214,32 @@ public class PNMLreader{
 				NodeList delay = nl.item(i).getChildNodes();
 				for(int j=0; j<delay.getLength(); j++){
 					if(delay.item(j).getNodeName().equals(INTERVAL)){
-						NamedNodeMap attributes = delay.item(j).getAttributes();
-						for(int k=0; k<attributes.getLength(); k++){
-							if(attributes.item(k).getNodeName().equals("closure")){
-								if(attributes.item(k).getTextContent().equals("open")){
-									closure = 0;
-								}
-								else if(attributes.item(k).getTextContent().equals("open-closed")){
-									closure = 1;
-								}
-								else if(attributes.item(k).getTextContent().equals("closed-open")){
-									closure = 2;
-								}
-								else if(attributes.item(k).getTextContent().equals("closed")){
-									closure = 3;
-								}
-								else{
-									closure = -1;
-								}
-							}
-						}
+						//get the time interval
 						String interval = delay.item(j).getTextContent().trim().replace(" ","");
 						int indexOf = interval.indexOf("\n");
 						timeB = Integer.parseInt(interval.substring(0, indexOf),10);
-						if(interval.substring(indexOf+1).equals("infty")){
+						if(interval.substring(indexOf+1).equals(INFTY)){
 							timeE = -1;
 						}
 						else{
 							timeE = Integer.parseInt(interval.substring(indexOf+1));
+						}
+						//depending the closure, we will add or subtract the minimum supported number by java
+						//and all closures will be handled as closed
+						NamedNodeMap attributes = delay.item(j).getAttributes();
+						for(int k=0; k<attributes.getLength(); k++){
+							if(attributes.item(k).getNodeName().equals(CLOSURE)){
+								if(attributes.item(k).getTextContent().equals(OPEN)){
+									timeB += Integer.MIN_VALUE;
+									if(timeE != -1) timeE -= Integer.MIN_VALUE;
+								}
+								else if(attributes.item(k).getTextContent().equals(OPENCLOSED)){
+									timeB += Integer.MIN_VALUE;
+								}
+								else if(attributes.item(k).getTextContent().equals(CLOSEDOPEN)){
+									if(timeE != -1) timeE -= Integer.MIN_VALUE;
+								}
+							}
 						}
 					}
 				}				
@@ -249,7 +251,7 @@ public class PNMLreader{
 			return null;
 		}
 		
-		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex, new Interval(timeB,timeE,closure));
+		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex, new Interval(timeB,timeE));
 	}
 	
 	/**
@@ -343,14 +345,10 @@ public class PNMLreader{
 			return transitions;
 		}
 		
-		int timeB = 0;
-		int timeE = 0;
-		int closure = 0;
-		
 		patternIndex = 0;
 		ArrayList<Transition> newTransitions = new ArrayList<Transition>();
 		for( Transition t : transitions){
-			newTransitions.add(new Transition(t.getId(), t.getLabel(), patternIndex, new Interval(timeB, timeE, closure)));
+			newTransitions.add(new Transition(t.getId(), t.getLabel(), patternIndex, t.getInterval()));
 			patternIndex++;
 		}
 		
