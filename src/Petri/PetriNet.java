@@ -17,6 +17,7 @@ public class PetriNet {
 	protected Integer[] currentMarking;
 	protected Integer[] initialMarking;
 	protected boolean[] automaticTransitions;
+	protected boolean[] informedTransitions;
 	
 	/**
 	 * Builds a PetriNet Object. This is intended to be used by PetriNetBuilder
@@ -32,7 +33,7 @@ public class PetriNet {
 			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I){
 		this.places = _places;
 		this.transitions = _transitions;
-		this.automaticTransitions = getAutomatic();
+		computeAutomaticAndInformed();
 		this.arcs = _arcs;
 		this.initialMarking = _initialMarking.clone();
 		this.currentMarking = _initialMarking;
@@ -41,12 +42,14 @@ public class PetriNet {
 		this.inc = _I;
 	}
 	
-	private boolean[] getAutomatic() {
-		boolean[] automatics = new boolean[transitions.length];
-		for(int i=0; i<automatics.length; i++){
-			automatics[i] = transitions[i].getLabel().isAutomatic();
+	private void computeAutomaticAndInformed() {
+		this.automaticTransitions = new boolean[transitions.length];
+		this.informedTransitions = new boolean[transitions.length];
+		for(int i=0; i<automaticTransitions.length; i++){
+			Label thisTransitionLabel = transitions[i].getLabel();
+			automaticTransitions[i] = thisTransitionLabel.isAutomatic();
+			informedTransitions[i] = thisTransitionLabel.isInformed();
 		}
-		return automatics;
 	}
 
 	/**
@@ -93,6 +96,10 @@ public class PetriNet {
 	
 	public boolean[] getAutomaticTransitions(){
 		return automaticTransitions;
+	}
+	
+	public boolean[] getInformedTransitions(){
+		return informedTransitions;
 	}
 	
 	//No sabemos que hace todavia

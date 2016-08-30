@@ -71,7 +71,7 @@
     </graphics>
   </name>
    <label>
-    <text>&lt;A,N&gt;</text>
+    <text>&lt;A,I&gt;</text>
     <graphics>
      <offset x="10" y="-10" />
     </graphics>
@@ -87,6 +87,12 @@
      <offset x="0" y="0" />
     </graphics>
   </name>
+  <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
    <graphics>
     <position x="220" y="320"/>
    </graphics>

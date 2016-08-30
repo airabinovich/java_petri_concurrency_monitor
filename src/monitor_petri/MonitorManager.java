@@ -1,9 +1,13 @@
 package monitor_petri;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import Petri.PetriNet;
 import Petri.Transition;
+import rx.Observer;
+import rx.subjects.PublishSubject;
 
 public class MonitorManager {
 
@@ -16,6 +20,9 @@ public class MonitorManager {
 	/** The policy to be used for transitions management. This will decide which transition
 	 * should be fired when there are multiple available */
 	private TransitionsPolicy transitionsPolicy;
+	/** An array containing PublishSubjects for informed transition and null for non-informed transitions.
+	 * Observers have to explicitly subscribe to get an event */
+	private List<PublishSubject<String>> informedTransitionsObservables;
 
 	public MonitorManager(final PetriNet _petri, TransitionsPolicy _policy) {
 		if(_petri == null || _policy == null){
@@ -23,8 +30,12 @@ public class MonitorManager {
 		}
 		petri = _petri;
 		transitionsPolicy = _policy;
-		condVarQueue = new FairQueue[petri.getTransitions().length];
+		
+		int transitionsAmount = petri.getTransitions().length;
+		condVarQueue = new FairQueue[transitionsAmount];
+		informedTransitionsObservables = new ArrayList<PublishSubject<String>>();
 		final boolean automaticTransitions[] = petri.getAutomaticTransitions();
+		final boolean informedTransitions[] = petri.getInformedTransitions();
 		for(int i = 0; i < automaticTransitions.length; i++){
 			// Only non-automatic transitions have an associated queue
 			// since no thread will try to fire an automatic transition
@@ -32,6 +43,7 @@ public class MonitorManager {
 			if(!automaticTransitions[i]){
 				condVarQueue[i] = new FairQueue();
 			}
+			informedTransitionsObservables.add(informedTransitions[i] ? PublishSubject.create() : null);
 		}
 	}
 
@@ -64,6 +76,12 @@ public class MonitorManager {
 				// keepFiring is "k" variable
 				keepFiring = petri.fire(transitionToFire); // returns true if transitionToFire was fired
 				if(keepFiring){
+					// the transition was fired successfully. If it's informed let's send an event
+					try{
+						informedTransitionsObservables.get(transitionToFire.getIndex()).onNext(transitionToFire.getId());
+					} catch (NullPointerException e){
+						// if the flow enters here, the transition is not informed. Nothing to do
+					}
 					// let's see if any transition was enabled due to the last fired
 					boolean enabledTransitions[] = petri.getEnabledTransitions();
 					boolean queueHasThreadSleeping[] = getQueuesState(); //Is there anyone in the queue?
@@ -139,6 +157,23 @@ public class MonitorManager {
 	public synchronized void setTransitionsPolicy(TransitionsPolicy _transitionsPolicy){
 		if(_transitionsPolicy != null){
 			this.transitionsPolicy = _transitionsPolicy;
+		}
+	}
+	
+	/**
+	 * Subscribe the given observer to the given transition events if it's informed
+	 * @param _transition the transition to subscribe to
+	 * @param _observer the observer to subscribe
+	 * @throws IllegalArgumentException if the given transition is not informed
+	 */
+	public void subscribeToTransition(Transition _transition, Observer<String> _observer) throws IllegalArgumentException{
+		try{
+			if(_transition == null || _observer == null){
+				throw new IllegalArgumentException("invalid transition or observer recieved");
+			}
+			informedTransitionsObservables.get(_transition.getIndex()).subscribe(_observer);
+		} catch (NullPointerException e){
+			throw new IllegalArgumentException("Transition " + _transition.getIndex() + "Is not informed");
 		}
 	}
 	
