@@ -15,6 +15,7 @@ import Petri.Transition;
 import monitor_petri.FirstInLinePolicy;
 import monitor_petri.MonitorManager;
 import monitor_petri.TransitionsPolicy;
+import rx.Subscription;
 import test_utils.TransitionEventObserver;
 
 public class MonitorManagerTestSuite {
@@ -25,21 +26,29 @@ public class MonitorManagerTestSuite {
 	static PetriNetBuilder builder;
 	
 	private static final String MonitorTest01Petri = "test/unit_tests/testResources/monitorTest01.pnml";
+	private static final String MonitorTest02Petri = "test/unit_tests/testResources/monitorTest02.pnml";
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		builder = new PetriNetBuilder(MonitorTest01Petri);
 		policy = new FirstInLinePolicy();
 	}
 
 	@Before
 	public void setUp() throws Exception {
-		petri = builder.buildPetriNet();
-		monitor = new MonitorManager(petri, policy);
 	}
 
 	@After
 	public void tearDown() throws Exception {
+	}
+	
+	/**
+	 * Creates builder, petri and monitor from given PNML
+	 * @param PNML path to the PNML file
+	 */
+	private void setUpMonitor(String PNML){
+		builder = new PetriNetBuilder(PNML);
+		petri = builder.buildPetriNet();
+		monitor = new MonitorManager(petri, policy);
 	}
 
 	/**
@@ -54,6 +63,9 @@ public class MonitorManagerTestSuite {
 	 */
 	@Test
 	public void testFireTransitionWhenNoThreadIsSleeping() {
+		
+		setUpMonitor(MonitorTest01Petri);
+		
 		Integer[] expectedInitialMarking = {1, 0, 0, 0};
 		Assert.assertArrayEquals(expectedInitialMarking , this.petri.getCurrentMarking());
 		
@@ -90,6 +102,9 @@ public class MonitorManagerTestSuite {
 	 */
 	@Test
 	public void testFireTransitionWhenAThreadIsSleepingInT2() {
+		
+		setUpMonitor(MonitorTest01Petri);
+		
 		Integer[] expectedInitialMarking = {1, 0, 0, 0};
 		Assert.assertArrayEquals(expectedInitialMarking , this.petri.getCurrentMarking());
 		
@@ -150,6 +165,7 @@ public class MonitorManagerTestSuite {
 	@Test
 	public void testFireTransitionShouldThrowErrorWhenFiringAnAutomaticTransition() {
 		try{
+			setUpMonitor(MonitorTest01Petri);
 			Transition t1 = petri.getTransitions()[1];
 			monitor.fireTransition(t1);
 			Assert.fail("An IllegalTransitionFiringError should've been thrown before this point");
@@ -169,6 +185,8 @@ public class MonitorManagerTestSuite {
 	 */
 	@Test
 	public void FireInformedTransitionShouldSendAnEvent(){
+		
+		setUpMonitor(MonitorTest01Petri);
 		
 		TransitionEventObserver obs = new TransitionEventObserver();
 		
@@ -194,6 +212,8 @@ public class MonitorManagerTestSuite {
 	@Test
 	public void SubscribeToNotInformedTransitionShouldThrowException(){
 		try{
+			setUpMonitor(MonitorTest01Petri);
+			
 			TransitionEventObserver obs = new TransitionEventObserver();
 			
 			Transition t0 = petri.getTransitions()[0];
@@ -237,6 +257,75 @@ public class MonitorManagerTestSuite {
 		}
 	}
 	
+	/**
+	 * Given I know t0 is Informed and Fired
+	 * And I'm registered to t0 events
+	 * And t0 is enabled
+	 * When I fire t0
+	 * Then I get an event from the subscription
+	 */
+	@Test
+	public void MonitorShouldSendEventWhenInformedTransitionIsFired(){
+		setUpMonitor(MonitorTest02Petri);
+		
+		boolean[] expectedMarking = {true};
+		Assert.assertArrayEquals(expectedMarking, petri.getEnabledTransitions());
+		
+		Transition t0 = petri.getTransitions()[0];
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs);
+		
+		Assert.assertTrue(obs.getEvents().isEmpty());
+		
+		monitor.fireTransition(t0);
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		Assert.assertEquals(1, events.size());
+		Assert.assertEquals("EVENT " + t0.getId(), events.get(0));
+		
+	}
+	
+	/**
+	 * Given I know t0 is Informed and Fired
+	 * And I'm registered to t0 events
+	 * And t0 is enabled
+	 * When I fire t0
+	 * And I get an event from the subscription
+	 * And I unsubscribe from t0 events
+	 * And I fire t0
+	 * Then I don't get any events
+	 */
+	@Test
+	public void MonitorShouldNoLongerSendEventsAfterUnsubsciption(){
+		setUpMonitor(MonitorTest02Petri);
+		
+		boolean[] expectedMarking = {true};
+		Assert.assertArrayEquals(expectedMarking, petri.getEnabledTransitions());
+		
+		Transition t0 = petri.getTransitions()[0];
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		Subscription sub = monitor.subscribeToTransition(t0, obs);
+		
+		Assert.assertTrue(obs.getEvents().isEmpty());
+		
+		monitor.fireTransition(t0);
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		Assert.assertEquals(1, events.size());
+		Assert.assertEquals("EVENT " + t0.getId(), events.get(0));
+		
+		sub.unsubscribe();
+		
+		Assert.assertTrue(sub.isUnsubscribed());
+		
+		monitor.fireTransition(t0);
+		
+		Assert.assertEquals(1, events.size());
+	}
 	
 
 }

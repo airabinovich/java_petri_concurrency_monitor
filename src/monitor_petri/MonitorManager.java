@@ -7,6 +7,7 @@ import java.util.concurrent.Semaphore;
 import Petri.PetriNet;
 import Petri.Transition;
 import rx.Observer;
+import rx.Subscription;
 import rx.subjects.PublishSubject;
 
 public class MonitorManager {
@@ -67,7 +68,7 @@ public class MonitorManager {
 		if(transitionToFire.getLabel().isAutomatic()){
 			throw new IllegalTransitionFiringError("An automatic transition has tried to be fired manually");
 		}
-		int permitsToRelease = 0;
+		int permitsToRelease = 1;
 		try {
 			// take the mutex to access the monitor
 			inQueue.acquire();
@@ -166,12 +167,12 @@ public class MonitorManager {
 	 * @param _observer the observer to subscribe
 	 * @throws IllegalArgumentException if the given transition is not informed
 	 */
-	public void subscribeToTransition(Transition _transition, Observer<String> _observer) throws IllegalArgumentException{
+	public Subscription subscribeToTransition(Transition _transition, Observer<String> _observer) throws IllegalArgumentException{
 		try{
 			if(_transition == null || _observer == null){
 				throw new IllegalArgumentException("invalid transition or observer recieved");
 			}
-			informedTransitionsObservables.get(_transition.getIndex()).subscribe(_observer);
+			return informedTransitionsObservables.get(_transition.getIndex()).subscribe(_observer);
 		} catch (NullPointerException e){
 			throw new IllegalArgumentException("Transition " + _transition.getIndex() + "Is not informed");
 		}
