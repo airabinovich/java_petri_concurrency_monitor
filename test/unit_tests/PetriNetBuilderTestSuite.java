@@ -12,7 +12,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import Petri.Arc;
-import Petri.Interval;
+import Petri.TimeSpan;
 import Petri.Label;
 import Petri.PNMLreader;
 import Petri.PetriNet;
@@ -37,8 +37,8 @@ public class PetriNetBuilderTestSuite {
 			new Place("p2", 0, 2)
 		};
 		final Transition[] mockTransitions = {
-			new Transition("t0", new Label(false, false), 0, new Interval(0,0)),
-			new Transition("t1", new Label(false, false), 1, new Interval(0,0))
+			new Transition("t0", new Label(false, false), 0, new TimeSpan(0,0)),
+			new Transition("t1", new Label(false, false), 1, new TimeSpan(0,0))
 		};
 		final Arc[] mockArcs = {
 			new Arc("a0", "p0", "t0", 2),

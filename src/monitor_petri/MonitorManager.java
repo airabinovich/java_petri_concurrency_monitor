@@ -53,12 +53,35 @@ public class MonitorManager {
 		try {
 			// take the mutex to access the monitor
 			inQueue.acquire();
+			long timeToFire = System.currentTimeMillis();
 			boolean keepFiring = true;
+			boolean window = false;
+			boolean hasWindow = false;
 			while(keepFiring){
 				// keepFiring is "k" variable
-				keepFiring = petri.fire(transitionToFire); // returns true if transitionToFire was fired
+				keepFiring = petri.isEnabled(transitionToFire);
+				if(transitionToFire.getTimeSpan() != null){
+					window = transitionToFire.getTimeSpan().inTimeSpan(timeToFire);
+					hasWindow = true;
+				}
+				
+				//keepFiring = petri.fire(transitionToFire); // returns true if transitionToFire was fired
 				if(keepFiring){
-					// let's see if any transition was enabled due to the last fired
+					while(hasWindow && !window){
+						//I came before time span, and there is nobody sleeping in the transition
+						if(transitionToFire.getTimeSpan().beforeWindow(timeToFire) && !transitionToFire.getTimeSpan().anySleeping()){
+							transitionToFire.getTimeSpan().sleep(transitionToFire.getTimeSpan().getTimeBegin() - timeToFire);
+						}
+						else{
+							// I came late, the time is over. Thus the thread releases the input mutex and goes to sleep
+							inQueue.release();
+							condVarQueue[transitionToFire.getIndex()].sleep();
+							timeToFire = System.currentTimeMillis();
+							window = transitionToFire.getTimeSpan().inTimeSpan(timeToFire);
+						}
+					}
+					petri.fire(transitionToFire);
+					// let's see if any transition was enabled due to the last fired - NO ES MAS ASI
 					boolean enabledTransitions[] = petri.getEnabledTransitions();
 					boolean queueHasThreadSleeping[] = getQueuesState(); //Is there anyone in the queue?
 					boolean automaticTransitions[] = petri.getAutomaticTransitions();

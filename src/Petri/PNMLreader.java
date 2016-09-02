@@ -190,8 +190,8 @@ public class PNMLreader{
 		final String labelRegexString = "[A-Z]";
 		final Pattern labelRegex = Pattern.compile(labelRegexString, Pattern.CASE_INSENSITIVE);
 		
-		int timeB = 0;
-		int timeE = 0;
+		double timeB = 0;
+		double timeE = 0;
 		
 		Integer transitionIndex = null;
 		//A transition is NOT automatic and NOT informed unless specified
@@ -230,14 +230,14 @@ public class PNMLreader{
 						for(int k=0; k<attributes.getLength(); k++){
 							if(attributes.item(k).getNodeName().equals(CLOSURE)){
 								if(attributes.item(k).getTextContent().equals(OPEN)){
-									timeB += Integer.MIN_VALUE;
-									if(timeE != -1) timeE -= Integer.MIN_VALUE;
+									timeB += Double.MIN_VALUE;
+									if(timeE != -1) timeE -= Double.MIN_VALUE;
 								}
 								else if(attributes.item(k).getTextContent().equals(OPENCLOSED)){
-									timeB += Integer.MIN_VALUE;
+									timeB += Double.MIN_VALUE;
 								}
 								else if(attributes.item(k).getTextContent().equals(CLOSEDOPEN)){
-									if(timeE != -1) timeE -= Integer.MIN_VALUE;
+									if(timeE != -1) timeE -= Double.MIN_VALUE;
 								}
 							}
 						}
@@ -251,7 +251,7 @@ public class PNMLreader{
 			return null;
 		}
 		
-		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex, new Interval(timeB,timeE));
+		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex, new TimeSpan(timeB,timeE));
 	}
 	
 	/**
@@ -348,7 +348,7 @@ public class PNMLreader{
 		patternIndex = 0;
 		ArrayList<Transition> newTransitions = new ArrayList<Transition>();
 		for( Transition t : transitions){
-			newTransitions.add(new Transition(t.getId(), t.getLabel(), patternIndex, t.getInterval()));
+			newTransitions.add(new Transition(t.getId(), t.getLabel(), patternIndex, t.getTimeSpan()));
 			patternIndex++;
 		}
 		

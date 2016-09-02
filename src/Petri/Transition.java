@@ -5,9 +5,9 @@ public class Transition{
 	private int index;
 	private String id;
 	private Label label;
-	private Interval interval;
+	private TimeSpan interval;
 	
-	public Transition(String _id, Label _label, int _i, Interval _interval){
+	public Transition(String _id, Label _label, int _i, TimeSpan _interval){
 		this.label = _label;
 		this.id = _id;
 		this.index = _i;
@@ -39,7 +39,7 @@ public class Transition{
 	/**
 	 * @return the transition's interval
 	 */
-	public Interval getInterval() {
+	public TimeSpan getTimeSpan() {
 		return interval;
 	}
 }

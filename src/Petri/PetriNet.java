@@ -70,12 +70,11 @@ public class PetriNet {
 		// and add it to the current marking (m_i)
 		if(!isEnabled(transitionIndex)){
 			return false;
-		}
-		
+		}		
 		for(int i = 0; i < currentMarking.length; i++){
 			currentMarking[i] +=  inc[i][transitionIndex];
 			places[i].setMarking(currentMarking[i]);
-		}
+		}		
 		return true;
 	}
 	
@@ -84,11 +83,11 @@ public class PetriNet {
 	 * @return a boolean array that contains if each transition is enabled or not (true or false)
 	 */
 	public boolean[] getEnabledTransitions(){
-		boolean[] enabledTransitions = new boolean[transitions.length];
+		boolean[] _enabledTransitions = new boolean[transitions.length];
 		for(Transition t : transitions){
-			enabledTransitions[t.getIndex()] = isEnabled(t);
+			_enabledTransitions[t.getIndex()] = isEnabled(t);
 		}
-		return enabledTransitions;
+		return _enabledTransitions;
 	}
 	
 	public boolean[] getAutomaticTransitions(){
@@ -194,7 +193,7 @@ public class PetriNet {
 	 */
 	public static class PetriNetBuilder {
 		
-		private PNMLreader reader;
+		protected PNMLreader reader;
 		
 		public PetriNetBuilder(String pathToPNML) throws NullPointerException{
 			try {
@@ -230,7 +229,7 @@ public class PetriNet {
 		 * places, transitions, arcs and initial marking
 		 * @return a 4-tuple containig (places, transitions, arcs, initial marking)
 		 */
-		private Quartet<Place[], Transition[], Arc[], Integer[]> PNML2PNObjects(){
+		protected Quartet<Place[], Transition[], Arc[], Integer[]> PNML2PNObjects(){
 			Triplet<Place[], Transition[], Arc[]> ret = reader.parseFileAndGetPetriObjects();
 			
 			return ret.add(getMarkingFromPlaces(ret.getValue0()));
@@ -243,7 +242,7 @@ public class PetriNet {
 		 * @param arcs petri net's arcs
 		 * @return a 3-tuple containing (Pre matrix, Post matrix, Incidence matrix)
 		 */
-		private Triplet<Integer[][], Integer[][], Integer[][]> rdpObjects2Matrices(Place[] places, Transition[] transitions, Arc[] arcs){
+		protected Triplet<Integer[][], Integer[][], Integer[][]> rdpObjects2Matrices(Place[] places, Transition[] transitions, Arc[] arcs){
 			final int placesAmount = places.length;
 			final int transitionsAmount = transitions.length;
 			Integer[][] pre = new Integer[placesAmount][transitionsAmount];
@@ -312,7 +311,7 @@ public class PetriNet {
 		 * @param places the places to check
 		 * @return place's initial marking
 		 */
-		private Integer[] getMarkingFromPlaces(Place[] places){
+		protected Integer[] getMarkingFromPlaces(Place[] places){
 			ArrayList<Integer> initialMarking = new ArrayList<Integer>(places.length);
 			for(Place place : places){
 				initialMarking.add(place.getMarking());
