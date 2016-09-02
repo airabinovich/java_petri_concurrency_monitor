@@ -17,6 +17,10 @@ public class TimeSpan {
 		enableTime = time;
 	}
 	
+	public long getEnableTime(){
+		return this.enableTime;
+	}
+	
 	public double getTimeBegin(){
 		return this.timeBegin;
 	}
@@ -29,7 +33,7 @@ public class TimeSpan {
 		return (time >= enableTime + timeBegin) && (time <= enableTime + timeEnd);
 	}
 	
-	public boolean beforeWindow(long time){
+	public boolean beforeTimeSpan(long time){
 		return time < enableTime + timeBegin;
 	}
 	
@@ -44,6 +48,7 @@ public class TimeSpan {
 	}
 	
 	public void sleep(double time){
+		System.out.println("No habia nadie antes, entonces me voy a dormir a la transicion");
 		this.sleeping = true;
 		try {
 			Thread.sleep((long)time);

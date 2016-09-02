@@ -192,6 +192,7 @@ public class PNMLreader{
 		
 		double timeB = 0;
 		double timeE = 0;
+		TimeSpan timeSpan = null;
 		
 		Integer transitionIndex = null;
 		//A transition is NOT automatic and NOT informed unless specified
@@ -242,6 +243,7 @@ public class PNMLreader{
 							}
 						}
 					}
+					timeSpan = new TimeSpan(timeB, timeE);
 				}				
 			}
 		}
@@ -251,7 +253,7 @@ public class PNMLreader{
 			return null;
 		}
 		
-		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex, new TimeSpan(timeB,timeE));
+		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex, timeSpan);
 	}
 	
 	/**

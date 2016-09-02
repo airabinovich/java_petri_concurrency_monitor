@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-269C-45261-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>timedPetri</text>
+  </name>
+ <page id="g-269C-4526C-1">
+  <place id="p-269C-4526E-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="125" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-269C-4527C-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="235"/>
+   </graphics>
+  </place>
+  <place id="p-269C-4527F-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="220" y="235"/>
+   </graphics>
+  </place>
+  <place id="p-269C-45282-5">
+  <name>
+   <text>p3</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="125" y="415"/>
+   </graphics>
+  </place>
+  <transition id="t-269C-45283-6">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="open">
+     <cn>1000</cn>
+     <cn>4000</cn>
+    </interval>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="125" y="150"/>
+   </graphics>
+  </transition>
+  <transition id="t-269C-45289-7">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;A,N&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="30" y="320"/>
+   </graphics>
+  </transition>
+  <transition id="t-269C-4528D-8">
+  <name>
+   <text>t2</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="220" y="320"/>
+   </graphics>
+  </transition>
+  <arc id="e-269C-45290-9" source="t-269C-4528D-8" target="p-269C-45282-5">
+  </arc>
+  <arc id="e-269C-45293-10" source="t-269C-45289-7" target="p-269C-45282-5">
+  </arc>
+  <arc id="e-269C-45294-11" source="p-269C-4527F-4" target="t-269C-4528D-8">
+  </arc>
+  <arc id="e-269C-45295-12" source="p-269C-4527C-3" target="t-269C-45289-7">
+  </arc>
+  <arc id="e-269C-45296-13" source="t-269C-45283-6" target="p-269C-4527F-4">
+  </arc>
+  <arc id="e-269C-45297-14" source="t-269C-45283-6" target="p-269C-4527C-3">
+  </arc>
+  <arc id="e-269C-45298-15" source="p-269C-4526E-2" target="t-269C-45283-6">
+  </arc>
+ </page>
+ </net>
+</pnml>

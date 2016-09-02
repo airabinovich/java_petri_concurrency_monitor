@@ -32,10 +32,12 @@ public class TimedPetriNet extends PetriNet{
 		boolean[] _enabledTransitions = new boolean[transitions.length];
 		for(Transition t : transitions){
 			_enabledTransitions[t.getIndex()] = isEnabled(t);
-			//Check if the enabled transition was enabled by this fire.
-			if (isEnabled(t) && !enabledTransitions[t.getIndex()]){
-				t.getTimeSpan().setEnableTime(System.currentTimeMillis());
-			}
+			if(t.getTimeSpan() != null){
+				//Check if the enabled transition was enabled by this fire.
+				if (isEnabled(t) && !enabledTransitions[t.getIndex()]){
+					t.getTimeSpan().setEnableTime(System.currentTimeMillis());
+				}
+			}			
 		}
 		return _enabledTransitions;
 	}

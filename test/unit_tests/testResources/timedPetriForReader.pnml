@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-221C-C74B4-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>timedPetriForReader</text>
+  </name>
+ <page id="g-221C-C74C3-1">
+  <place id="p-221C-C74C5-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="125" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-221C-C74D3-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="235"/>
+   </graphics>
+  </place>
+  <place id="p-221C-C74D7-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="220" y="235"/>
+   </graphics>
+  </place>
+  <place id="p-221C-C74D9-5">
+  <name>
+   <text>p3</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="125" y="415"/>
+   </graphics>
+  </place>
+  <transition id="t-221C-C74DC-6">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="open">
+     <cn>1</cn>
+     <cn>4</cn>
+    </interval>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="125" y="150"/>
+   </graphics>
+  </transition>
+  <transition id="t-221C-C74E1-7">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="closed">
+     <cn>1</cn>
+     <cn>5</cn>
+    </interval>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="30" y="320"/>
+   </graphics>
+  </transition>
+  <transition id="t-221C-C74E5-8">
+  <name>
+   <text>t2</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="closed-open">
+     <cn>2</cn>
+     <ci>infty</ci>
+    </interval>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="220" y="320"/>
+   </graphics>
+  </transition>
+  <arc id="e-221C-C74E8-9" source="t-221C-C74E5-8" target="p-221C-C74D9-5">
+  </arc>
+  <arc id="e-221C-C74EC-10" source="t-221C-C74E1-7" target="p-221C-C74D9-5">
+  </arc>
+  <arc id="e-221C-C74ED-11" source="p-221C-C74D7-4" target="t-221C-C74E5-8">
+  </arc>
+  <arc id="e-221C-C74EE-12" source="p-221C-C74D3-3" target="t-221C-C74E1-7">
+  </arc>
+  <arc id="e-221C-C74EF-13" source="t-221C-C74DC-6" target="p-221C-C74D7-4">
+  </arc>
+  <arc id="e-221C-C74EF-14" source="t-221C-C74DC-6" target="p-221C-C74D3-3">
+  </arc>
+  <arc id="e-221C-C74F0-15" source="p-221C-C74C5-2" target="t-221C-C74DC-6">
+  </arc>
+ </page>
+ </net>
+</pnml>
