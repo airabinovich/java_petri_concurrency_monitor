@@ -219,7 +219,7 @@ public class PNMLreader{
 						int indexOf = interval.indexOf("\n");
 						timeB = Integer.parseInt(interval.substring(0, indexOf),10);
 						if(interval.substring(indexOf+1).equals(INFTY)){
-							timeE = -1;
+							timeE = Double.MAX_VALUE;
 						}
 						else{
 							timeE = Integer.parseInt(interval.substring(indexOf+1));
@@ -237,7 +237,7 @@ public class PNMLreader{
 									timeB += Double.MIN_VALUE;
 								}
 								else if(attributes.item(k).getTextContent().equals(CLOSEDOPEN)){
-									if(timeE != -1) timeE -= Double.MIN_VALUE;
+									timeE -= Double.MIN_VALUE;
 								}
 							}
 						}
