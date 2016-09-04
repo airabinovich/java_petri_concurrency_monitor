@@ -53,7 +53,7 @@ public class PetriNet {
 	}
 
 	/**
-	 * Fires the transition t if it's enabled
+	 * Fires the transition t if it's enabled and updates current marking
 	 * @param t Transition to be fired
 	 * @return true if t was fired
 	 */
@@ -62,7 +62,7 @@ public class PetriNet {
 	}
 	
 	/**
-	 * Fires the transition whose index if transitionIndex if it's enabled
+	 * Fires the transition whose index if transitionIndex if it's enabled and updates current marking
 	 * @param transitionIndex Transition's index to be fired
 	 * @return true if transitionIndex was fired
 	 */

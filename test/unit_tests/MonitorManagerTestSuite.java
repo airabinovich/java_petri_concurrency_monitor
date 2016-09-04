@@ -1,6 +1,7 @@
 package unit_tests;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.junit.After;
@@ -8,6 +9,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Petri.PetriNet;
 import Petri.PetriNet.PetriNetBuilder;
@@ -25,12 +28,18 @@ public class MonitorManagerTestSuite {
 	static TransitionsPolicy policy;
 	static PetriNetBuilder builder;
 	
+	static ObjectMapper jsonParser;
+	
 	private static final String MonitorTest01Petri = "test/unit_tests/testResources/monitorTest01.pnml";
 	private static final String MonitorTest02Petri = "test/unit_tests/testResources/monitorTest02.pnml";
+	private static final String MonitorTest03Petri = "test/unit_tests/testResources/monitorTest03.pnml";
+	
+	private static final String ID = "id";
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		policy = new FirstInLinePolicy();
+		jsonParser = new ObjectMapper();
 	}
 
 	@Before
@@ -78,7 +87,12 @@ public class MonitorManagerTestSuite {
 		monitor.fireTransition(t0);
 		
 		// this means that t1 emmited an event when it was fired
-		Assert.assertTrue(obs.getEvents().get(0).endsWith(t1.getId()));
+		try {
+			String obtainedId = jsonParser.readTree(obs.getEvents().get(0)).get(ID).asText();
+			Assert.assertEquals(t1.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
 		
 		Integer[] expectedMarkingAfterT0 = {0, 0, 1, 1};
 		Assert.assertArrayEquals(expectedMarkingAfterT0 , this.petri.getCurrentMarking());
@@ -134,7 +148,12 @@ public class MonitorManagerTestSuite {
 		ArrayList<String> events = obs.getEvents();
 		
 		Assert.assertEquals(1, events.size());
-		Assert.assertTrue(events.get(0).endsWith(t1.getId()));
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t1.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
 		
 		try {
 			boolean finishedWaiting = false;
@@ -153,7 +172,12 @@ public class MonitorManagerTestSuite {
 		events = obs.getEvents();
 		
 		Assert.assertEquals(2, events.size());
-		Assert.assertTrue(events.get(1).endsWith(t2.getId()));
+		try {
+			String obtainedId = jsonParser.readTree(events.get(1)).get(ID).asText();
+			Assert.assertEquals(t2.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
 		
 		Integer[] expectedMarkingAfterT0 = {0, 0, 0, 2};
 		Assert.assertArrayEquals(expectedMarkingAfterT0 , this.petri.getCurrentMarking());
@@ -200,7 +224,12 @@ public class MonitorManagerTestSuite {
 		ArrayList<String> events = obs.getEvents();
 		
 		Assert.assertEquals(1, events.size());
-		Assert.assertTrue(events.get(0).endsWith(t1.getId()));
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t1.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
 		
 	}
 	
@@ -283,7 +312,14 @@ public class MonitorManagerTestSuite {
 		ArrayList<String> events = obs.getEvents();
 		
 		Assert.assertEquals(1, events.size());
-		Assert.assertEquals("EVENT " + t0.getId(), events.get(0));
+		
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t0.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+		
 		
 	}
 	
@@ -316,7 +352,12 @@ public class MonitorManagerTestSuite {
 		ArrayList<String> events = obs.getEvents();
 		
 		Assert.assertEquals(1, events.size());
-		Assert.assertEquals("EVENT " + t0.getId(), events.get(0));
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t0.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
 		
 		sub.unsubscribe();
 		
@@ -325,6 +366,60 @@ public class MonitorManagerTestSuite {
 		monitor.fireTransition(t0);
 		
 		Assert.assertEquals(1, events.size());
+	}
+	
+	/**
+	 * Given I know t0 and t1 are Informed and Fired
+	 * And obs0 is registered only to t0 events
+	 * And obs1 is registered only to t1 events
+	 * And t0 is enabled
+	 * When I fire t0
+	 * And t1 gets enabled
+	 * And I fire t1
+	 * Then obs0 gets an event from t0's firing
+	 * And obs1 gets an event from t0's firing
+	 */
+	@Test
+	public void MonitorShouldSendEventsOnlyToSubscribedTransition(){
+		setUpMonitor(MonitorTest03Petri);
+		
+		boolean[] expectedMarking = {true, false};
+		Assert.assertArrayEquals(expectedMarking, petri.getEnabledTransitions());
+		
+		Transition t0 = petri.getTransitions()[0];
+		Transition t1 = petri.getTransitions()[1];
+		
+		TransitionEventObserver obs0 = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs0);
+		Assert.assertTrue(obs0.getEvents().isEmpty());
+		
+		TransitionEventObserver obs1 = new TransitionEventObserver();
+		monitor.subscribeToTransition(t1, obs1);
+		
+		monitor.fireTransition(t0);
+		
+		expectedMarking[0] = false;
+		expectedMarking[1] = true;
+		Assert.assertArrayEquals(expectedMarking, petri.getEnabledTransitions());
+		
+		monitor.fireTransition(t1);
+		
+		ArrayList<String> events0 = obs0.getEvents();
+		ArrayList<String> events1 = obs1.getEvents();
+		
+		
+		Assert.assertEquals(1, events0.size());
+		Assert.assertEquals(1, events1.size());
+		try {
+			String obtainedId0 = jsonParser.readTree(events0.get(0)).get(ID).asText();
+			String obtainedId1 = jsonParser.readTree(events1.get(0)).get(ID).asText();
+			Assert.assertEquals(t0.getId(), obtainedId0);
+			Assert.assertEquals(t1.getId(), obtainedId1);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+		
+		
 	}
 	
 

@@ -1,8 +1,11 @@
 package monitor_petri;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.concurrent.Semaphore;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Petri.PetriNet;
 import Petri.Transition;
@@ -21,9 +24,16 @@ public class MonitorManager {
 	/** The policy to be used for transitions management. This will decide which transition
 	 * should be fired when there are multiple available */
 	private TransitionsPolicy transitionsPolicy;
-	/** An array containing PublishSubjects for informed transition and null for non-informed transitions.
-	 * Observers have to explicitly subscribe to get an event */
-	private List<PublishSubject<String>> informedTransitionsObservables;
+	/** A PublishSubject who sends events for informed transitions
+	 * Observers have to explicitly subscribe to an informed transition's events.
+	 * @see #subscribeToTransition(Transition, Observer)*/
+	private PublishSubject<String> informedTransitionsObservable;
+	
+	/** An ObjectMapper used to build and parse JSON info sent as events */
+	private ObjectMapper jsonMapper;
+	
+	private final static String ID = "id";
+	private final static String INDEX = "index";
 
 	public MonitorManager(final PetriNet _petri, TransitionsPolicy _policy) {
 		if(_petri == null || _policy == null){
@@ -34,9 +44,8 @@ public class MonitorManager {
 		
 		int transitionsAmount = petri.getTransitions().length;
 		condVarQueue = new FairQueue[transitionsAmount];
-		informedTransitionsObservables = new ArrayList<PublishSubject<String>>();
+		informedTransitionsObservable = PublishSubject.create();
 		final boolean automaticTransitions[] = petri.getAutomaticTransitions();
-		final boolean informedTransitions[] = petri.getInformedTransitions();
 		for(int i = 0; i < automaticTransitions.length; i++){
 			// Only non-automatic transitions have an associated queue
 			// since no thread will try to fire an automatic transition
@@ -44,15 +53,17 @@ public class MonitorManager {
 			if(!automaticTransitions[i]){
 				condVarQueue[i] = new FairQueue();
 			}
-			informedTransitionsObservables.add(informedTransitions[i] ? PublishSubject.create() : null);
 		}
+		
+		jsonMapper = new ObjectMapper();
 	}
 
 	/**
 	 * Tries to fire a transition.
 	 * <ul>
 	 * <li>If fails, the calling thread sleeps in the corresponding VarCondQueue</li>
-	 * <li>If succeedes, tries to fire any new enabled transition.
+	 * <li>If succeeds, it checks if there are new enabled transitions.
+	 * If not it leaves, else it tries to fire any new enabled transition.
 	 * This may lead into two situations:</li>
 	 * <ul>
 	 * <li>The transition to fire is automatic, just fire it</li>
@@ -62,6 +73,7 @@ public class MonitorManager {
 	 * </ul>
 	 * @param transitionToFire the transition to fire
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
+	 * @see PetriNet#fire(Transition)
 	 */
 	public void fireTransition(Transition transitionToFire) throws IllegalTransitionFiringError{
 		// An attempt to fire an automatic transition is a severe error and the application should stop automatically
@@ -78,10 +90,19 @@ public class MonitorManager {
 				keepFiring = petri.fire(transitionToFire); // returns true if transitionToFire was fired
 				if(keepFiring){
 					// the transition was fired successfully. If it's informed let's send an event
-					try{
-						informedTransitionsObservables.get(transitionToFire.getIndex()).onNext(transitionToFire.getId());
-					} catch (NullPointerException e){
-						// if the flow enters here, the transition is not informed. Nothing to do
+					if(transitionToFire.getLabel().isInformed()){
+						try{
+							// The event to send contains a JSON with the transition info
+							HashMap<String, String> firedTransitionInfoMap = new HashMap<String, String>();
+							firedTransitionInfoMap.put(ID, transitionToFire.getId());
+							firedTransitionInfoMap.put(INDEX, Integer.toString(transitionToFire.getIndex()));
+							informedTransitionsObservable.onNext(
+									jsonMapper.writeValueAsString(firedTransitionInfoMap));
+						} catch (JsonProcessingException e) {
+							// If there was an error processing the JSON let's send the minimal needed info hardcoded here
+							informedTransitionsObservable.onNext("{\"" + ID + "\":\"" + transitionToFire.getId() + "\"}");
+							e.printStackTrace();
+						}
 					}
 					// let's see if any transition was enabled due to the last fired
 					boolean enabledTransitions[] = petri.getEnabledTransitions();
@@ -166,16 +187,26 @@ public class MonitorManager {
 	 * @param _transition the transition to subscribe to
 	 * @param _observer the observer to subscribe
 	 * @throws IllegalArgumentException if the given transition is not informed
+	 * @return a Subscription object used to unsubscribe
 	 */
 	public Subscription subscribeToTransition(Transition _transition, Observer<String> _observer) throws IllegalArgumentException{
-		try{
-			if(_transition == null || _observer == null){
-				throw new IllegalArgumentException("invalid transition or observer recieved");
-			}
-			return informedTransitionsObservables.get(_transition.getIndex()).subscribe(_observer);
-		} catch (NullPointerException e){
-			throw new IllegalArgumentException("Transition " + _transition.getIndex() + "Is not informed");
+		if(_transition == null || _observer == null){
+			throw new IllegalArgumentException("invalid transition or observer recieved");
+		} else if (!_transition.getLabel().isInformed()){
+			throw new IllegalArgumentException("Transition " + _transition.getIndex() + " is not informed");
 		}
+		// the subscription is made only to the specified transition filtering by id
+		return informedTransitionsObservable
+				.filter((String jsonInfo) -> {
+					try{
+						// checks that the ID registered is the same as the one in the JSON
+						return _transition.getId()
+								.equals(jsonMapper.readTree(jsonInfo).get(ID).asText());
+					} catch (IOException e) {
+						return false;
+					}
+				})
+				.subscribe(_observer);
 	}
 	
 	public void setGuard(int i, boolean k){

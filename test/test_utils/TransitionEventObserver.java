@@ -45,7 +45,7 @@ public class TransitionEventObserver implements Observer<String> {
 	 */
 	@Override
 	public void onNext(String event) {
-		eventsRecieved.add("EVENT " + event);
+		eventsRecieved.add(event);
 	}
 	
 	/**
