@@ -84,12 +84,38 @@ public class MonitorManager {
 		try {
 			// take the mutex to access the monitor
 			inQueue.acquire();
+			long timeToFire = System.currentTimeMillis();
 			boolean keepFiring = true;
+			boolean window = false;
+			boolean hasWindow = false;
 			while(keepFiring){
 				// keepFiring is "k" variable
-				keepFiring = petri.fire(transitionToFire); // returns true if transitionToFire was fired
+				keepFiring = petri.isEnabled(transitionToFire);
+				if(transitionToFire.getTimeSpan() != null){
+					window = transitionToFire.getTimeSpan().inTimeSpan(timeToFire);
+					hasWindow = true;
+				}
 				if(keepFiring){
-					// the transition was fired successfully. If it's informed let's send an event
+					while(hasWindow && !window){						
+						//I came before time span, and there is nobody sleeping in the transition
+						if(transitionToFire.getTimeSpan().beforeTimeSpan(timeToFire) && !transitionToFire.getTimeSpan().anySleeping()){
+							inQueue.release();
+							transitionToFire.getTimeSpan().sleep(transitionToFire.getTimeSpan().getEnableTime() + transitionToFire.getTimeSpan().getTimeBegin() - timeToFire);
+						}
+						else{							
+							// I came late, the time is over. Thus the thread releases the input mutex and goes to sleep
+							inQueue.release();
+							condVarQueue[transitionToFire.getIndex()].sleep();
+						}
+						inQueue.acquire();
+						// at this point, the transition may have been disabled when the firing thread was sleeping
+						timeToFire = System.currentTimeMillis();
+						window = transitionToFire.getTimeSpan().inTimeSpan(timeToFire);
+					}
+					// TODO: check if the transition was fired sucessfully
+					petri.fire(transitionToFire);
+					
+					//the transition was fired successfully. If it's informed let's send an event
 					if(transitionToFire.getLabel().isInformed()){
 						try{
 							// The event to send contains a JSON with the transition info
@@ -159,7 +185,7 @@ public class MonitorManager {
 	 * whether at least one thread is sleeping in the matching VarCondQueue
 	 * @return a vector of boolean indicating if at least a thread is sleeping in each VarCondQueue
 	 */
-	private boolean[] getQueuesState() {
+	public boolean[] getQueuesState() {
 		boolean[] queuesNotEmpty = new boolean[condVarQueue.length];
 		for(int i = 0; i < condVarQueue.length; i++){
 			if(condVarQueue[i] == null){

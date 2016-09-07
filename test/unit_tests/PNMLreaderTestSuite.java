@@ -21,6 +21,7 @@ public class PNMLreaderTestSuite {
 
 	private static String readerWriterPath = "test/unit_tests/testResources/readerWriter.pnml";
 	private static String readerWriterPathNonPNML = "test/unit_tests/testResources/readerWriter.ndr";
+	private static String timedPetriNetPath = "test/unit_tests/testResources/timedPetriForReader.pnml";
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -143,6 +144,30 @@ public class PNMLreaderTestSuite {
 			assertEquals(null, reader.parseFileAndGetPetriObjects());
 		} catch (Exception e) {
 			assertEquals(e.getClass().getSimpleName(), "SAXParseException");
+		}
+	}
+	
+	@Test
+	public void ParseFileAndGetTimeTransitionsCorrectly() {
+		double max = Double.MAX_VALUE;
+		double min = Double.MIN_VALUE;
+		try {
+			PNMLreader reader = new PNMLreader(timedPetriNetPath);
+			
+			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
+			Transition[] transitions = petriObjects.getValue1();
+			
+			double[] expectedTimes = {1+min, 4-min, 1, 5, 2, max-min};
+			
+			assertEquals(expectedTimes[0], transitions[0].getTimeSpan().getTimeBegin(), 0);
+			assertEquals(expectedTimes[1], transitions[0].getTimeSpan().getTimeEnd(), 0);
+			assertEquals(expectedTimes[2], transitions[1].getTimeSpan().getTimeBegin(), 0);
+			assertEquals(expectedTimes[3], transitions[1].getTimeSpan().getTimeEnd(), 0);
+			assertEquals(expectedTimes[4], transitions[2].getTimeSpan().getTimeBegin(), 0);
+			assertEquals(expectedTimes[5], transitions[2].getTimeSpan().getTimeEnd(), 0);
+			
+		} catch (FileNotFoundException | SecurityException e) {
+			fail("Could not open file " + readerWriterPath);
 		}
 	}
 

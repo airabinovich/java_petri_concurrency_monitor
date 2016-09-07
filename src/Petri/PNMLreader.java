@@ -13,11 +13,15 @@ import Petri.Transition;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import java.lang.Integer;
 
 public class PNMLreader{
 	
@@ -31,6 +35,13 @@ public class PNMLreader{
 	
 	private static final String TRANSITION = "transition";
 	private static final String LABEL = "label";
+	private static final String DELAY = "delay";
+	private static final String INTERVAL = "interval";
+	private static final String CLOSURE = "interval";
+	private static final String OPEN = "open";
+	private static final String OPENCLOSED = "open-closed";
+	private static final String CLOSEDOPEN = "closed-open";
+	private static final String INFTY = "infty";
 	
 	private static final String ARC = "arc";
 	private static final String WEIGHT = "inscription";
@@ -179,6 +190,10 @@ public class PNMLreader{
 		final String labelRegexString = "[A-Z]";
 		final Pattern labelRegex = Pattern.compile(labelRegexString, Pattern.CASE_INSENSITIVE);
 		
+		double timeB = 0;
+		double timeE = 0;
+		TimeSpan timeSpan = null;
+		
 		Integer transitionIndex = null;
 		//A transition is NOT automatic and NOT informed unless specified
 		boolean isAutomatic = false, isInformed = false;
@@ -196,6 +211,41 @@ public class PNMLreader{
 			else if(currentNodeName.equals(NAME)){
 				transitionIndex = getPetriObjectIndexFromName(nl.item(i).getTextContent().trim());
 			}
+			else if(currentNodeName.equals(DELAY)){
+				NodeList delay = nl.item(i).getChildNodes();
+				for(int j=0; j<delay.getLength(); j++){
+					if(delay.item(j).getNodeName().equals(INTERVAL)){
+						//get the time interval
+						String interval = delay.item(j).getTextContent().trim().replace(" ","");
+						int indexOf = interval.indexOf("\n");
+						timeB = Integer.parseInt(interval.substring(0, indexOf),10);
+						if(interval.substring(indexOf+1).equals(INFTY)){
+							timeE = Double.MAX_VALUE;
+						}
+						else{
+							timeE = Integer.parseInt(interval.substring(indexOf+1));
+						}
+						//depending the closure, we will add or subtract the minimum supported number by java
+						//and all closures will be handled as closed
+						NamedNodeMap attributes = delay.item(j).getAttributes();
+						for(int k=0; k<attributes.getLength(); k++){
+							if(attributes.item(k).getNodeName().equals(CLOSURE)){
+								if(attributes.item(k).getTextContent().equals(OPEN)){
+									timeB += Double.MIN_VALUE;
+									if(timeE != -1) timeE -= Double.MIN_VALUE;
+								}
+								else if(attributes.item(k).getTextContent().equals(OPENCLOSED)){
+									timeB += Double.MIN_VALUE;
+								}
+								else if(attributes.item(k).getTextContent().equals(CLOSEDOPEN)){
+									timeE -= Double.MIN_VALUE;
+								}
+							}
+						}
+					}
+					timeSpan = new TimeSpan(timeB, timeE);
+				}				
+			}
 		}
 		
 		if(transitionIndex == null){
@@ -203,7 +253,7 @@ public class PNMLreader{
 			return null;
 		}
 		
-		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex);
+		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex, timeSpan);
 	}
 	
 	/**
@@ -300,7 +350,7 @@ public class PNMLreader{
 		patternIndex = 0;
 		ArrayList<Transition> newTransitions = new ArrayList<Transition>();
 		for( Transition t : transitions){
-			newTransitions.add(new Transition(t.getId(), t.getLabel(), patternIndex));
+			newTransitions.add(new Transition(t.getId(), t.getLabel(), patternIndex, t.getTimeSpan()));
 			patternIndex++;
 		}
 		
