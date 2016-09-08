@@ -2,62 +2,97 @@ package Petri;
 
 public class TimeSpan {
 	
-	private double timeBegin;
-	//if timeEnd has -1 means infinity
-	private double timeEnd;
+	/** Timestamp when the timespan begins */
+	private long timeBegin;
+	/** Timestamp when the timespan ends */ 
+	private long timeEnd;
+	/** Timestamp when the transition was enabled */
 	private long enableTime;
+	/** This is true when a thread is sleeping in sleep method */
 	private boolean sleeping;
 	
-	public TimeSpan(double timeB, double timeE){
+	/**
+	 * @param timeB Increment to add to enabling time to set begin time
+	 * @param timeE Increment to add to enabling time to set end time
+	 */
+	public TimeSpan(long timeB, long timeE){
 		this.timeBegin = timeB;
 		this.timeEnd = timeE;
 	}
 	
+	/**
+	 * Set the enabling time. This is intended to be used when the associated transition is enabled
+	 * @param time timestamp in miliseconds when the enabling occurs
+	 */
 	public void setEnableTime(long time){
 		enableTime = time;
 	}
 	
+	/**
+	 * @return the enabling time
+	 */
 	public long getEnableTime(){
 		return this.enableTime;
 	}
 	
-	public double getTimeBegin(){
+	public long getTimeBegin(){
 		return this.timeBegin;
 	}
 	
-	public double getTimeEnd(){
+	public long getTimeEnd(){
 		return this.timeEnd;
 	}
 	
+	/**
+	 * @param time timestamp in miliseconds to figure out whether it's inside the span
+	 * @return true if time is inside the span
+	 */
 	public boolean inTimeSpan(long time){
 		return (time >= enableTime + timeBegin) && (time <= enableTime + timeEnd);
 	}
 	
-	public boolean beforeTimeSpan(long time){
+	/**
+	 * @param time timestamp in miliseconds to figure out whether it's before the span
+	 * @return true if time is befire the span
+	 */
+	public boolean isBeforeTimeSpan(long time){
 		return time < enableTime + timeBegin;
 	}
 	
-	public void setTimeSpan(int timeB, int timeE){
-		if(timeB >= 0 && (timeE >= 0 || timeE == -1)){
+	/**
+	 * Set the begining and ending increments to add to the enabling time in order to set the span
+	 * @param timeB set time in miliseconds used to generate the span begin time
+	 * @param timeE set time in miliseconds used to generate the span end time
+	 * @throws IllegalArgumentException
+	 */
+	public void setTimeSpan(int timeB, int timeE) throws IllegalArgumentException{
+		if(timeB >= 0 && timeE >= 0 && (timeB < timeE)){
 			this.timeBegin = timeB;
 			this.timeEnd = timeE;
 		}
 		else{
-			throw new IllegalArgumentException("The interval time must not has a negative value");
+			throw new IllegalArgumentException("The interval time must not have a negative value");
 		}
 	}
 	
-	public void sleep(double time){
-		System.out.println("No habia nadie antes, entonces me voy a dormir a la transicion");
+	/**
+	 * Locks the calling thread for the given time
+	 * @param time time to lock the calling thread
+	 */
+	public void sleep(long time){
 		this.sleeping = true;
 		try {
-			Thread.sleep((long)time);
+			Thread.sleep(time);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		this.sleeping = false;
 	}
 	
+	/**
+	 * 
+	 * @return true if a thread is locked in {@link #sleep(long time)} method
+	 */
 	public boolean anySleeping(){
 		return sleeping;
 	}

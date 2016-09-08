@@ -37,7 +37,7 @@ public class PNMLreader{
 	private static final String LABEL = "label";
 	private static final String DELAY = "delay";
 	private static final String INTERVAL = "interval";
-	private static final String CLOSURE = "interval";
+	private static final String CLOSURE = "closure";
 	private static final String OPEN = "open";
 	private static final String OPENCLOSED = "open-closed";
 	private static final String CLOSEDOPEN = "closed-open";
@@ -190,8 +190,8 @@ public class PNMLreader{
 		final String labelRegexString = "[A-Z]";
 		final Pattern labelRegex = Pattern.compile(labelRegexString, Pattern.CASE_INSENSITIVE);
 		
-		double timeB = 0;
-		double timeE = 0;
+		long timeB = 0;
+		long timeE = 0;
 		TimeSpan timeSpan = null;
 		
 		Integer transitionIndex = null;
@@ -218,27 +218,27 @@ public class PNMLreader{
 						//get the time interval
 						String interval = delay.item(j).getTextContent().trim().replace(" ","");
 						int indexOf = interval.indexOf("\n");
-						timeB = Integer.parseInt(interval.substring(0, indexOf),10);
+						timeB = Long.parseLong(interval.substring(0, indexOf),10);
 						if(interval.substring(indexOf+1).equals(INFTY)){
-							timeE = Double.MAX_VALUE;
+							timeE = Long.MAX_VALUE;
 						}
 						else{
-							timeE = Integer.parseInt(interval.substring(indexOf+1));
+							timeE = Long.parseLong(interval.substring(indexOf+1));
 						}
-						//depending the closure, we will add or subtract the minimum supported number by java
+						//depending the closure, we will add or subtract the minimum long (1)
 						//and all closures will be handled as closed
 						NamedNodeMap attributes = delay.item(j).getAttributes();
 						for(int k=0; k<attributes.getLength(); k++){
 							if(attributes.item(k).getNodeName().equals(CLOSURE)){
 								if(attributes.item(k).getTextContent().equals(OPEN)){
-									timeB += Double.MIN_VALUE;
-									if(timeE != -1) timeE -= Double.MIN_VALUE;
+									timeB += 1;
+									timeE -= 1;
 								}
 								else if(attributes.item(k).getTextContent().equals(OPENCLOSED)){
-									timeB += Double.MIN_VALUE;
+									timeB += 1;
 								}
 								else if(attributes.item(k).getTextContent().equals(CLOSEDOPEN)){
-									timeE -= Double.MIN_VALUE;
+									timeE -= 1;
 								}
 							}
 						}

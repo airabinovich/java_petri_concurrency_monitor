@@ -149,8 +149,8 @@ public class PNMLreaderTestSuite {
 	
 	@Test
 	public void ParseFileAndGetTimeTransitionsCorrectly() {
-		double max = Double.MAX_VALUE;
-		double min = Double.MIN_VALUE;
+		long max = Long.MAX_VALUE;
+		long min = 1;
 		try {
 			PNMLreader reader = new PNMLreader(timedPetriNetPath);
 			

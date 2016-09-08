@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Petri.PetriNet;
+import Petri.TimeSpan;
 import Petri.Transition;
 import rx.Observer;
 import rx.Subscription;
@@ -86,21 +87,22 @@ public class MonitorManager {
 			inQueue.acquire();
 			long timeToFire = System.currentTimeMillis();
 			boolean keepFiring = true;
-			boolean window = false;
-			boolean hasWindow = false;
+			boolean insideTimeSpan = false;
+			boolean isTimed = false;
 			while(keepFiring){
 				// keepFiring is "k" variable
 				keepFiring = petri.isEnabled(transitionToFire);
 				if(transitionToFire.getTimeSpan() != null){
-					window = transitionToFire.getTimeSpan().inTimeSpan(timeToFire);
-					hasWindow = true;
+					insideTimeSpan = transitionToFire.getTimeSpan().inTimeSpan(timeToFire);
+					isTimed = true;
 				}
 				if(keepFiring){
-					while(hasWindow && !window){						
+					while(isTimed && !insideTimeSpan){						
 						//I came before time span, and there is nobody sleeping in the transition
-						if(transitionToFire.getTimeSpan().beforeTimeSpan(timeToFire) && !transitionToFire.getTimeSpan().anySleeping()){
+						TimeSpan transitionSpan = transitionToFire.getTimeSpan();
+						if(transitionSpan.isBeforeTimeSpan(timeToFire) && !transitionSpan.anySleeping()){
 							inQueue.release();
-							transitionToFire.getTimeSpan().sleep(transitionToFire.getTimeSpan().getEnableTime() + transitionToFire.getTimeSpan().getTimeBegin() - timeToFire);
+							transitionToFire.getTimeSpan().sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - timeToFire);
 						}
 						else{							
 							// I came late, the time is over. Thus the thread releases the input mutex and goes to sleep
@@ -110,7 +112,7 @@ public class MonitorManager {
 						inQueue.acquire();
 						// at this point, the transition may have been disabled when the firing thread was sleeping
 						timeToFire = System.currentTimeMillis();
-						window = transitionToFire.getTimeSpan().inTimeSpan(timeToFire);
+						insideTimeSpan = transitionSpan.inTimeSpan(timeToFire);
 					}
 					// TODO: check if the transition was fired sucessfully
 					petri.fire(transitionToFire);
