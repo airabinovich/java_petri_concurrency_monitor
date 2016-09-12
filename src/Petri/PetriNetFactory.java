@@ -6,9 +6,8 @@ import java.util.ArrayList;
 import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 
-/**
-	 * PetriNet builder. Gets info from PNML file. Call buildPetriNet to get a PetriNet object
-	 * @author Ariel I. Rabinovich
+	/**
+	 * PetriNet factory. Gets info from PNML file. Calls makePetriNet to get a PetriNet object
 	 *
 	 */
 	public class PetriNetFactory {
@@ -31,8 +30,9 @@ import org.javatuples.Triplet;
 		}
 		
 		/**
-		 * builds and returns the petri described in the PNML file passed to the builder
+		 * makes and returns the petri described in the PNML file passed to the factory
 		 * @return PetriNet object containing info described in PNML file
+		 * @param petriNetType petri net type. ie: place transition or timed.
 		 */
 		public PetriNet makePetriNet(String petriNetType){
 			

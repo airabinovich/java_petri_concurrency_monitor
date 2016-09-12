@@ -2,13 +2,15 @@ package Petri;
 
 import java.util.Arrays;
 
-import org.javatuples.Quartet;
-import org.javatuples.Triplet;
-
 public class TimedPetriNet extends PetriNet{
 
 	protected boolean[] enabledTransitions;
 	
+	/**
+	 * extends the abstract class PetriNet, and also has a boolean array containing
+	 * the enabled transitions 
+	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][])
+	 */
 	protected TimedPetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs, Integer[] _initialMarking,
 			Integer[][] _preI, Integer[][] _posI, Integer[][] _I) {
 		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I);

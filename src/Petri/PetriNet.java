@@ -14,7 +14,7 @@ public abstract class PetriNet {
 	protected boolean[] informedTransitions;
 	
 	/**
-	 * Builds a PetriNet Object. This is intended to be used by PetriNetBuilder
+	 * Makes a PetriNet Object. This is intended to be used by PetriNetFactory
 	 * @param _places Array of Place objects (dimension p)
 	 * @param _transitions Array of Transition objects (dimension t)
 	 * @param _arcs Array of Arcs
