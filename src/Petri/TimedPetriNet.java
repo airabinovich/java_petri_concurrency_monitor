@@ -41,29 +41,4 @@ public class TimedPetriNet extends PetriNet{
 		}
 		return _enabledTransitions;
 	}
-	
-	/**
-	 * TimedPetriNet builder. Gets info from PNML file. Call buildPetriNet to get a PetriNet object
-	 *
-	 */
-	public static class TimedPetriNetBuilder extends PetriNetBuilder{
-
-		public TimedPetriNetBuilder(String pathToPNML) throws NullPointerException{
-			super(pathToPNML);
-		}
-		
-		public TimedPetriNetBuilder(PNMLreader _reader) throws NullPointerException {
-			super(_reader);
-		}
-		
-		public TimedPetriNet buildPetriNet(){			
-			Quartet<Place[], Transition[], Arc[], Integer[]> petriObjects = PNML2PNObjects();
-			Triplet<Integer[][], Integer[][], Integer[][]> petriMatrices = 
-					rdpObjects2Matrices(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2());
-			
-			return new TimedPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
-					petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2());
-		}
-		
-	}
 }

@@ -13,7 +13,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Petri.PetriNet;
-import Petri.PetriNet.PetriNetBuilder;
+import Petri.PetriNetFactory;
 import Petri.Transition;
 import monitor_petri.FirstInLinePolicy;
 import monitor_petri.MonitorManager;
@@ -26,7 +26,7 @@ public class MonitorManagerTestSuite {
 	MonitorManager monitor;
 	PetriNet petri;
 	static TransitionsPolicy policy;
-	static PetriNetBuilder builder;
+	static PetriNetFactory factory;
 	
 	static ObjectMapper jsonParser;
 	
@@ -55,8 +55,8 @@ public class MonitorManagerTestSuite {
 	 * @param PNML path to the PNML file
 	 */
 	private void setUpMonitor(String PNML){
-		builder = new PetriNetBuilder(PNML);
-		petri = builder.buildPetriNet();
+		factory = new PetriNetFactory(PNML);
+		petri = factory.makePetriNet("PT");
 		monitor = new MonitorManager(petri, policy);
 	}
 
