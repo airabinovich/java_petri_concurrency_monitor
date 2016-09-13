@@ -29,7 +29,7 @@ public class MonitorManagerTimeTestSuite {
 
 	@Before
 	public void setUp() throws Exception {
-		petri = factory.makePetriNet("Timed");
+		petri = factory.makePetriNet("TIMED");
 		monitor = new MonitorManager(petri, policy);
 	}
 
