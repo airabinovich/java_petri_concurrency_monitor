@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Petri.PetriNet;
 import Petri.PetriNetFactory;
+import Petri.PetriNetFactory.petriNetType;
 import Petri.Transition;
 import monitor_petri.FirstInLinePolicy;
 import monitor_petri.MonitorManager;
@@ -56,7 +57,7 @@ public class MonitorManagerTestSuite {
 	 */
 	private void setUpMonitor(String PNML){
 		factory = new PetriNetFactory(PNML);
-		petri = factory.makePetriNet("PT");
+		petri = factory.makePetriNet(petriNetType.PT);
 		monitor = new MonitorManager(petri, policy);
 	}
 

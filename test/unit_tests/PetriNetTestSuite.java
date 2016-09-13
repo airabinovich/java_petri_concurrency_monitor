@@ -9,6 +9,7 @@ import org.junit.Test;
 import Petri.PNMLreader;
 import Petri.PetriNet;
 import Petri.PetriNetFactory;
+import Petri.PetriNetFactory.petriNetType;
 import Petri.Place;
 import Petri.Transition;
 
@@ -31,7 +32,7 @@ public class PetriNetTestSuite {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		testedNet = factory.makePetriNet("PT");
+		testedNet = factory.makePetriNet(petriNetType.PT);
 	}
 
 	/**

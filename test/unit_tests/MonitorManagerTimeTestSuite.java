@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import Petri.PetriNet;
 import Petri.PetriNetFactory;
+import Petri.PetriNetFactory.petriNetType;
 import Petri.Transition;
 import monitor_petri.FirstInLinePolicy;
 import monitor_petri.MonitorManager;
@@ -29,7 +30,7 @@ public class MonitorManagerTimeTestSuite {
 
 	@Before
 	public void setUp() throws Exception {
-		petri = factory.makePetriNet("TIMED");
+		petri = factory.makePetriNet(petriNetType.TIMED);
 		monitor = new MonitorManager(petri, policy);
 	}
 

@@ -13,7 +13,8 @@ import org.javatuples.Triplet;
 	public class PetriNetFactory {
 		
 		protected PNMLreader reader;
-		static enum petriNetType {PT, TIMED};
+		
+		public static enum petriNetType {PT, TIMED};
 		
 		public PetriNetFactory(String pathToPNML) throws NullPointerException{
 			try {
@@ -33,25 +34,24 @@ import org.javatuples.Triplet;
 		/**
 		 * makes and returns the petri described in the PNML file passed to the factory
 		 * @return PetriNet object containing info described in PNML file
-		 * @param petriNetType petri net type. ie: place transition or timed.
+		 * @param petriNetType petri net type from enum type {@link petriNetType}
 		 */
-		public PetriNet makePetriNet(String type){
+		public PetriNet makePetriNet(petriNetType type){
 			
 			Quartet<Place[], Transition[], Arc[], Integer[]> petriObjects = PNML2PNObjects();
 			Triplet<Integer[][], Integer[][], Integer[][]> petriMatrices = 
 					rdpObjects2Matrices(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2());
 			
-			if(petriNetType.PT.name().equals(type)){
+			if(petriNetType.PT.equals(type)){
 				return new PTPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
 						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2());
 			}
-			else if(petriNetType.TIMED.name().equals(type)){
+			if(petriNetType.TIMED.equals(type)){
 				return new TimedPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
 						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2());
 			}
-			else return null;
+			return null;
 		}
-		
 		/**
 		 * extracts petri net info from PNML file given as argument and returns a 4-tuple containing
 		 * places, transitions, arcs and initial marking
