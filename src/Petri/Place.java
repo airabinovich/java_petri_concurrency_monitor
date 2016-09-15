@@ -1,21 +1,17 @@
 package Petri;
 
-public class Place {
+public class Place extends PetriNode{
 	
-	private int index;
-	private String id;
 	private int marking;
 
 	public Place(String _id, int _m, int _i) throws IllegalArgumentException{
-		this.id = _id;
+		super(_id, _i);
 		setMarking(_m);
-		this.index = _i;
 	}
 	
 	public Place(final Place p){
-		this.id = new String(p.getId());
+		super(new String(p.getId()), p.getIndex());
 		this.marking = p.getMarking();
-		this.index = p.getIndex();
 	}
 	
 	/**
@@ -35,19 +31,6 @@ public class Place {
 			throw new IllegalArgumentException("Negative marking is not allowed");
 		}
 		this.marking = _marking;
-	}
-	/**
-	 * @return the place's id
-	 */
-	public String getId() {
-		return id;
-	}
-
-	/**
-	 * @return the place's index
-	 */
-	public int getIndex() {
-		return index;
 	}
 
 }

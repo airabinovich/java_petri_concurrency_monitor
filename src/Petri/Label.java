@@ -17,5 +17,13 @@ public class Label {
 	public boolean isInformed() {
 		return informed;
 	}
+	
+	@Override
+	public String toString(){
+		String isInformed = informed ? "I" : "N";
+		String isAutomatic = automatic ? "A" : "D";
+		
+		return "<" + isAutomatic + "," + isInformed + ">";
+	}
 
 }

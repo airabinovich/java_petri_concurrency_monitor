@@ -133,8 +133,8 @@ public class PNMLreader{
 			}
 		}
 		
-		places = checkFixAndSortPlacesIndexes(places);
-		transitions = checkFixAndSortTransitionsIndexes(transitions);
+		places = checkFixAndSortElements(places);
+		transitions = checkFixAndSortElements(transitions);
 		
 		Place[] retPlaces = new Place[places.size()];
 		Transition[] retTransitions = new Transition[transitions.size()];
@@ -187,26 +187,14 @@ public class PNMLreader{
 	 */
 	private Transition getTransition(String id, Node transitionNode, NodeList nl){
 		
-		final String labelRegexString = "[A-Z]";
-		final Pattern labelRegex = Pattern.compile(labelRegexString, Pattern.CASE_INSENSITIVE);
-		
-		long timeB = 0;
-		long timeE = 0;
 		TimeSpan timeSpan = null;
-		
+		Label label = null;		
 		Integer transitionIndex = null;
-		//A transition is NOT automatic and NOT informed unless specified
-		boolean isAutomatic = false, isInformed = false;
+		
 		for(int i=0; i<nl.getLength(); i++){
 			String currentNodeName = nl.item(i).getNodeName();
 			if(currentNodeName.equals(LABEL)){
-				String transitionLabels = nl.item(i).getTextContent().trim();
-				Matcher labelMatcher = labelRegex.matcher(transitionLabels);
-				while(labelMatcher.find()){
-					String label = labelMatcher.group();
-					isAutomatic = label.equalsIgnoreCase("A") ? true : isAutomatic;
-					isInformed = label.equalsIgnoreCase("I") ? true : isInformed;
-				}
+				label = getLabelFromNode(nl.item(i).getTextContent().trim());
 			}
 			else if(currentNodeName.equals(NAME)){
 				transitionIndex = getPetriObjectIndexFromName(nl.item(i).getTextContent().trim());
@@ -214,36 +202,12 @@ public class PNMLreader{
 			else if(currentNodeName.equals(DELAY)){
 				NodeList delay = nl.item(i).getChildNodes();
 				for(int j=0; j<delay.getLength(); j++){
-					if(delay.item(j).getNodeName().equals(INTERVAL)){
+					Node currentNode = delay.item(j);
+					if(currentNode.getNodeName().equals(INTERVAL)){
 						//get the time interval
-						String interval = delay.item(j).getTextContent().trim().replace(" ","");
-						int indexOf = interval.indexOf("\n");
-						timeB = Long.parseLong(interval.substring(0, indexOf),10);
-						if(interval.substring(indexOf+1).equals(INFTY)){
-							timeE = Long.MAX_VALUE;
-						}
-						else{
-							timeE = Long.parseLong(interval.substring(indexOf+1));
-						}
-						//depending the closure, we will add or subtract the minimum long (1)
-						//and all closures will be handled as closed
-						NamedNodeMap attributes = delay.item(j).getAttributes();
-						for(int k=0; k<attributes.getLength(); k++){
-							if(attributes.item(k).getNodeName().equals(CLOSURE)){
-								if(attributes.item(k).getTextContent().equals(OPEN)){
-									timeB += 1;
-									timeE -= 1;
-								}
-								else if(attributes.item(k).getTextContent().equals(OPENCLOSED)){
-									timeB += 1;
-								}
-								else if(attributes.item(k).getTextContent().equals(CLOSEDOPEN)){
-									timeE -= 1;
-								}
-							}
-						}
+						timeSpan = getTimeSpanFromNode(currentNode.getTextContent().trim().replace(" ",""), currentNode.getAttributes());
+						break;
 					}
-					timeSpan = new TimeSpan(timeB, timeE);
 				}				
 			}
 		}
@@ -253,7 +217,13 @@ public class PNMLreader{
 			return null;
 		}
 		
-		return new Transition(id, new Label(isAutomatic, isInformed), transitionIndex, timeSpan);
+		if (label == null) {
+			// if no label was found, by default is't fired and not informed
+			label = new Label(false, false);
+		}
+
+		
+		return new Transition(id, label, transitionIndex, timeSpan);
 	}
 	
 	/**
@@ -301,14 +271,33 @@ public class PNMLreader{
 		}
 	}
 	
-	private ArrayList<Place> checkFixAndSortPlacesIndexes(ArrayList<Place> places){
+	/**
+	 * Sorts the elements (places or transitions) in petriNodes by index
+	 * If an index is missing,new indexes are specified
+	 * @param petriNodes An ArrayList containing the items to analyze
+	 * @return The same ArrayList but sorted and with fixed indexes
+	 * @see Petri.PetriNode
+	 * @see Petri.Place
+	 * @see Petri.Transition
+	 */
+	private <E extends PetriNode> ArrayList<E> checkFixAndSortElements(ArrayList<E> petriNodes){
+		if(petriNodes == null){
+			System.out.println("NULL petriNodes");
+			return null;
+		}
+		
+		if(petriNodes.isEmpty()){
+			System.out.println("EMPTY petriNodes");
+			return petriNodes;
+		}
+		
+		petriNodes.sort((E node1, E node2) -> (node1.getIndex() - node2.getIndex()));
+		
 		int patternIndex = 0;
 		boolean needToFix = false;
 		
-		places.sort((Place p1, Place p2) -> (p1.getIndex() - p2.getIndex()));
-		
-		for( Place p : places){
-			if(p.getIndex() != patternIndex){
+		for(E node : petriNodes){
+			if(node.getIndex() != patternIndex){
 				needToFix = true;
 				break;
 			}
@@ -316,44 +305,68 @@ public class PNMLreader{
 		}
 		
 		if(!needToFix){
-			return places;
+			return petriNodes;
 		}
 		
 		patternIndex = 0;
-		ArrayList<Place> newPlaces = new ArrayList<Place>();
-		for( Place p : places){
-			newPlaces.add(new Place(p.getId(), p.getMarking(), patternIndex));
+
+		for(E node : petriNodes){
+			node.setIndex(patternIndex);
 			patternIndex++;
 		}
 		
-		return newPlaces;
+		return petriNodes;	
 	}
 	
-	private ArrayList<Transition> checkFixAndSortTransitionsIndexes(ArrayList<Transition> transitions){
-		int patternIndex = 0;
-		boolean needToFix = false;
+	/**
+	 * Builds and returns a TimeSpan object with info contained in attributes
+	 * @param interval a string containing the time interval (begin,end)
+	 * @param attributes the PNML attributes from {@link #INTERVAL} node
+	 * @return TimeSpan object for timed Transition time span
+	 */
+	private TimeSpan getTimeSpanFromNode(String interval, NamedNodeMap attributes){
 		
-		transitions.sort((Transition t1, Transition t2) -> (t1.getIndex() - t2.getIndex()));
+		long timeB = 0;
+		long timeE = 0;
 		
-		for( Transition t : transitions){
-			if( t.getIndex() != patternIndex){
-				needToFix = true;
-				break;
+		int indexOf = interval.indexOf("\n");
+		timeB = Long.parseLong(interval.substring(0, indexOf),10);
+		if(interval.substring(indexOf+1).equals(INFTY)){
+			timeE = Long.MAX_VALUE;
+		}
+		else{
+			timeE = Long.parseLong(interval.substring(indexOf+1));
+		}
+		//depending the closure, we will add or subtract the minimum long (1)
+		//and all closures will be handled as closed
+		for(int k=0; k<attributes.getLength(); k++){
+			Node node = attributes.item(k);
+			if(node.getNodeName().equals(CLOSURE)){
+				String closure = node.getTextContent();
+				timeB += (closure.equals(OPEN) || closure.equals(OPENCLOSED)) ? 1 : 0;
+				timeE -= (closure.equals(OPEN) || closure.equals(CLOSEDOPEN)) ? 1 : 0;
 			}
-			patternIndex++;
+		}
+		return new TimeSpan(timeB, timeE);
+	}
+	
+	/**
+	 * Get transition label from text label
+	 * @param labelInfo The label in string format
+	 * @return A Label object containing the info included in labelInfo
+	 */
+	private Label getLabelFromNode(String labelInfo){
+		final Pattern labelRegex = Pattern.compile("[A-Z]", Pattern.CASE_INSENSITIVE);
+		boolean isAutomatic = false;
+		boolean isInformed = false;
+		
+		Matcher labelMatcher = labelRegex.matcher(labelInfo);
+		while(labelMatcher.find()){
+			String label = labelMatcher.group();
+			isAutomatic = label.equalsIgnoreCase("A") ? true : isAutomatic;
+			isInformed = label.equalsIgnoreCase("I") ? true : isInformed;
 		}
 		
-		if(!needToFix){
-			return transitions;
-		}
-		
-		patternIndex = 0;
-		ArrayList<Transition> newTransitions = new ArrayList<Transition>();
-		for( Transition t : transitions){
-			newTransitions.add(new Transition(t.getId(), t.getLabel(), patternIndex, t.getTimeSpan()));
-			patternIndex++;
-		}
-		
-		return newTransitions;
+		return new Label(isAutomatic, isInformed);
 	}
 }
