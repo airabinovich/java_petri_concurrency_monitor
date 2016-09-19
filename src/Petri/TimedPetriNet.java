@@ -2,13 +2,15 @@ package Petri;
 
 import java.util.Arrays;
 
-import org.javatuples.Quartet;
-import org.javatuples.Triplet;
-
 public class TimedPetriNet extends PetriNet{
 
 	protected boolean[] enabledTransitions;
 	
+	/**
+	 * extends the abstract class PetriNet, and also has a boolean array containing
+	 * the enabled transitions 
+	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][])
+	 */
 	protected TimedPetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs, Integer[] _initialMarking,
 			Integer[][] _preI, Integer[][] _posI, Integer[][] _I) {
 		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I);
@@ -40,30 +42,5 @@ public class TimedPetriNet extends PetriNet{
 			}			
 		}
 		return _enabledTransitions;
-	}
-	
-	/**
-	 * TimedPetriNet builder. Gets info from PNML file. Call buildPetriNet to get a PetriNet object
-	 *
-	 */
-	public static class TimedPetriNetBuilder extends PetriNetBuilder{
-
-		public TimedPetriNetBuilder(String pathToPNML) throws NullPointerException{
-			super(pathToPNML);
-		}
-		
-		public TimedPetriNetBuilder(PNMLreader _reader) throws NullPointerException {
-			super(_reader);
-		}
-		
-		public TimedPetriNet buildPetriNet(){			
-			Quartet<Place[], Transition[], Arc[], Integer[]> petriObjects = PNML2PNObjects();
-			Triplet<Integer[][], Integer[][], Integer[][]> petriMatrices = 
-					rdpObjects2Matrices(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2());
-			
-			return new TimedPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
-					petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2());
-		}
-		
 	}
 }

@@ -18,9 +18,10 @@ import Petri.PNMLreader;
 import Petri.PetriNet;
 import Petri.Place;
 import Petri.Transition;
-import Petri.PetriNet.PetriNetBuilder;
+import Petri.PetriNetFactory;
+import Petri.PetriNetFactory.petriNetType;
 
-public class PetriNetBuilderTestSuite {
+public class PetriNetFactoryTestSuite {
 
 	private static PNMLreader reader;
 	private static Triplet<Place[], Transition[], Arc[]> mockPetriObjects;
@@ -69,10 +70,10 @@ public class PetriNetBuilderTestSuite {
 	}
 
 	@Test
-	public void petriNetBuilderShouldThrowExceptionWhenNullPNMLreaderIsPassed() {
+	public void petriNetFactoryShouldThrowExceptionWhenNullPNMLreaderIsPassed() {
 		try{
 			@SuppressWarnings("unused")
-			PetriNetBuilder builder = new PetriNetBuilder((PNMLreader)null);
+			PetriNetFactory factory = new PetriNetFactory((PNMLreader)null);
 			fail("Exception should've be thrown before this point");
 		} catch(Exception e){
 			assertEquals(e.getClass().getSimpleName(), "NullPointerException");
@@ -80,10 +81,10 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldThrowExceptionWhenNullStringIsPassed() {
+	public void petriNetFactoryShouldThrowExceptionWhenNullStringIsPassed() {
 		try{
 			@SuppressWarnings("unused")
-			PetriNetBuilder builder = new PetriNetBuilder((String)null);
+			PetriNetFactory factory = new PetriNetFactory((String)null);
 			fail("Exception should've be thrown before this point");
 		} catch(Exception e){
 			assertEquals(e.getClass().getSimpleName(), "NullPointerException");
@@ -91,9 +92,9 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnSamePetriObjectsGottenFromPNMLreader(){
+	public void petriNetFactoryShouldReturnSamePetriObjectsGottenFromPNMLreader(){
 		try{
-			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
+			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
 			Place[] places = petriNet.getPlaces();
 			Transition[] transitions = petriNet.getTransitions();
@@ -109,9 +110,9 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnCorrectInitialMarking(){
+	public void petriNetFactoryShouldReturnCorrectInitialMarking(){
 		try{
-			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
+			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
 			Integer[] obtainedMarking = petriNet.getInitialMarking();
 			Assert.assertArrayEquals(expectedMarking, obtainedMarking);
@@ -122,9 +123,9 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnCorrectCurrentMarking(){
+	public void petriNetFactoryShouldReturnCorrectCurrentMarking(){
 		try{
-			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
+			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
 			Integer[] obtainedMarking = petriNet.getCurrentMarking();
 			Assert.assertArrayEquals(expectedMarking, obtainedMarking);
@@ -135,9 +136,9 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnCorrectPetriMatrixes(){
+	public void petriNetFactoryShouldReturnCorrectPetriMatrixes(){
 		try{
-			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
+			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
 			Integer[][] obtainedPre = petriNet.getPre();
 			Integer[][] obtainedPos = petriNet.getPost();
@@ -155,9 +156,9 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnPlacesInOrder(){
+	public void petriNetFactoryShouldReturnPlacesInOrder(){
 		try{
-			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
+			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
 			Place[] places = petriNet.getPlaces();
 			int patternIndex = 0;
@@ -171,9 +172,9 @@ public class PetriNetBuilderTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnTransitionsInOrder(){
+	public void petriNetFactoryShouldReturnTransitionsInOrder(){
 		try{
-			PetriNet petriNet = new PetriNetBuilder(PetriNetBuilderTestSuite.reader).buildPetriNet();
+			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
 			Transition[] transitions = petriNet.getTransitions();
 			int patternIndex = 0;

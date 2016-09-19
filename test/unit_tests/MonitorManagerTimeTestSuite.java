@@ -7,9 +7,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import Petri.TimedPetriNet;
+import Petri.PetriNet;
+import Petri.PetriNetFactory;
+import Petri.PetriNetFactory.petriNetType;
 import Petri.Transition;
-import Petri.TimedPetriNet.TimedPetriNetBuilder;
 import monitor_petri.FirstInLinePolicy;
 import monitor_petri.MonitorManager;
 import monitor_petri.TransitionsPolicy;
@@ -17,19 +18,19 @@ import monitor_petri.TransitionsPolicy;
 public class MonitorManagerTimeTestSuite {
 
 	MonitorManager monitor;
-	TimedPetriNet petri;
+	PetriNet petri;
 	static TransitionsPolicy policy;
-	static TimedPetriNetBuilder builder;
+	static PetriNetFactory factory;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		builder = new TimedPetriNetBuilder("./test/unit_tests/testResources/timedPetri.pnml");
+		factory = new PetriNetFactory("./test/unit_tests/testResources/timedPetri.pnml");
 		policy = new FirstInLinePolicy();
 	}
 
 	@Before
 	public void setUp() throws Exception {
-		petri = builder.buildPetriNet();
+		petri = factory.makePetriNet(petriNetType.TIMED);
 		monitor = new MonitorManager(petri, policy);
 	}
 

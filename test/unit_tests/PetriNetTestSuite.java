@@ -8,13 +8,14 @@ import org.junit.Test;
 
 import Petri.PNMLreader;
 import Petri.PetriNet;
-import Petri.PetriNet.PetriNetBuilder;
+import Petri.PetriNetFactory;
+import Petri.PetriNetFactory.petriNetType;
 import Petri.Place;
 import Petri.Transition;
 
 public class PetriNetTestSuite {
 
-	private static PetriNetBuilder builder;
+	private static PetriNetFactory factory;
 	private PetriNet testedNet;
 
 	/**
@@ -23,7 +24,7 @@ public class PetriNetTestSuite {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		PNMLreader reader = new PNMLreader("test/unit_tests/testResources/readerWriter.pnml");
-		builder = new PetriNetBuilder(reader);
+		factory = new PetriNetFactory(reader);
 	}
 
 	/**
@@ -31,7 +32,7 @@ public class PetriNetTestSuite {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		testedNet = builder.buildPetriNet();
+		testedNet = factory.makePetriNet(petriNetType.PT);
 	}
 
 	/**
