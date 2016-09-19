@@ -70,7 +70,7 @@ public class PetriNetFactoryTestSuite {
 	}
 
 	@Test
-	public void petriNetBuilderShouldThrowExceptionWhenNullPNMLreaderIsPassed() {
+	public void petriNetFactoryShouldThrowExceptionWhenNullPNMLreaderIsPassed() {
 		try{
 			@SuppressWarnings("unused")
 			PetriNetFactory factory = new PetriNetFactory((PNMLreader)null);
@@ -81,7 +81,7 @@ public class PetriNetFactoryTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldThrowExceptionWhenNullStringIsPassed() {
+	public void petriNetFactoryShouldThrowExceptionWhenNullStringIsPassed() {
 		try{
 			@SuppressWarnings("unused")
 			PetriNetFactory factory = new PetriNetFactory((String)null);
@@ -92,7 +92,7 @@ public class PetriNetFactoryTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnSamePetriObjectsGottenFromPNMLreader(){
+	public void petriNetFactoryShouldReturnSamePetriObjectsGottenFromPNMLreader(){
 		try{
 			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
@@ -110,7 +110,7 @@ public class PetriNetFactoryTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnCorrectInitialMarking(){
+	public void petriNetFactoryShouldReturnCorrectInitialMarking(){
 		try{
 			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
@@ -123,7 +123,7 @@ public class PetriNetFactoryTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnCorrectCurrentMarking(){
+	public void petriNetFactoryShouldReturnCorrectCurrentMarking(){
 		try{
 			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
@@ -136,7 +136,7 @@ public class PetriNetFactoryTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnCorrectPetriMatrixes(){
+	public void petriNetFactoryShouldReturnCorrectPetriMatrixes(){
 		try{
 			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
@@ -156,7 +156,7 @@ public class PetriNetFactoryTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnPlacesInOrder(){
+	public void petriNetFactoryShouldReturnPlacesInOrder(){
 		try{
 			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			
@@ -172,7 +172,7 @@ public class PetriNetFactoryTestSuite {
 	}
 	
 	@Test
-	public void petriNetBuilderShouldReturnTransitionsInOrder(){
+	public void petriNetFactoryShouldReturnTransitionsInOrder(){
 		try{
 			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.reader).makePetriNet(petriNetType.PT);
 			

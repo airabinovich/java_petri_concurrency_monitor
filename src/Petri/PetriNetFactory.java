@@ -14,6 +14,9 @@ import org.javatuples.Triplet;
 		
 		protected PNMLreader reader;
 		
+		/**
+		 * Types accepted by {@link PetriNetFactory#makePetriNet(petriNetType)}
+		 */
 		public static enum petriNetType {PT, TIMED};
 		
 		public PetriNetFactory(String pathToPNML) throws NullPointerException{
@@ -42,15 +45,16 @@ import org.javatuples.Triplet;
 			Triplet<Integer[][], Integer[][], Integer[][]> petriMatrices = 
 					rdpObjects2Matrices(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2());
 			
-			if(petriNetType.PT.equals(type)){
+			switch(type){
+			case PT:
 				return new PTPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
 						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2());
-			}
-			if(petriNetType.TIMED.equals(type)){
+			case TIMED:
 				return new TimedPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
 						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2());
+			default:
+				return null;
 			}
-			return null;
 		}
 		/**
 		 * extracts petri net info from PNML file given as argument and returns a 4-tuple containing
