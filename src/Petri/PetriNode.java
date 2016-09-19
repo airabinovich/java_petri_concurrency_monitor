@@ -1,17 +1,18 @@
 package Petri;
 
 /**
- * A PetriNode is a point connectable by an arc, thus it must be implemented by Place and Transition
- * This interface generalizes a few methods needed by a point that has to be an origin or destination for an arc
+ * Since a PetriNet is a bipartite graph, a PetriNode is a node connectable by an arc.
+ * Therefore PetriNode must be extended by Place and Transition.
+ * This class generalizes a few methods needed by a a node of that graph.
  */
 public abstract class PetriNode {
 	
 	protected String id;
 	protected int index;
 	
-	public PetriNode(String _id, int _index){
+	public PetriNode(String _id, int _index) throws IllegalArgumentException{
 		this.id = _id;
-		this.index = _index;
+		setIndex(_index);
 	}
 	
 	/** Id used to identify univocally the node */
