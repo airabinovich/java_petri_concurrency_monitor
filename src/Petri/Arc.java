@@ -2,12 +2,58 @@ package Petri;
 
 public class Arc {
 	
+	/**
+	 * Different types of arc available for petri nets
+	 */
+	public enum ArcType {
+		/** Standard arc. Connects a place to a transition or vice versa.
+		 * Its weight is the amount of token drained from or given to a place
+		 */
+		STANDARD,
+		/** Inhibitor arc. Connects a place to a transition but not the other way.
+		 * Its weight must be one. When the source place has any tokens, it disables the target transition
+		 */
+		INHIBITOR,
+		/** Reader arc. Connects a place to a transition but not the other way.
+		 * As the standard arc, a source place has no have an amount of token equal
+		 * or greater than the arc's weight to enable the target transition, but
+		 * in this type of arc the transition fire doesn't drain any tokens from the place
+		 */
+		READER;
+		
+		private static final String INHIBITOR_STR = "inhibitor";
+		private static final String READER_STR = "test";
+		
+		/**
+		 * Given a pre-defined string present in PNML files, matches and returns
+		 * the corresponding ArcType
+		 * @param str The ArcType name taken from PNML file
+		 * @return An ArcType enum value matching param str
+		 */
+		public static ArcType fromString (String str){
+			if (str.equalsIgnoreCase(INHIBITOR_STR)){
+				return INHIBITOR;
+			}
+			if (str.equalsIgnoreCase(READER_STR)){
+				return READER;
+			}
+			return STANDARD;
+		}
+		
+	};
+	
 	private String id;
 	private String id_source;
 	private String id_target;
 	private Integer weight;
+	/** Type of arc from {@link ArcType} */
+	private ArcType type;
 	
 	public Arc(String _id, String _id_source, String _id_target, Integer _weight) throws IllegalArgumentException {
+		this(_id, _id_source, _id_target, _weight, ArcType.STANDARD);
+	}
+	
+	public Arc(String _id, String _id_source, String _id_target, Integer _weight, ArcType _type) throws IllegalArgumentException{
 		if(_weight < 1){
 			throw new IllegalArgumentException("Arc weight cannot be less that 1");
 		}
@@ -15,6 +61,7 @@ public class Arc {
 		this.id_source = _id_source;
 		this.id_target = _id_target;
 		this.weight = _weight;
+		this.type = _type;
 	}
 
 	/**
@@ -43,6 +90,10 @@ public class Arc {
 	 */
 	public String getId() {
 		return id;
+	}
+	
+	public ArcType getType(){
+		return type;
 	}
 
 }

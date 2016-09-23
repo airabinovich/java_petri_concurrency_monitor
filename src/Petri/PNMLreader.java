@@ -11,6 +11,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import Petri.Arc;
+import Petri.Arc.ArcType;
 import Petri.Label;
 import Petri.Place;
 import Petri.Transition;
@@ -50,6 +51,8 @@ public class PNMLreader{
 	private static final String WEIGHT = "inscription";
 	private static final String SOURCE = "source";
 	private static final String TARGET = "target";
+	private static final String ARC_TYPE = "type";
+	private static final String VALUE = "value";
 	
 	File pnmlFile;
 	
@@ -157,7 +160,7 @@ public class PNMLreader{
 	 * @param id the object id embedded in the PNML
 	 * @param placeNode Node object from PNML
 	 * @param nl placeNode children nodes as NodeList
-	 * @return S place object containing the info parsed
+	 * @return A place object containing the info parsed
 	 * @see {@link Petri.Place}
 	 */
 	private Place getPlace(String id, Node placeNode, NodeList nl){
@@ -237,6 +240,7 @@ public class PNMLreader{
 			// if no label was found, by default it's fired and not informed
 			label = new Label(false, false);
 		}
+
 		
 		if(guard == null){
 			// if no guard was found, let's create an empty one
@@ -260,22 +264,31 @@ public class PNMLreader{
 		String source = arcElement.getAttribute(SOURCE);
 		String target = arcElement.getAttribute(TARGET);
 		if(source.isEmpty() || target.isEmpty()){
-			return null;
+			throw new BadPNMLFormatException("Error parsing arcs, invalid source or target found");
 		}
-		
+
 		Integer weight = 1;
-		for(int i=0; i<nl.getLength(); i++){
-			if(nl.item(i).getNodeName().equals(WEIGHT)){
-				weight = Integer.parseInt(nl.item(i).getTextContent().trim());
-				break;
+		ArcType type = ArcType.STANDARD;
+
+		try{
+			for(int i=0; i<nl.getLength(); i++){
+				Node item = nl.item(i);
+				String itemName = item.getNodeName();
+				if(itemName.equals(WEIGHT)){
+					weight = Integer.parseInt(nl.item(i).getTextContent().trim());
+				} else if (itemName.equals(ARC_TYPE)){
+					type = ArcType.fromString(((Element)item).getAttribute(VALUE));
+				}
 			}
+		} catch (NumberFormatException e){
+			throw new BadPNMLFormatException("Error parsing arcs", e);
 		}
-		
+
 		if(weight < 1){
 			throw new BadPNMLFormatException("Negative or zero weight found parsing arc");
 		}
-		
-		return new Arc(id, source, target, weight);
+
+		return new Arc(id, source, target, weight, type);
 	}
 	
 	/**

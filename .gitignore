@@ -33,3 +33,7 @@ local.properties
 
 !lib/*
 !resources/*
+
+# ignore compiled javadoc
+
+doc/javadoc/
