@@ -38,8 +38,9 @@ import org.javatuples.Triplet;
 		 * makes and returns the petri described in the PNML file passed to the factory
 		 * @return PetriNet object containing info described in PNML file
 		 * @param petriNetType petri net type from enum type {@link petriNetType}
+		 * @throws CannotCreatePetriNetError
 		 */
-		public PetriNet makePetriNet(petriNetType type){
+		public PetriNet makePetriNet(petriNetType type) throws CannotCreatePetriNetError{
 			
 			Quartet<Place[], Transition[], Arc[], Integer[]> petriObjects = PNML2PNObjects();
 			Triplet<Integer[][], Integer[][], Integer[][]> petriMatrices = 
@@ -60,11 +61,17 @@ import org.javatuples.Triplet;
 		 * extracts petri net info from PNML file given as argument and returns a 4-tuple containing
 		 * places, transitions, arcs and initial marking
 		 * @return a 4-tuple containig (places, transitions, arcs, initial marking)
+		 * @throws CannotCreatePetriNetError
 		 */
-		protected Quartet<Place[], Transition[], Arc[], Integer[]> PNML2PNObjects(){
-			Triplet<Place[], Transition[], Arc[]> ret = reader.parseFileAndGetPetriObjects();
+		protected Quartet<Place[], Transition[], Arc[], Integer[]> PNML2PNObjects() throws CannotCreatePetriNetError{
+			try{
+				Triplet<Place[], Transition[], Arc[]> ret = reader.parseFileAndGetPetriObjects();
 			
-			return ret.add(getMarkingFromPlaces(ret.getValue0()));
+				return ret.add(getMarkingFromPlaces(ret.getValue0()));
+			} catch (BadPNMLFormatException e){
+				throw new CannotCreatePetriNetError("Error creating petriNet due to PNML error. "
+						+ e.getMessage());
+			}
 		}
 		
 		/**

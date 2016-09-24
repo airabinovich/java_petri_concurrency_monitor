@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-303E-25C12-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>petriWithGuardBadFormat01</text>
+  </name>
+ <page id="g-303E-25C1A-1">
+  <place id="p-303E-25C1B-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-303E-25C23-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="275"/>
+   </graphics>
+  </place>
+  <transition id="t-303E-25C26-4">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;A,I,badFormat&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="30" y="160"/>
+   </graphics>
+  </transition>
+  <arc id="e-303E-25C2E-5" source="t-303E-25C26-4" target="p-303E-25C23-3">
+  </arc>
+  <arc id="e-303E-25C30-6" source="p-303E-25C1B-2" target="t-303E-25C26-4">
+  </arc>
+ </page>
+ </net>
+</pnml>
