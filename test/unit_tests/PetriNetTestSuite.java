@@ -181,7 +181,7 @@ public class PetriNetTestSuite {
 	
 	/**
 	 * <li> Given t0 and t1 are fed by p0 </li>
-	 * <li> And p0 has a token </li>
+	 * <li> And p0 has 2 tokens </li>
 	 * <li> And arcs joining p0 to t0 and t1 have weight 1 </li>
 	 * <li> And t0 has a guard "test" which expects true to fire </li>
 	 * <li> And t1 has a guard "test" which expects false to fire </li>
@@ -190,7 +190,7 @@ public class PetriNetTestSuite {
 	 * <li> When I set "test" to true </li>
 	 * <li> And I fire t1 </li>
 	 * <li> Then t1 should not be fired </li>
-	 * <li> And p0 still has one token </li>
+	 * <li> And p0 still has 2 tokens </li>
 	 * <li> And p2 has no tokens </li>
 	 */
 	@Test
@@ -200,7 +200,7 @@ public class PetriNetTestSuite {
 			
 			Transition t1 = petriNet.getTransitions()[1];
 			
-			Integer[] expectedMarking = {Integer.valueOf(1), Integer.valueOf(0), Integer.valueOf(0)};
+			Integer[] expectedMarking = {Integer.valueOf(2), Integer.valueOf(0), Integer.valueOf(0)};
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 			petriNet.addGuard("test", true);
@@ -216,7 +216,7 @@ public class PetriNetTestSuite {
 	
 	/**
 	 * <li> Given t0 and t1 are fed by p0 </li>
-	 * <li> And p0 has a token </li>
+	 * <li> And p0 has 2 tokens </li>
 	 * <li> And arcs joining p0 to t0 and t1 have weight 1 </li>
 	 * <li> And t0 has a guard "test" which expects true to fire </li>
 	 * <li> And t1 has a guard "test" which expects false to fire </li>
@@ -225,7 +225,7 @@ public class PetriNetTestSuite {
 	 * <li> When I set "test" to true </li>
 	 * <li> And I fire t0 </li>
 	 * <li> Then t0 should be fired successfully </li>
-	 * <li> And p0 has no tokens </li>
+	 * <li> And p0 has one token </li>
 	 * <li> And p1 has one token </li>
 	 */
 	@Test
@@ -235,14 +235,14 @@ public class PetriNetTestSuite {
 			
 			Transition t0 = petriNet.getTransitions()[0];
 			
-			Integer[] expectedMarking = {Integer.valueOf(1), Integer.valueOf(0), Integer.valueOf(0)};
+			Integer[] expectedMarking = {Integer.valueOf(2), Integer.valueOf(0), Integer.valueOf(0)};
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 			petriNet.addGuard("test", true);
 			
 			Assert.assertTrue(petriNet.fire(t0));
 			
-			expectedMarking[0] = 0;
+			expectedMarking[0] = 1;
 			expectedMarking[1] = 1;
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
@@ -253,7 +253,7 @@ public class PetriNetTestSuite {
 	
 	/**
 	 * <li> Given t0 and t1 are fed by p0 </li>
-	 * <li> And p0 has a token </li>
+	 * <li> And p0 has 2 tokens </li>
 	 * <li> And arcs joining p0 to t0 and t1 have weight 1 </li>
 	 * <li> And t0 has a guard "test" which expects true to fire </li>
 	 * <li> And t1 has a guard "test" which expects false to fire </li>
@@ -262,7 +262,7 @@ public class PetriNetTestSuite {
 	 * <li> When I set "test" to false </li>
 	 * <li> And I fire t0 </li>
 	 * <li> Then t0 should not be fired </li>
-	 * <li> And p0 still has one token </li>
+	 * <li> And p0 still has 2 tokens </li>
 	 * <li> And p1 has no tokens </li>
 	 */
 	@Test
@@ -272,7 +272,7 @@ public class PetriNetTestSuite {
 			
 			Transition t0 = petriNet.getTransitions()[0];
 			
-			Integer[] expectedMarking = {Integer.valueOf(1), Integer.valueOf(0), Integer.valueOf(0)};
+			Integer[] expectedMarking = {Integer.valueOf(2), Integer.valueOf(0), Integer.valueOf(0)};
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 			petriNet.addGuard("test", false);
@@ -288,7 +288,7 @@ public class PetriNetTestSuite {
 	
 	/**
 	 * <li> Given t0 and t1 are fed by p0 </li>
-	 * <li> And p0 has a token </li>
+	 * <li> And p0 has 2 tokens </li>
 	 * <li> And arcs joining p0 to t0 and t1 have weight 1 </li>
 	 * <li> And t0 has a guard "test" which expects true to fire </li>
 	 * <li> And t1 has a guard "test" which expects false to fire </li>
@@ -297,7 +297,7 @@ public class PetriNetTestSuite {
 	 * <li> When I set "test" to false </li>
 	 * <li> And I fire t1 </li>
 	 * <li> Then t1 should be fired successfully </li>
-	 * <li> And p0 has no tokens </li>
+	 * <li> And p0 has one token </li>
 	 * <li> And p2 has one token </li>
 	 */
 	@Test
@@ -307,14 +307,14 @@ public class PetriNetTestSuite {
 			
 			Transition t1 = petriNet.getTransitions()[1];
 			
-			Integer[] expectedMarking = {Integer.valueOf(1), Integer.valueOf(0), Integer.valueOf(0)};
+			Integer[] expectedMarking = {Integer.valueOf(2), Integer.valueOf(0), Integer.valueOf(0)};
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 			petriNet.addGuard("test", false);
 			
 			Assert.assertTrue(petriNet.fire(t1));
 			
-			expectedMarking[0] = 0;
+			expectedMarking[0] = 1;
 			expectedMarking[2] = 1;
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			

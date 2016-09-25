@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
- <net id="n-2855-83704-0" type ="http://www.laas.fr/tina/tpn">
+ <net id="n-28E7-580FD-0" type ="http://www.laas.fr/tina/tpn">
   <name>
    <text>petriWithGuard01</text>
   </name>
- <page id="g-2855-8370B-1">
-  <place id="p-2855-8370D-2">
+ <page id="g-28E7-5810C-1">
+  <place id="p-28E7-5810F-2">
   <name>
    <text>p0</text>
     <graphics>
@@ -13,13 +13,13 @@
     </graphics>
   </name>
    <initialMarking>
-    <text>1</text>
+    <text>2</text>
    </initialMarking>
    <graphics>
     <position x="180" y="50"/>
    </graphics>
   </place>
-  <place id="p-2855-83715-3">
+  <place id="p-28E7-5811D-3">
   <name>
    <text>p1</text>
     <graphics>
@@ -30,7 +30,7 @@
     <position x="120" y="275"/>
    </graphics>
   </place>
-  <place id="p-2855-83718-4">
+  <place id="p-28E7-58123-4">
   <name>
    <text>p2</text>
     <graphics>
@@ -41,7 +41,7 @@
     <position x="240" y="275"/>
    </graphics>
   </place>
-  <transition id="t-2855-8371C-5">
+  <transition id="t-28E7-5812B-5">
   <name>
    <text>t0</text>
     <graphics>
@@ -58,7 +58,7 @@
     <position x="120" y="160"/>
    </graphics>
   </transition>
-  <transition id="t-2855-83722-6">
+  <transition id="t-28E7-58136-6">
   <name>
    <text>t1</text>
     <graphics>
@@ -75,13 +75,13 @@
     <position x="240" y="160"/>
    </graphics>
   </transition>
-  <arc id="e-2855-83728-7" source="t-2855-83722-6" target="p-2855-83718-4">
+  <arc id="e-28E7-58147-7" source="p-28E7-5810F-2" target="t-28E7-5812B-5">
   </arc>
-  <arc id="e-2855-8372A-8" source="p-2855-8370D-2" target="t-2855-83722-6">
+  <arc id="e-28E7-5814E-8" source="t-28E7-5812B-5" target="p-28E7-5811D-3">
   </arc>
-  <arc id="e-2855-8372D-9" source="t-2855-8371C-5" target="p-2855-83715-3">
+  <arc id="e-28E7-58153-9" source="p-28E7-5810F-2" target="t-28E7-58136-6">
   </arc>
-  <arc id="e-2855-8372E-10" source="p-2855-8370D-2" target="t-2855-8371C-5">
+  <arc id="e-28E7-58156-10" source="t-28E7-58136-6" target="p-28E7-58123-4">
   </arc>
  </page>
  </net>

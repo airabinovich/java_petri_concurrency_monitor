@@ -3,6 +3,12 @@ package Petri;
 import java.util.Arrays;
 import java.util.HashMap;
 
+/**
+ * Implementation for petri net model.
+ * This class describes a general basic petri net.
+ * Every special petri net type (timed, colored, stochastic, etc) has to extend this class
+ *
+ */
 public abstract class PetriNet {
 	
 	protected Place[] places;
@@ -120,15 +126,6 @@ public abstract class PetriNet {
 		return informedTransitions;
 	}
 	
-	//No sabemos que hace todavia
-	public void disparar_guarda(int ti, boolean to) {
-	}
-	
-	//No sabemos que hace todavia (tampoco)
-	public void set_guarda(boolean p, int i){
-		
-	}
-	
 	/**
 	 * @return a copy of the places
 	 */
@@ -221,12 +218,14 @@ public abstract class PetriNet {
 	}
 	
 	/**
-	 * Adds a new guard to the petriNet or updates a guard's value
+	 * Adds a new guard to the petriNet or updates a guard's value.
+	 * Intended only for internal using. Use {@link monitor_petri.MonitorManager#setGuard(String, boolean)} instead 
 	 * @param key the guard name
 	 * @param value the new value
+	 * @return True when succeeded
 	 */
-	public synchronized void addGuard(String key, Boolean value) {
-		guards.put(key, value);
+	public synchronized boolean addGuard(String key, Boolean value) {
+		return guards.put(key, value) != null;
 	}
 	
 	/**

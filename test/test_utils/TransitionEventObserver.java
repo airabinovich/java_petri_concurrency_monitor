@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import rx.Observer;
 
 /**
- * An observer that receive and store string events
+ * An observer who receives and stores string events.
  * Made for testing purposes
  *
  */
