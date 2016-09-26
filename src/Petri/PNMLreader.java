@@ -377,7 +377,7 @@ public class PNMLreader{
 	 * Get transition label from text label. Labels order:
 	 * <li> Automatic(A) or Fired(F,D) </li>
 	 * <li> Informed(I) or Not Informed(N) </li>
-	 * <li> Guards (variable name between brackets, ~ is not operator, no whitespaces allowed) </li>
+	 * <li> Guards (variable name between brackets, ~ and ! are NOT operator, whitespaces will be trimmed if any) </li>
 	 * @param labelInfo The label in string format
 	 * @return A Label object containing the info included in labelInfo
 	 * @throws BadPNMLFormatException if the string doesn't respect the label format
@@ -416,9 +416,9 @@ public class PNMLreader{
 							+ "from label " + labels);
 					}
 					// trim the backets
-					String guardStr = label.substring(1, label.length() - 1);
+					String guardStr = label.substring(1, label.length() - 1).replaceAll("\\s", "");
 					//check if it's for negative logic
-					boolean negative = guardStr.charAt(0) == '~';
+					boolean negative = (guardStr.charAt(0) == '~' || guardStr.charAt(0) == '!');
 					if (negative){
 						//discard first char "~"
 						guardStr = guardStr.substring(1);

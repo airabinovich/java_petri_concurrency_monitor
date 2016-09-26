@@ -36,6 +36,7 @@ public class MonitorManagerTestSuite {
 	private static final String MONITOR_TEST_02_PETRI = TEST_PETRI_FOLDER + "monitorTest02.pnml";
 	private static final String MONITOR_TEST_03_PETRI = TEST_PETRI_FOLDER + "monitorTest03.pnml";
 	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
+	private static final String PETRI_WITH_GUARD_02 = TEST_PETRI_FOLDER + "petriWithGuard02.pnml";
 	
 	private static final String ID = "id";
 
@@ -433,7 +434,7 @@ public class MonitorManagerTestSuite {
 	 * <li> And t1 feeds place p2 which starts empty</li>
 	 * <li> And both t0 and t1 are fired and informed </li>
 	 * <li> When I set "test" to true </li>
-	 * <li> And obs registers to t0's and tq's events </li>
+	 * <li> And obs registers to t0's and t1's events </li>
 	 * <li> And th0 fires t0 </li>
 	 * <li> And th1 fires t1 </li>
 	 * <li> Then t0 should be fired successfully </li>
@@ -488,6 +489,139 @@ public class MonitorManagerTestSuite {
 			Assert.fail("Event is not in JSON format");
 		}
 	}
-	
 
+	/**
+	 * <li> Given t0 is enabled </li>
+	 * <li> And t0 has a guard "test" which expects true to fire </li>
+	 * <li> And t0 is fired and informed </li>
+	 * <li> When I set "test" to false </li>
+	 * <li> And obs registers to t0's events </li>
+	 * <li> And th0 fires t0 </li>
+	 * <li> And t0 is not fired </li>
+	 * <li> And th0 sleeps in t0's varcond queue </li>
+	 * <li> And I set "test" to true </li>
+	 * <li> Then th0 wakes up </li>
+	 * <li> And t0 is fired </li>
+	 * <li> And obs gets one event with id matching t0's </li>
+	 */
+	@Test
+	public void ThreadSleepingDueToGuardShouldWakeUpWhenGuardAllows(){
+		
+		setUpMonitor(PETRI_WITH_GUARD_01);
+		
+		Transition t0 = petri.getTransitions()[0];
+		
+		// setting this guard here is just to enable t0
+		monitor.setGuard("test", true);
+		Assert.assertTrue(petri.isEnabled(t0));
+		
+		monitor.setGuard("test", false);
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs);
+		
+		Thread th0 = new Thread(() -> monitor.fireTransition(t0));
+		th0.start();
+		
+		try {
+			// let's give th0 some time to try to fire t0
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			Assert.fail("Error sleeping main thread");
+		}
+		
+		Assert.assertTrue(obs.getEvents().isEmpty());
+		
+		monitor.setGuard("test", true);
+		
+		try {
+			// let's give th0 some time to try to fire t0
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			Assert.fail("Error sleeping main thread");
+		}
+		
+		ArrayList<String> events = obs.getEvents();
+		Assert.assertEquals(1, events.size());
+		
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t0.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+		
+	}
+
+	/**
+	 * <li> Given t0 is enabled </li>
+	 * <li> And t0 is fired and informed </li>
+	 * <li> And t2 is automatic and informed </li>
+	 * <li> And t2 has a guard "test" which expects false to fire </li>
+	 * <li> When I set "test" to true </li>
+	 * <li> And obs registers to t0's and t2's events </li>
+	 * <li> And th0 fires t0 </li>
+	 * <li> And t0 is fired successfully </li>
+	 * <li> And t2 is not fired due to "test" guard </li>
+	 * <li> And obs gets one event with id matching t0's </li>
+	 * <li> And I set "test" to false </li>
+	 * <li> Then t2 gets enabled </li>
+	 * <li> And t2 is fired automatically </li>
+	 * <li> And obs gets two event with ids matching t0's and t2's </li>
+	 */
+	@Test
+	public void AutomaticTransitionDisabledDueToGuardShuldBeFiredWenGuardAllows(){
+		
+		setUpMonitor(PETRI_WITH_GUARD_02);
+		
+		Transition t0 = petri.getTransitions()[0];
+		Transition t2 = petri.getTransitions()[2];
+		
+		// setting this guard here is just to enable t0
+		monitor.setGuard("test", true);
+		Assert.assertTrue(petri.isEnabled(t0));
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs);
+		monitor.subscribeToTransition(t2, obs);
+		
+		Thread th0 = new Thread(() -> monitor.fireTransition(t0));
+		th0.start();
+		
+		try {
+			// let's give th0 some time to try to fire t0
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			Assert.fail("Error sleeping main thread");
+		}
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		Assert.assertEquals(1, events.size());
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t0.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+		
+		monitor.setGuard("test", false);
+		
+		try {
+			// let's give some time for t2 to get fired automatically
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			Assert.fail("Error sleeping main thread");
+		}
+		
+		events = obs.getEvents();
+		
+		Assert.assertEquals(2, events.size());
+		try {
+			String obtainedId = jsonParser.readTree(events.get(1)).get(ID).asText();
+			Assert.assertEquals(t2.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+	}
 }
