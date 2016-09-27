@@ -31,9 +31,12 @@ public class MonitorManagerTestSuite {
 	
 	static ObjectMapper jsonParser;
 	
-	private static final String MonitorTest01Petri = "test/unit_tests/testResources/monitorTest01.pnml";
-	private static final String MonitorTest02Petri = "test/unit_tests/testResources/monitorTest02.pnml";
-	private static final String MonitorTest03Petri = "test/unit_tests/testResources/monitorTest03.pnml";
+	private static final String TEST_PETRI_FOLDER = "test/unit_tests/testResources/";
+	private static final String MONITOR_TEST_01_PETRI = TEST_PETRI_FOLDER + "monitorTest01.pnml";
+	private static final String MONITOR_TEST_02_PETRI = TEST_PETRI_FOLDER + "monitorTest02.pnml";
+	private static final String MONITOR_TEST_03_PETRI = TEST_PETRI_FOLDER + "monitorTest03.pnml";
+	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
+	private static final String PETRI_WITH_GUARD_02 = TEST_PETRI_FOLDER + "petriWithGuard02.pnml";
 	
 	private static final String ID = "id";
 
@@ -74,7 +77,7 @@ public class MonitorManagerTestSuite {
 	@Test
 	public void testFireTransitionWhenNoThreadIsSleeping() {
 		
-		setUpMonitor(MonitorTest01Petri);
+		setUpMonitor(MONITOR_TEST_01_PETRI);
 		
 		Integer[] expectedInitialMarking = {1, 0, 0, 0};
 		Assert.assertArrayEquals(expectedInitialMarking , this.petri.getCurrentMarking());
@@ -118,7 +121,7 @@ public class MonitorManagerTestSuite {
 	@Test
 	public void testFireTransitionWhenAThreadIsSleepingInT2() {
 		
-		setUpMonitor(MonitorTest01Petri);
+		setUpMonitor(MONITOR_TEST_01_PETRI);
 		
 		Integer[] expectedInitialMarking = {1, 0, 0, 0};
 		Assert.assertArrayEquals(expectedInitialMarking , this.petri.getCurrentMarking());
@@ -190,7 +193,7 @@ public class MonitorManagerTestSuite {
 	@Test
 	public void testFireTransitionShouldThrowErrorWhenFiringAnAutomaticTransition() {
 		try{
-			setUpMonitor(MonitorTest01Petri);
+			setUpMonitor(MONITOR_TEST_01_PETRI);
 			Transition t1 = petri.getTransitions()[1];
 			monitor.fireTransition(t1);
 			Assert.fail("An IllegalTransitionFiringError should've been thrown before this point");
@@ -211,7 +214,7 @@ public class MonitorManagerTestSuite {
 	@Test
 	public void FireInformedTransitionShouldSendAnEvent(){
 		
-		setUpMonitor(MonitorTest01Petri);
+		setUpMonitor(MONITOR_TEST_01_PETRI);
 		
 		TransitionEventObserver obs = new TransitionEventObserver();
 		
@@ -242,7 +245,7 @@ public class MonitorManagerTestSuite {
 	@Test
 	public void SubscribeToNotInformedTransitionShouldThrowException(){
 		try{
-			setUpMonitor(MonitorTest01Petri);
+			setUpMonitor(MONITOR_TEST_01_PETRI);
 			
 			TransitionEventObserver obs = new TransitionEventObserver();
 			
@@ -296,7 +299,7 @@ public class MonitorManagerTestSuite {
 	 */
 	@Test
 	public void MonitorShouldSendEventWhenInformedTransitionIsFired(){
-		setUpMonitor(MonitorTest02Petri);
+		setUpMonitor(MONITOR_TEST_02_PETRI);
 		
 		boolean[] expectedMarking = {true};
 		Assert.assertArrayEquals(expectedMarking, petri.getEnabledTransitions());
@@ -336,7 +339,7 @@ public class MonitorManagerTestSuite {
 	 */
 	@Test
 	public void MonitorShouldNoLongerSendEventsAfterUnsubsciption(){
-		setUpMonitor(MonitorTest02Petri);
+		setUpMonitor(MONITOR_TEST_02_PETRI);
 		
 		boolean[] expectedMarking = {true};
 		Assert.assertArrayEquals(expectedMarking, petri.getEnabledTransitions());
@@ -382,7 +385,7 @@ public class MonitorManagerTestSuite {
 	 */
 	@Test
 	public void MonitorShouldSendEventsOnlyToSubscribedTransition(){
-		setUpMonitor(MonitorTest03Petri);
+		setUpMonitor(MONITOR_TEST_03_PETRI);
 		
 		boolean[] expectedMarking = {true, false};
 		Assert.assertArrayEquals(expectedMarking, petri.getEnabledTransitions());
@@ -418,10 +421,207 @@ public class MonitorManagerTestSuite {
 			Assert.assertEquals(t1.getId(), obtainedId1);
 		} catch (IOException e) {
 			Assert.fail("Event is not in JSON format");
-		}
-		
-		
+		}	
 	}
 	
+	/**
+	 * <li> Given t0 and t1 are fed by p0 </li>
+	 * <li> And p0 has 2 tokens </li>
+	 * <li> And arcs joining p0 to t0 and t1 have weight 1 </li>
+	 * <li> And t0 has a guard "test" which expects true to fire </li>
+	 * <li> And t1 has a guard "test" which expects false to fire </li>
+	 * <li> And t0 feeds place p1 which starts empty </li>
+	 * <li> And t1 feeds place p2 which starts empty</li>
+	 * <li> And both t0 and t1 are fired and informed </li>
+	 * <li> When I set "test" to true </li>
+	 * <li> And obs registers to t0's and t1's events </li>
+	 * <li> And th0 fires t0 </li>
+	 * <li> And th1 fires t1 </li>
+	 * <li> Then t0 should be fired successfully </li>
+	 * <li> And t1 should not be fired </li>
+	 * <li> And p0 has one token </li>
+	 * <li> And p1 has one token </li>
+	 * <li> And p2 has no tokens </li>
+	 * <li> And obs gets one event with id matching t0's </li>
+	 */
+	@Test
+	public void MonitorShouldFireTransitionOnlyIfGuardAllows(){
+		setUpMonitor(PETRI_WITH_GUARD_01);
+		
+		Transition t0 = petri.getTransitions()[0];
+		Transition t1 = petri.getTransitions()[1];
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs);
+		monitor.subscribeToTransition(t1, obs);
+		Assert.assertTrue(obs.getEvents().isEmpty());
+		
+		Integer[] expectedMarking = {Integer.valueOf(2), Integer.valueOf(0), Integer.valueOf(0)};
+		Assert.assertArrayEquals(expectedMarking, petri.getCurrentMarking());
+		
+		petri.addGuard("test", true);
+		
+		Thread th0 = new Thread(() -> monitor.fireTransition(t0));
+		th0.start();
+		
+		Thread th1 = new Thread(() -> monitor.fireTransition(t1));
+		th1.start();
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		expectedMarking[0] = 1;
+		expectedMarking[1] = 1;
+		expectedMarking[2] = 0;
+		Assert.assertArrayEquals(expectedMarking, petri.getCurrentMarking());
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		Assert.assertEquals(1, events.size());
+		
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t0.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+	}
 
+	/**
+	 * <li> Given t0 is enabled </li>
+	 * <li> And t0 has a guard "test" which expects true to fire </li>
+	 * <li> And t0 is fired and informed </li>
+	 * <li> When I set "test" to false </li>
+	 * <li> And obs registers to t0's events </li>
+	 * <li> And th0 fires t0 </li>
+	 * <li> And t0 is not fired </li>
+	 * <li> And th0 sleeps in t0's varcond queue </li>
+	 * <li> And I set "test" to true </li>
+	 * <li> Then th0 wakes up </li>
+	 * <li> And t0 is fired </li>
+	 * <li> And obs gets one event with id matching t0's </li>
+	 */
+	@Test
+	public void ThreadSleepingDueToGuardShouldWakeUpWhenGuardAllows(){
+		
+		setUpMonitor(PETRI_WITH_GUARD_01);
+		
+		Transition t0 = petri.getTransitions()[0];
+		
+		// setting this guard here is just to enable t0
+		monitor.setGuard("test", true);
+		Assert.assertTrue(petri.isEnabled(t0));
+		
+		monitor.setGuard("test", false);
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs);
+		
+		Thread th0 = new Thread(() -> monitor.fireTransition(t0));
+		th0.start();
+		
+		try {
+			// let's give th0 some time to try to fire t0
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			Assert.fail("Error sleeping main thread");
+		}
+		
+		Assert.assertTrue(obs.getEvents().isEmpty());
+		
+		monitor.setGuard("test", true);
+		
+		try {
+			// let's give th0 some time to try to fire t0
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			Assert.fail("Error sleeping main thread");
+		}
+		
+		ArrayList<String> events = obs.getEvents();
+		Assert.assertEquals(1, events.size());
+		
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t0.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+		
+	}
+
+	/**
+	 * <li> Given t0 is enabled </li>
+	 * <li> And t0 is fired and informed </li>
+	 * <li> And t2 is automatic and informed </li>
+	 * <li> And t2 has a guard "test" which expects false to fire </li>
+	 * <li> When I set "test" to true </li>
+	 * <li> And obs registers to t0's and t2's events </li>
+	 * <li> And th0 fires t0 </li>
+	 * <li> And t0 is fired successfully </li>
+	 * <li> And t2 is not fired due to "test" guard </li>
+	 * <li> And obs gets one event with id matching t0's </li>
+	 * <li> And I set "test" to false </li>
+	 * <li> Then t2 gets enabled </li>
+	 * <li> And t2 is fired automatically </li>
+	 * <li> And obs gets two event with ids matching t0's and t2's </li>
+	 */
+	@Test
+	public void AutomaticTransitionDisabledDueToGuardShuldBeFiredWenGuardAllows(){
+		
+		setUpMonitor(PETRI_WITH_GUARD_02);
+		
+		Transition t0 = petri.getTransitions()[0];
+		Transition t2 = petri.getTransitions()[2];
+		
+		// setting this guard here is just to enable t0
+		monitor.setGuard("test", true);
+		Assert.assertTrue(petri.isEnabled(t0));
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs);
+		monitor.subscribeToTransition(t2, obs);
+		
+		Thread th0 = new Thread(() -> monitor.fireTransition(t0));
+		th0.start();
+		
+		try {
+			// let's give th0 some time to try to fire t0
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			Assert.fail("Error sleeping main thread");
+		}
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		Assert.assertEquals(1, events.size());
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t0.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+		
+		monitor.setGuard("test", false);
+		
+		try {
+			// let's give some time for t2 to get fired automatically
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			Assert.fail("Error sleeping main thread");
+		}
+		
+		events = obs.getEvents();
+		
+		Assert.assertEquals(2, events.size());
+		try {
+			String obtainedId = jsonParser.readTree(events.get(1)).get(ID).asText();
+			Assert.assertEquals(t2.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+	}
 }

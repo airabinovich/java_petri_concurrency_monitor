@@ -1,10 +1,14 @@
 package Petri;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.DocumentBuilder;
 
+import org.javatuples.Pair;
 import org.javatuples.Triplet;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import Petri.Arc;
 import Petri.Label;
@@ -17,9 +21,8 @@ import org.w3c.dom.NamedNodeMap;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import java.lang.Integer;
 
@@ -64,8 +67,9 @@ public class PNMLreader{
 	/**
 	 * parses PNML file and returns all petri objects embedded
 	 * @return a Triplet containing places, transitions and arcs inside the PNML
+	 * @throws BadPNMLFormatException 
 	 */
-	public Triplet<Place[], Transition[], Arc[]> parseFileAndGetPetriObjects(){
+	public Triplet<Place[], Transition[], Arc[]> parseFileAndGetPetriObjects() throws BadPNMLFormatException{
 		try {
 			Triplet<Place[], Transition[], Arc[]> ret = null;
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -101,7 +105,7 @@ public class PNMLreader{
 			}
 			
 			return ret;
-	    } catch (Exception e) {
+	    } catch (SAXException | IOException | ParserConfigurationException e) {
 	    	return null;
 	    }
 	}
@@ -110,8 +114,9 @@ public class PNMLreader{
 	 * Parses a list of nodes and returns information about places, transitions and arcs embedded
 	 * @param netElements a list of nodes children of page node
 	 * @return a Triplet containing all places, transitions and arcs inside netElements
+	 * @throws BadPNMLFormatException 
 	 */
-	private Triplet<Place[], Transition[], Arc[]> getPetriObjectsFromNodeList(NodeList netElements){
+	private Triplet<Place[], Transition[], Arc[]> getPetriObjectsFromNodeList(NodeList netElements) throws BadPNMLFormatException{
 		ArrayList<Place> places = new ArrayList<Place>();
 		ArrayList<Transition> transitions = new ArrayList<Transition>();
 		ArrayList<Arc> arcs = new ArrayList<Arc>();
@@ -152,7 +157,8 @@ public class PNMLreader{
 	 * @param id the object id embedded in the PNML
 	 * @param placeNode Node object from PNML
 	 * @param nl placeNode children nodes as NodeList
-	 * @return
+	 * @return S place object containing the info parsed
+	 * @see {@link Petri.Place}
 	 */
 	private Place getPlace(String id, Node placeNode, NodeList nl){
 		Integer m_inicial = 0;
@@ -183,18 +189,28 @@ public class PNMLreader{
 	 * @param id the object id embedded in the PNML
 	 * @param transitionNode Node object from PNML
 	 * @param nl transitionNode children nodes as NodeList
-	 * @return
+	 * @return A transition object containing the info parsed
+	 * @throws BadPNMLFormatException
+	 * @see {@link Petri.Transition}
 	 */
-	private Transition getTransition(String id, Node transitionNode, NodeList nl){
+	private Transition getTransition(String id, Node transitionNode, NodeList nl) throws BadPNMLFormatException{
 		
 		TimeSpan timeSpan = null;
-		Label label = null;		
+		Label label = null;
+		Pair<String, Boolean> guard = null;
 		Integer transitionIndex = null;
 		
 		for(int i=0; i<nl.getLength(); i++){
 			String currentNodeName = nl.item(i).getNodeName();
 			if(currentNodeName.equals(LABEL)){
-				label = getLabelFromNode(nl.item(i).getTextContent().trim());
+				try{
+					Pair<Label,Pair<String, Boolean>> labelAndGuard = 
+							getLabelAndGuardFromNode(nl.item(i).getTextContent().trim());
+					label = labelAndGuard.getValue0();
+					guard = labelAndGuard.getValue1();
+				} catch (DOMException e){
+					throw new BadPNMLFormatException("Error parsing label in PNML file");
+				}
 			}
 			else if(currentNodeName.equals(NAME)){
 				transitionIndex = getPetriObjectIndexFromName(nl.item(i).getTextContent().trim());
@@ -214,16 +230,20 @@ public class PNMLreader{
 		
 		if(transitionIndex == null){
 			// if transitionIndex is null, the PNML is ill-formed
-			return null;
+			throw new BadPNMLFormatException("Invalid transition index");
 		}
 		
-		if (label == null) {
-			// if no label was found, by default is't fired and not informed
+		if(label == null) {
+			// if no label was found, by default it's fired and not informed
 			label = new Label(false, false);
 		}
-
 		
-		return new Transition(id, label, transitionIndex, timeSpan);
+		if(guard == null){
+			// if no guard was found, let's create an empty one
+			guard = new Pair<String, Boolean>(null, false);
+		}
+		
+		return new Transition(id, label, transitionIndex, timeSpan, guard);
 	}
 	
 	/**
@@ -231,9 +251,11 @@ public class PNMLreader{
 	 * @param id the object id embedded in the PNML
 	 * @param arcNode Node object from PNML
 	 * @param nl arcNode children nodes as NodeList
-	 * @return
+	 * @return Arc object containing the info parsed
+	 * @throws BadPNMLFormatException if weight is less than 1
+	 * @see {@link Petri.Arc}
 	 */
-	private Arc getArc(String id, Node arcNode, NodeList nl){
+	private Arc getArc(String id, Node arcNode, NodeList nl) throws BadPNMLFormatException{
 		Element arcElement = (Element)arcNode;
 		String source = arcElement.getAttribute(SOURCE);
 		String target = arcElement.getAttribute(TARGET);
@@ -250,7 +272,7 @@ public class PNMLreader{
 		}
 		
 		if(weight < 1){
-			return null;
+			throw new BadPNMLFormatException("Negative or zero weight found parsing arc");
 		}
 		
 		return new Arc(id, source, target, weight);
@@ -351,22 +373,74 @@ public class PNMLreader{
 	}
 	
 	/**
-	 * Get transition label from text label
+	 * Get transition label from text label. Labels order:
+	 * <li> Automatic(A) or Fired(F,D) </li>
+	 * <li> Informed(I) or Not Informed(N) </li>
+	 * <li> Guards (variable name between brackets, ~ and ! are NOT operator, whitespaces will be trimmed if any) </li>
 	 * @param labelInfo The label in string format
 	 * @return A Label object containing the info included in labelInfo
+	 * @throws BadPNMLFormatException if the string doesn't respect the label format
 	 */
-	private Label getLabelFromNode(String labelInfo){
-		final Pattern labelRegex = Pattern.compile("[A-Z]", Pattern.CASE_INSENSITIVE);
+	private Pair<Label,Pair<String, Boolean>> getLabelAndGuardFromNode(String labelInfo) throws BadPNMLFormatException{
+		
+		if(labelInfo.charAt(0) != '<' || labelInfo.charAt(labelInfo.length() - 1) != '>'){
+			// label must be enclosed by "<" and ">"
+			throw new BadPNMLFormatException("Error parsing labels in PNML file");
+		}
+		final int AUTOMATIC_INDEX = 0;
+		final int INFORMED_INDEX = 1;
+		final int GUARD_INDEX = 2;
+		
+		// by default no guard
+		Pair<String, Boolean> guard = new Pair<String, Boolean>(null, null);
+		
+		String labelStr = labelInfo.substring(1, labelInfo.length() - 1);
 		boolean isAutomatic = false;
 		boolean isInformed = false;
 		
-		Matcher labelMatcher = labelRegex.matcher(labelInfo);
-		while(labelMatcher.find()){
-			String label = labelMatcher.group();
-			isAutomatic = label.equalsIgnoreCase("A") ? true : isAutomatic;
-			isInformed = label.equalsIgnoreCase("I") ? true : isInformed;
+		String[] labels = labelStr.split(",");
+		for( int i = 0; i < labels.length; i++ ){
+			String label = labels[i];
+			switch(i){
+			case AUTOMATIC_INDEX:
+				if( !label.equalsIgnoreCase("A") && !label.equalsIgnoreCase("D") && !label.equalsIgnoreCase("F")){
+					throw new BadPNMLFormatException("Wrong automatic label: " + label);
+				}
+				isAutomatic = label.equalsIgnoreCase("A");
+				break;
+			case INFORMED_INDEX:
+				if( !label.equalsIgnoreCase("I") && !label.equalsIgnoreCase("N")){
+					throw new BadPNMLFormatException("Wrong informed label: " + label);
+				}
+				isInformed = label.equalsIgnoreCase("I");
+				break;
+			case GUARD_INDEX:
+				try{
+					if(label.charAt(0) != '(' || label.charAt(label.length() - 1) != ')'){
+					// guard must be enclosed by brackets
+					throw new BadPNMLFormatException("Bad formatted guard in " + label
+							+ "from label " + labels);
+					}
+					// trim the brackets
+					String guardStr = label.substring(1, label.length() - 1).replaceAll("\\s", "");
+					//check if it's for negative logic
+					boolean negative = (guardStr.charAt(0) == '~' || guardStr.charAt(0) == '!');
+					if (negative){
+						//discard first char "~"
+						guardStr = guardStr.substring(1);
+						guard = guard.setAt1(false);
+					} else {
+						guard = guard.setAt1(true);
+					}
+					guard = guard.setAt0(guardStr);
+				} catch (IndexOutOfBoundsException e){
+					// nothing wrong, just empty guard
+				}
+			default:
+				break;
+			}
 		}
 		
-		return new Label(isAutomatic, isInformed);
+		return new Pair<Label,Pair<String, Boolean>>(new Label(isAutomatic, isInformed), guard);
 	}
 }

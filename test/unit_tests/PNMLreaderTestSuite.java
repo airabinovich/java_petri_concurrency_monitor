@@ -12,6 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import Petri.Arc;
+import Petri.BadPNMLFormatException;
 import Petri.Label;
 import Petri.PNMLreader;
 import Petri.Place;
@@ -19,9 +20,12 @@ import Petri.Transition;
 
 public class PNMLreaderTestSuite {
 
-	private static String readerWriterPath = "test/unit_tests/testResources/readerWriter.pnml";
-	private static String readerWriterPathNonPNML = "test/unit_tests/testResources/readerWriter.ndr";
-	private static String timedPetriNetPath = "test/unit_tests/testResources/timedPetriForReader.pnml";
+	private static final String TEST_PETRI_FOLDER = "test/unit_tests/testResources/";
+	private static final String READER_WRITER= TEST_PETRI_FOLDER + "readerWriter.pnml";
+	private static final String READER_WRITER_NON_PNML = TEST_PETRI_FOLDER + "readerWriter.ndr";
+	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetriForReader.pnml";
+	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
+	private static final String PETRI_WITH_GUARD_BAD_FORMAT_01 = TEST_PETRI_FOLDER + "petriWithGuardBadFormat01.pnml";
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -39,7 +43,7 @@ public class PNMLreaderTestSuite {
 	public void ParseFileAndGetPetriObjectsShouldGetAllPlacesCorrectly() {
 		PNMLreader reader = null;
 		try {
-			reader = new PNMLreader(readerWriterPath);
+			reader = new PNMLreader(READER_WRITER);
 
 			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
 			
@@ -55,7 +59,9 @@ public class PNMLreaderTestSuite {
 				assertEquals(expectedMarking[i], obtainedPlaces[i].getMarking());
 			}
 		} catch (FileNotFoundException | SecurityException e) {
-			fail("Could not open file " + readerWriterPath);
+			fail("Could not open file " + READER_WRITER);
+		} catch (BadPNMLFormatException e) {
+			fail(e.getMessage());
 		}
 	}
 	
@@ -63,7 +69,7 @@ public class PNMLreaderTestSuite {
 	public void ParseFileAndGetPetriObjectsShouldGetAllTransitionsCorrectly() {
 		PNMLreader reader = null;
 		try {
-			reader = new PNMLreader(readerWriterPath);
+			reader = new PNMLreader(READER_WRITER);
 			
 			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
 			
@@ -80,7 +86,9 @@ public class PNMLreaderTestSuite {
 				assertEquals(expectedLabels[i].isInformed(), obtainedTransitions[i].getLabel().isInformed());
 			}
 		} catch (FileNotFoundException | SecurityException e) {
-			fail("Could not open file " + readerWriterPath);
+			fail("Could not open file " + READER_WRITER);
+		} catch (BadPNMLFormatException e) {
+			fail(e.getMessage());
 		}
 	}
 	
@@ -88,7 +96,7 @@ public class PNMLreaderTestSuite {
 	public void ParseFileAndGetPetriObjectsShouldGetAllArcsCorrectly() {
 		PNMLreader reader = null;
 		try {
-			reader = new PNMLreader(readerWriterPath);
+			reader = new PNMLreader(READER_WRITER);
 			
 			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
 			
@@ -122,7 +130,9 @@ public class PNMLreaderTestSuite {
 				}
 			}
 		} catch (FileNotFoundException | SecurityException e) {
-			fail("Could not open file " + readerWriterPath);
+			fail("Could not open file " + READER_WRITER);
+		} catch (BadPNMLFormatException e) {
+			fail(e.getMessage());
 		}
 	}
 	
@@ -140,11 +150,11 @@ public class PNMLreaderTestSuite {
 	@Test
 	public void ParseFileAndGetPetriObjectsShouldThrowExceptionWhenFileIsNotPNML() {
 		try {
-			PNMLreader reader = new PNMLreader(readerWriterPathNonPNML);
+			PNMLreader reader = new PNMLreader(READER_WRITER_NON_PNML);
 			assertEquals(null, reader.parseFileAndGetPetriObjects());
 		} catch (Exception e) {
 			assertEquals(e.getClass().getSimpleName(), "SAXParseException");
-		}
+		} 
 	}
 	
 	@Test
@@ -152,7 +162,7 @@ public class PNMLreaderTestSuite {
 		long max = Long.MAX_VALUE;
 		long min = 1;
 		try {
-			PNMLreader reader = new PNMLreader(timedPetriNetPath);
+			PNMLreader reader = new PNMLreader(TIMED_PETRI_NET);
 			
 			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
 			Transition[] transitions = petriObjects.getValue1();
@@ -167,8 +177,66 @@ public class PNMLreaderTestSuite {
 			assertEquals(expectedTimes[5], transitions[2].getTimeSpan().getTimeEnd(), 0);
 			
 		} catch (FileNotFoundException | SecurityException e) {
-			fail("Could not open file " + readerWriterPath);
+			fail("Could not open file " + READER_WRITER);
+		} catch (BadPNMLFormatException e) {
+			fail(e.getMessage());
 		}
 	}
 
+	/**
+	 * <li> Given t0 has a label with guard "test" </li>
+	 * <li> And t1 has a label with same guard as t0 but negated </li>
+	 * <li> When the file is parsed </li>
+	 * <li> And t0 and t1 are generated as transition objects </li>
+	 * <li> Then t0 has a guard, name "test", enabled by true </li>
+	 * <li> And t1 has a guard, name "test", enabled by false </li>
+	 */
+	@Test
+	public void ParseFileAndGetTransitionsWithGuard() {
+		try {
+			PNMLreader reader = new PNMLreader(PETRI_WITH_GUARD_01);
+			
+			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
+			Transition[] transitions = petriObjects.getValue1();
+			
+			Transition t0 = transitions[0];
+			Transition t1 = transitions[1];
+			
+			final String expectedGuardName = "test";
+			
+			assertEquals(expectedGuardName, t0.getGuardName());
+			assertTrue(t0.getGuardEnablingValue());
+			
+			assertEquals(expectedGuardName, t1.getGuardName());
+			assertFalse(t1.getGuardEnablingValue());
+			
+		} catch (FileNotFoundException | SecurityException e) {
+			fail("Could not open file " + PETRI_WITH_GUARD_01);
+		} catch (BadPNMLFormatException e) {
+			fail(e.getMessage());
+		}
+	}
+	
+	/**
+	 * <li> Given t0 has a label with guard written in bad format </li>
+	 * <li> When the file is parsed </li>
+	 * <li> Then BadPNMLFormatException should be thrown </li>
+	 * @see Petri.BadPNMLFormatException
+	 */
+	@Test
+	public void GuardWithBadFormatShouldThrowException () {
+		try {
+			PNMLreader reader = new PNMLreader(PETRI_WITH_GUARD_BAD_FORMAT_01);
+			
+			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
+			Transition[] transitions = petriObjects.getValue1();
+			
+			fail("An exception should¿ve been thrown");
+			
+		} catch (FileNotFoundException | SecurityException e) {
+			fail("Could not open file " + PETRI_WITH_GUARD_BAD_FORMAT_01);
+		} catch (Exception e) {
+			assertEquals("BadPNMLFormatException", e.getClass().getSimpleName());
+		}
+	}
 }

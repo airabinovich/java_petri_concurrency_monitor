@@ -85,95 +85,7 @@ public class MonitorManager {
 		try {
 			// take the mutex to access the monitor
 			inQueue.acquire();
-			long timeToFire = System.currentTimeMillis();
-			boolean keepFiring = true;
-			boolean insideTimeSpan = false;
-			boolean isTimed = false;
-			while(keepFiring){
-				// keepFiring is "k" variable
-				keepFiring = petri.isEnabled(transitionToFire);
-				if(transitionToFire.getTimeSpan() != null){
-					insideTimeSpan = transitionToFire.getTimeSpan().inTimeSpan(timeToFire);
-					isTimed = true;
-				}
-				if(keepFiring){
-					while(isTimed && !insideTimeSpan){						
-						//I came before time span, and there is nobody sleeping in the transition
-						TimeSpan transitionSpan = transitionToFire.getTimeSpan();
-						if(transitionSpan.isBeforeTimeSpan(timeToFire) && !transitionSpan.anySleeping()){
-							inQueue.release();
-							transitionToFire.getTimeSpan().sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - timeToFire);
-						}
-						else{							
-							// I came late, the time is over. Thus the thread releases the input mutex and goes to sleep
-							inQueue.release();
-							condVarQueue[transitionToFire.getIndex()].sleep();
-						}
-						inQueue.acquire();
-						// at this point, the transition may have been disabled when the firing thread was sleeping
-						timeToFire = System.currentTimeMillis();
-						insideTimeSpan = transitionSpan.inTimeSpan(timeToFire);
-					}
-					// TODO: check if the transition was fired sucessfully
-					petri.fire(transitionToFire);
-					
-					//the transition was fired successfully. If it's informed let's send an event
-					if(transitionToFire.getLabel().isInformed()){
-						try{
-							// The event to send contains a JSON with the transition info
-							HashMap<String, String> firedTransitionInfoMap = new HashMap<String, String>();
-							firedTransitionInfoMap.put(ID, transitionToFire.getId());
-							firedTransitionInfoMap.put(INDEX, Integer.toString(transitionToFire.getIndex()));
-							informedTransitionsObservable.onNext(
-									jsonMapper.writeValueAsString(firedTransitionInfoMap));
-						} catch (JsonProcessingException e) {
-							// If there was an error processing the JSON let's send the minimal needed info hardcoded here
-							informedTransitionsObservable.onNext("{\"" + ID + "\":\"" + transitionToFire.getId() + "\"}");
-							e.printStackTrace();
-						}
-					}
-					// let's see if any transition was enabled due to the last fired
-					boolean enabledTransitions[] = petri.getEnabledTransitions();
-					boolean queueHasThreadSleeping[] = getQueuesState(); //Is there anyone in the queue?
-					boolean automaticTransitions[] = petri.getAutomaticTransitions();
-					
-					// availablesToFire is "m"
-					boolean availablesToFire[] = new boolean[enabledTransitions.length];
-					boolean anyAvailable = false;
-					for(int i = 0; i < availablesToFire.length; i++){
-						availablesToFire[i] = enabledTransitions[i] && (queueHasThreadSleeping[i] || automaticTransitions[i]);
-						anyAvailable |= availablesToFire[i];
-					}
-					
-					if (anyAvailable){
-						int nextTransitionToFireIndex = transitionsPolicy.which(availablesToFire);
-						if(nextTransitionToFireIndex >= 0){
-							// it should never be the other way but just to be sure
-							if(automaticTransitions[nextTransitionToFireIndex]){
-								transitionToFire = petri.getTransitions()[nextTransitionToFireIndex];
-							}
-							else{
-								// The transition chosen isn't automatic
-								// so wake up the associated thread to that transition
-								// and leave the monitor without releasing the input mutex (permits = 0)
-								condVarQueue[nextTransitionToFireIndex].wakeUp();
-								permitsToRelease = 0;
-								return;
-							}
-						}
-					}
-					else{
-						// no transition left to fire, leave the monitor
-						keepFiring = false;
-					}
-				}
-				else{
-					// the fire failed, thus the thread releases the input mutex and goes to sleep
-					inQueue.release();
-					condVarQueue[transitionToFire.getIndex()].sleep();
-					keepFiring = true;
-				}
-			}
+			permitsToRelease = internalFireTransition(transitionToFire);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} finally{
@@ -237,9 +149,171 @@ public class MonitorManager {
 				.subscribe(_observer);
 	}
 	
-	public void setGuard(int i, boolean k){
+	/**
+	 * Set a guard's new value
+	 * @param guardName The target guard
+	 * @param newValue New value to set
+	 * @throws IndexOutOfBoundsException If the guard doesn't exist
+	 * @throws NullPointerException If guardName is empty
+	 */
+	public boolean setGuard(String guardName, boolean newValue) throws IndexOutOfBoundsException, NullPointerException{
+		if(guardName == null || guardName.isEmpty()){
+			throw new NullPointerException("Empty guard name not allowed");
+		}
+		boolean couldSet = false;
+		int permitsToRelease = 1;
+		try{
+			inQueue.acquire();
+			petri.readGuard(guardName);
+			couldSet = petri.addGuard(guardName, newValue);
+			// setting this guard could've enabled some transitions
+			// if any automatic was enabled it should be fired immediately
+			// if any fired was enabled, let's wake a sleeping thread if available
+			int nextTransitionToFireIndex = getNextTransitionAvailableToFire();
+			if(nextTransitionToFireIndex >= 0){
+				if(petri.getAutomaticTransitions()[nextTransitionToFireIndex]){
+					permitsToRelease = internalFireTransition(petri.getTransitions()[nextTransitionToFireIndex]);
+				} else {
+					// if a fired transition was enabled by the guard, wake up a thread waiting for it
+					permitsToRelease = 0;
+					condVarQueue[nextTransitionToFireIndex].wakeUp();
+				}
+			}
+		} catch(InterruptedException e){
+			e.printStackTrace();
+		} finally {
+			inQueue.release(permitsToRelease);
+		}
+		return couldSet;
 	}
 	
-	public void fireGuard(int i, boolean to){
+	/**
+	 * Searches through enabled transitions looking for automatic transitions and threads sleeping for manual transitions.
+	 * If there is any available, the policy will tell which one is the next to be fired
+	 * @return The index of the next transition to be fired or -1 if none available
+	 */
+	private int getNextTransitionAvailableToFire(){
+		// let's see if any transition was enabled due to the last fired
+		boolean enabledTransitions[] = petri.getEnabledTransitions();
+		boolean queueHasThreadSleeping[] = getQueuesState(); //Is there anyone in the queue?
+		boolean automaticTransitions[] = petri.getAutomaticTransitions();
+		
+		// availablesToFire is "m"
+		boolean availablesToFire[] = new boolean[enabledTransitions.length];
+		boolean anyAvailable = false;
+		for(int i = 0; i < availablesToFire.length; i++){
+			availablesToFire[i] = enabledTransitions[i] && (queueHasThreadSleeping[i] || automaticTransitions[i]);
+			anyAvailable |= availablesToFire[i];
+		}
+		
+		if(!anyAvailable){
+			return -1;
+		}
+		
+		return transitionsPolicy.which(availablesToFire);
+	}
+	
+	/**
+	 * Sends an event to all subscribers in JSON format containing at least the transition's id.
+	 * If no error occurs, the index is also added to the message.
+	 * This method is intended to be called after a successful fire
+	 * @param t the transition to send an event about
+	 * @throws IllegalArgumentException If t is not informed
+	 */
+	private void sendEventAfterFiring(Transition t) throws IllegalArgumentException{
+		if(!t.getLabel().isInformed()){
+			throw new IllegalArgumentException("Non-informed transitions cannot send events");
+		}
+		try{
+			// The event to send contains a JSON with the transition info
+			HashMap<String, String> firedTransitionInfoMap = new HashMap<String, String>();
+			firedTransitionInfoMap.put(ID, t.getId());
+			firedTransitionInfoMap.put(INDEX, Integer.toString(t.getIndex()));
+			informedTransitionsObservable.onNext(
+					jsonMapper.writeValueAsString(firedTransitionInfoMap));
+		} catch (JsonProcessingException e) {
+			// If there was an error processing the JSON let's send the minimal needed info hardcoded here
+			informedTransitionsObservable.onNext("{\"" + ID + "\":\"" + t.getId() + "\"}");
+		}
+	}
+	
+	/**
+	 * This method implements the firing logic with minimal checks.
+	 * It is intended for using internally, when a {@link #inQueue} mutex was already taken.
+	 * This method doesn't check for automatic transitions
+	 * @param transitionToFire
+	 * @return permits to release to mutex {@link #inQueue}
+	 * @throws InterruptedException if the calling thread is interrupted
+	 */
+	private int internalFireTransition(Transition transitionToFire) throws InterruptedException{
+		int permitsToRelease = 1;
+		boolean keepFiring = true;
+		boolean insideTimeSpan = false;
+		boolean isTimed = false;
+		
+		while(keepFiring){
+			keepFiring = petri.isEnabled(transitionToFire);
+			long timeToFire = System.currentTimeMillis();
+			if(transitionToFire.getTimeSpan() != null){
+				insideTimeSpan = transitionToFire.getTimeSpan().inTimeSpan(timeToFire);
+				isTimed = true;
+			}
+			if(keepFiring){
+				TimeSpan transitionSpan = transitionToFire.getTimeSpan();
+				while(isTimed && !insideTimeSpan){
+					//I came before time span, and there is nobody sleeping in the transition
+					if(transitionSpan.isBeforeTimeSpan(timeToFire) && !transitionSpan.anySleeping()){
+						inQueue.release();
+						transitionSpan.sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - timeToFire);
+					}
+					else{
+						// I came late, the time is over. Thus the thread releases the input mutex and goes to sleep
+						inQueue.release();
+						condVarQueue[transitionToFire.getIndex()].sleep();
+					}
+					inQueue.acquire();
+					// at this point, the transition may have been disabled when the firing thread was sleeping
+					timeToFire = System.currentTimeMillis();
+					insideTimeSpan = transitionSpan.inTimeSpan(timeToFire);
+				}
+				// TODO: check if the transition was fired sucessfully
+				petri.fire(transitionToFire);
+				
+				//the transition was fired successfully. If it's informed let's send an event
+				try{
+					sendEventAfterFiring(transitionToFire);
+				} catch (IllegalArgumentException e){
+					//nothing wrong, the transition is not informed
+				}
+				
+				boolean automaticTransitions[] = petri.getAutomaticTransitions();
+				int nextTransitionToFireIndex = getNextTransitionAvailableToFire();
+				if(nextTransitionToFireIndex >= 0){
+					if(automaticTransitions[nextTransitionToFireIndex]){
+						transitionToFire = petri.getTransitions()[nextTransitionToFireIndex];
+					}
+					else{
+						// The transition chosen isn't automatic
+						// so wake up the associated thread to that transition
+						// and leave the monitor without releasing the input mutex (permits = 0)
+						condVarQueue[nextTransitionToFireIndex].wakeUp();
+						permitsToRelease = 0;
+						keepFiring = false;
+					}
+				}
+				else{
+					// no transition left to fire, leave the monitor releasing one permit
+					keepFiring = false;
+					permitsToRelease = 1;
+				}
+			}
+			else{
+				// the fire failed, thus the thread releases the input mutex and goes to sleep
+				inQueue.release();
+				condVarQueue[transitionToFire.getIndex()].sleep();
+				keepFiring = true;
+			}
+		}
+		return permitsToRelease;
 	}
 }

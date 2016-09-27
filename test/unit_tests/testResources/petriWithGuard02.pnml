@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-200C-C912A-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>petriWithGuard02</text>
+  </name>
+ <page id="g-200C-C913A-1">
+  <place id="p-200C-C913E-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>2</text>
+   </initialMarking>
+   <graphics>
+    <position x="190" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-200C-C914C-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="130" y="275"/>
+   </graphics>
+  </place>
+  <place id="p-200C-C9152-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="250" y="275"/>
+   </graphics>
+  </place>
+  <place id="p-200C-C9159-5">
+  <name>
+   <text>p3</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="130" y="485"/>
+   </graphics>
+  </place>
+  <place id="p-200C-C915D-6">
+  <name>
+   <text>p4</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="250" y="485"/>
+   </graphics>
+  </place>
+  <transition id="t-200C-C9162-7">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I,(test)&gt;</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="130" y="160"/>
+   </graphics>
+  </transition>
+  <transition id="t-200C-C9171-8">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I,(~test)&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="250" y="160"/>
+   </graphics>
+  </transition>
+  <transition id="t-200C-C917D-9">
+  <name>
+   <text>t2</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;A,I,(~test)&gt;</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="130" y="380"/>
+   </graphics>
+  </transition>
+  <transition id="t-200C-C9187-10">
+  <name>
+   <text>t3</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;A,I,(test)&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="250" y="380"/>
+   </graphics>
+  </transition>
+  <arc id="e-200C-C9192-11" source="t-200C-C9187-10" target="p-200C-C915D-6">
+  </arc>
+  <arc id="e-200C-C9196-12" source="p-200C-C9152-4" target="t-200C-C9187-10">
+  </arc>
+  <arc id="e-200C-C9199-13" source="t-200C-C917D-9" target="p-200C-C9159-5">
+  </arc>
+  <arc id="e-200C-C919B-14" source="p-200C-C914C-3" target="t-200C-C917D-9">
+  </arc>
+  <arc id="e-200C-C919D-15" source="t-200C-C9171-8" target="p-200C-C9152-4">
+  </arc>
+  <arc id="e-200C-C919F-16" source="p-200C-C913E-2" target="t-200C-C9171-8">
+  </arc>
+  <arc id="e-200C-C91A2-17" source="t-200C-C9162-7" target="p-200C-C914C-3">
+  </arc>
+  <arc id="e-200C-C91A4-18" source="p-200C-C913E-2" target="t-200C-C9162-7">
+  </arc>
+ </page>
+ </net>
+</pnml>

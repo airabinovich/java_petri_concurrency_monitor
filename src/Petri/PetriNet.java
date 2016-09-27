@@ -1,5 +1,14 @@
 package Petri;
 
+import java.util.Arrays;
+import java.util.HashMap;
+
+/**
+ * Implementation for petri net model.
+ * This class describes a general basic petri net.
+ * Every special petri net type (timed, colored, stochastic, etc) has to extend this class
+ *
+ */
 public abstract class PetriNet {
 	
 	protected Place[] places;
@@ -12,6 +21,9 @@ public abstract class PetriNet {
 	protected Integer[] initialMarking;
 	protected boolean[] automaticTransitions;
 	protected boolean[] informedTransitions;
+	
+	/** HashMap for guards. These variables can enable or disable associated transitions */
+	protected HashMap<String, Boolean> guards;
 	
 	/**
 	 * Makes a PetriNet Object. This is intended to be used by PetriNetFactory
@@ -27,7 +39,14 @@ public abstract class PetriNet {
 			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I){
 		this.places = _places;
 		this.transitions = _transitions;
-		computeAutomaticAndInformed();
+		
+		// this sorting allows using indexes to access these arrays and avoid searching for an index
+		Arrays.sort(_transitions, (Transition t0, Transition t1) -> t0.getIndex() - t1.getIndex());
+		Arrays.sort(_places, (Place p0, Place p1) -> p0.getIndex() - p1.getIndex());
+		
+		computeAutomaticandInformed();
+		fillGuardsMap();
+		
 		this.arcs = _arcs;
 		this.initialMarking = _initialMarking.clone();
 		this.currentMarking = _initialMarking;
@@ -36,13 +55,25 @@ public abstract class PetriNet {
 		this.inc = _I;
 	}
 	
-	private void computeAutomaticAndInformed() {
+	private void computeAutomaticandInformed() {
 		this.automaticTransitions = new boolean[transitions.length];
 		this.informedTransitions = new boolean[transitions.length];
 		for(int i=0; i<automaticTransitions.length; i++){
 			Label thisTransitionLabel = transitions[i].getLabel();
 			automaticTransitions[i] = thisTransitionLabel.isAutomatic();
 			informedTransitions[i] = thisTransitionLabel.isInformed();
+		}
+	}
+	
+	private void fillGuardsMap(){
+		if(guards == null){
+			guards = new HashMap<String, Boolean>();
+		}
+		for(Transition t : transitions){
+			if(t.hasGuard()){
+				// TODO: get initial guards value
+				guards.put(t.getGuardName(), false);
+			}
 		}
 	}
 
@@ -93,15 +124,6 @@ public abstract class PetriNet {
 	
 	public boolean[] getInformedTransitions(){
 		return informedTransitions;
-	}
-	
-	//No sabemos que hace todavia
-	public void disparar_guarda(int ti, boolean to) {
-	}
-	
-	//No sabemos que hace todavia (tampoco)
-	public void set_guarda(boolean p, int i){
-		
 	}
 	
 	/**
@@ -164,26 +186,67 @@ public abstract class PetriNet {
 	}
 	
 	/**
+	 * Checks if the transition whose index is passed is enabled.
+	 * Disabling causes:
+	 * <li> Feeding places don't meet arcs weights requirements </li>
+	 * <li> Guard has different value than required </li>
 	 * @return whether the transition is enabled or not
-	 * 
 	 */
 	public boolean isEnabled(int transitionIndex){
+		// I can access that simply because the transitions array is sorted by indexes
+		return isEnabled(transitions[transitionIndex]);
+	}
+	
+	/**
+	 * @return whether the transition is enabled or not
+	 */
+	public boolean isEnabled(Transition t){
+		int transitionIndex = t.getIndex();
 		boolean enabled = true;
-		for (int i=0; i<places.length ; i++){
+		for(int i=0; i<places.length ; i++){
 			if (pre[i][transitionIndex] > currentMarking[i]){
 				enabled = false;
 				break;
 			}
 		}
+		if(t.hasGuard()){
+			String guardName = t.getGuardName();
+			enabled &= guards.get(guardName).equals(t.getGuardEnablingValue());
+		}
 		return enabled;
+		
 	}
 	
 	/**
-	 * @return whether the transition is enabled or not
-	 * 
-	 * TODO: Leer filmina 19 del archivo "Redes_de_Petri_2013"
+	 * Adds a new guard to the petriNet or updates a guard's value.
+	 * Intended only for internal using. Use {@link monitor_petri.MonitorManager#setGuard(String, boolean)} instead 
+	 * @param key the guard name
+	 * @param value the new value
+	 * @return True when succeeded
 	 */
-	public boolean isEnabled(Transition t){
-		return isEnabled(t.getIndex());
+	public synchronized boolean addGuard(String key, Boolean value) {
+		return guards.put(key, value) != null;
 	}
+	
+	/**
+	 * Used to read a guard's value
+	 * @param guard Guard name to get its value
+	 * @return the specified guard's value
+	 * @throws IndexOutOfBoundsException if the guard does not exist
+	 */
+	public boolean readGuard(String guard) throws IndexOutOfBoundsException {
+		try{
+			return guards.get(guard).booleanValue();
+		} catch (NullPointerException e){
+			throw new IndexOutOfBoundsException("No guard registered for " + guard + " name");
+		}
+	}
+	
+	/**
+	 * @return The amount of guards stored
+	 */
+	public int getGuardsAmount() {
+		return guards.size();
+	}
+	
 }
