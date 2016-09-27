@@ -1,5 +1,7 @@
 package Petri;
 
+import org.javatuples.Pair;
+
 public class Transition extends PetriNode{
 	
 	private Label label;
@@ -14,16 +16,18 @@ public class Transition extends PetriNode{
 	 * @param _label The transition label object
 	 * @param _index The transition index. It must match the petri's column which correspond to this transition 
 	 * @param _interval TimeSpan object for the timed transition interval
-	 * @param _guardName name for the variable used as guard for this transition. Can be set to null
-	 * @param _guardEnablingValue value that enabled the guard
+	 * @param _guard Pair<String,Boolean> name for the variable used as guard for this transition and value that enables the guard.
 	 * @throws IllegalArgumentException When _index is negative
 	 */
-	public Transition(String _id, Label _label, int _index, TimeSpan _interval, String _guardName, boolean _guardEnablingValue) throws IllegalArgumentException{
+	public Transition(String _id, Label _label, int _index, TimeSpan _interval, Pair<String, Boolean> _guard) throws IllegalArgumentException{
 		super(_id, _index);
 		this.label = _label;
 		this.interval = _interval;
-		this.guardName = _guardName == null ? "" : _guardName;
-		this.guardEnablingValue = _guardEnablingValue;
+		if(_guard == null){
+			_guard = new Pair<String, Boolean>("", false);
+		}
+		this.guardName = _guard.getValue0() == null ? "" : _guard.getValue0();
+		this.guardEnablingValue = _guard.getValue1() == null ? false : _guard.getValue1();
 	}
 	
 	/**
@@ -31,12 +35,11 @@ public class Transition extends PetriNode{
 	 * @param _id The transition id
 	 * @param _label The transition label object
 	 * @param _index The transition index. It must match the petri's column which correspond to this transition 
-	 * @param _guardName name for the variable used as guard for this transition. Can be set to null
-	 * @param _guardEnablingValue value that enabled the guard
+	 * @param _guard Pair<String,Boolean> name for the variable used as guard for this transition and value that enables the guard.
 	 * @throws IllegalArgumentException When _index is negative
 	 */
-	public Transition(String _id, Label _label, int _index, String _guardName, boolean _guardEnablingValue) throws IllegalArgumentException{
-		this(_id, _label, _index, null, _guardName, _guardEnablingValue);
+	public Transition(String _id, Label _label, int _index, Pair<String, Boolean> _guard) throws IllegalArgumentException{
+		this(_id, _label, _index, null, _guard);
 	}
 	
 	/**
@@ -48,7 +51,7 @@ public class Transition extends PetriNode{
 	 * @throws IllegalArgumentException When _index is negative
 	 */
 	public Transition(String _id, Label _label, int _index, TimeSpan _interval) throws IllegalArgumentException{
-		this(_id, _label, _index, _interval, null, false);
+		this(_id, _label, _index, _interval, null);
 	}
 	
 	/**
@@ -59,7 +62,7 @@ public class Transition extends PetriNode{
 	 * @throws IllegalArgumentException When _index is negative
 	 */
 	public Transition(String _id, Label _label, int _index) throws IllegalArgumentException{
-		this(_id, _label, _index, (TimeSpan) null, null, false);
+		this(_id, _label, _index, (TimeSpan) null, null);
 	}
 	
 	/**

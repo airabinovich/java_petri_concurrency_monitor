@@ -259,12 +259,12 @@ public class MonitorManager {
 				isTimed = true;
 			}
 			if(keepFiring){
+				TimeSpan transitionSpan = transitionToFire.getTimeSpan();
 				while(isTimed && !insideTimeSpan){
 					//I came before time span, and there is nobody sleeping in the transition
-					TimeSpan transitionSpan = transitionToFire.getTimeSpan();
 					if(transitionSpan.isBeforeTimeSpan(timeToFire) && !transitionSpan.anySleeping()){
 						inQueue.release();
-						transitionToFire.getTimeSpan().sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - timeToFire);
+						transitionSpan.sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - timeToFire);
 					}
 					else{
 						// I came late, the time is over. Thus the thread releases the input mutex and goes to sleep

@@ -242,9 +242,8 @@ public class PNMLreader{
 			// if no guard was found, let's create an empty one
 			guard = new Pair<String, Boolean>(null, false);
 		}
-
 		
-		return new Transition(id, label, transitionIndex, timeSpan, guard.getValue0(), guard.getValue1());
+		return new Transition(id, label, transitionIndex, timeSpan, guard);
 	}
 	
 	/**
@@ -392,7 +391,8 @@ public class PNMLreader{
 		final int INFORMED_INDEX = 1;
 		final int GUARD_INDEX = 2;
 		
-		Pair<String, Boolean> guard = new Pair<String, Boolean>(null, true);
+		// by default no guard
+		Pair<String, Boolean> guard = new Pair<String, Boolean>(null, null);
 		
 		String labelStr = labelInfo.substring(1, labelInfo.length() - 1);
 		boolean isAutomatic = false;
@@ -403,19 +403,25 @@ public class PNMLreader{
 			String label = labels[i];
 			switch(i){
 			case AUTOMATIC_INDEX:
+				if( !label.equalsIgnoreCase("A") && !label.equalsIgnoreCase("D") && !label.equalsIgnoreCase("F")){
+					throw new BadPNMLFormatException("Wrong automatic label: " + label);
+				}
 				isAutomatic = label.equalsIgnoreCase("A");
 				break;
 			case INFORMED_INDEX:
+				if( !label.equalsIgnoreCase("I") && !label.equalsIgnoreCase("N")){
+					throw new BadPNMLFormatException("Wrong informed label: " + label);
+				}
 				isInformed = label.equalsIgnoreCase("I");
 				break;
 			case GUARD_INDEX:
 				try{
 					if(label.charAt(0) != '(' || label.charAt(label.length() - 1) != ')'){
-					// guard must be enclosed by backets
+					// guard must be enclosed by brackets
 					throw new BadPNMLFormatException("Bad formatted guard in " + label
 							+ "from label " + labels);
 					}
-					// trim the backets
+					// trim the brackets
 					String guardStr = label.substring(1, label.length() - 1).replaceAll("\\s", "");
 					//check if it's for negative logic
 					boolean negative = (guardStr.charAt(0) == '~' || guardStr.charAt(0) == '!');
