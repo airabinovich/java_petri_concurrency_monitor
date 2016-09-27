@@ -429,6 +429,8 @@ public class PNMLreader{
 						//discard first char "~"
 						guardStr = guardStr.substring(1);
 						guard = guard.setAt1(false);
+					} else {
+						guard = guard.setAt1(true);
 					}
 					guard = guard.setAt0(guardStr);
 				} catch (IndexOutOfBoundsException e){
