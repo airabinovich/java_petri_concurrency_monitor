@@ -3,6 +3,7 @@ package unit_tests;
 import static org.junit.Assert.*;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -113,6 +114,66 @@ public class MonitorManagerTimeTestSuite {
 		Integer[] expectedMarking = {0, 0, 1, 1};
 		
 		assertArrayEquals(expectedMarking, petri.getCurrentMarking());
+	}
+
+	/**
+	 * <li> Given t0 and t3 are enabled by the same place p0 </li>
+	 * <li> And t0 is timed [a,b] </li>
+	 * <li> And t0 has not reached its time span </li>
+	 * <li> When th0 tries to fire t0 </li>
+	 * <li> And th0 sleeps on its own waiting for t0's time span</li>
+	 * <li> And th1 fires t3 disabling t0 </li>
+	 * <li> And th0 wakes up and tries to fire t0</li>
+	 * <li> Then th0 fails firing t0</li>
+	 * <li> And th0 goes to sleep in t0's varcond queue</li>
+	 */
+	@Test
+	public void threadShouldSleepInVarcondQueueWhenTransitionGetsDisabledWhileSleepingByItself() {
+		
+		Transition t0 = petri.getTransitions()[0];
+		Transition t3 = petri.getTransitions()[3];
+		
+		Assert.assertTrue(petri.isEnabled(t0));
+		Assert.assertTrue(petri.isEnabled(t3));
+		
+		Assert.assertFalse(t0.getTimeSpan().anySleeping());
+		
+		Thread th0 = new Thread(() -> {
+			monitor.fireTransition(t0);
+		});
+		th0.start();
+		
+		try {
+			// let's give th0 a little time to try to fire t0
+			Thread.sleep(50);
+		} catch (InterruptedException e) {
+			Assert.fail("Main thread interrupted. Message: " + e.getMessage());
+		}
+		
+		Assert.assertFalse(t0.getTimeSpan().inTimeSpan(System.currentTimeMillis()));
+		Assert.assertTrue(t0.getTimeSpan().anySleeping());
+		
+		Assert.assertTrue(petri.isEnabled(t0));
+		Assert.assertTrue(petri.isEnabled(t3));
+		
+		monitor.fireTransition(t3);
+		
+		Assert.assertFalse(petri.isEnabled(t0));
+		
+		boolean[] expectedQueuesState = {false, false, false, false};
+		Assert.assertArrayEquals(expectedQueuesState, monitor.getQueuesState());
+		
+		try {
+			// let's give th0 some time to actually fire t0
+			// It shouldn't, but if the functionality is broken and we don't wait here
+			// it may appear as it's working properly when not
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			Assert.fail("Main thread interrupted. Message: " + e.getMessage());
+		}
+		
+		expectedQueuesState[0] = true;
+		Assert.assertArrayEquals(expectedQueuesState, monitor.getQueuesState());
 	}
 
 }
