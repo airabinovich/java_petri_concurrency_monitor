@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 
+import Petri.Arc.ArcType;
+
 	/**
 	 * PetriNet factory. Gets info from PNML file. Calls makePetriNet to get a PetriNet object
 	 *
@@ -43,18 +45,18 @@ import org.javatuples.Triplet;
 		public PetriNet makePetriNet(petriNetType type) throws CannotCreatePetriNetError{
 			
 			Quartet<Place[], Transition[], Arc[], Integer[]> petriObjects = PNML2PNObjects();
-			Triplet<Integer[][], Integer[][], Integer[][]> petriMatrices = 
+			Quartet<Integer[][], Integer[][], Integer[][], Integer[][]> petriMatrices = 
 					rdpObjects2Matrices(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2());
 			
 			switch(type){
 			case PT:
 				return new PTPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
-						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2());
+						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2(), petriMatrices.getValue3());
 			case TIMED:
 				return new TimedPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
-						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2());
+						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2(), petriMatrices.getValue3());
 			default:
-				return null;
+				throw new CannotCreatePetriNetError("Cannot create petri net from unknown type " + type);
 			}
 		}
 		/**
@@ -79,14 +81,15 @@ import org.javatuples.Triplet;
 		 * @param places petri net's places
 		 * @param transitions petri net's transitions
 		 * @param arcs petri net's arcs
-		 * @return a 3-tuple containing (Pre matrix, Post matrix, Incidence matrix)
+		 * @return a 4-tuple containing (Pre matrix, Post matrix, Incidence matrix, Inhibition matrix)
 		 */
-		protected Triplet<Integer[][], Integer[][], Integer[][]> rdpObjects2Matrices(Place[] places, Transition[] transitions, Arc[] arcs){
+		protected Quartet<Integer[][], Integer[][], Integer[][], Integer[][]> rdpObjects2Matrices(Place[] places, Transition[] transitions, Arc[] arcs){
 			final int placesAmount = places.length;
 			final int transitionsAmount = transitions.length;
 			Integer[][] pre = new Integer[placesAmount][transitionsAmount];
 			Integer[][] pos = new Integer[placesAmount][transitionsAmount];
 			Integer[][] inc = new Integer[placesAmount][transitionsAmount];
+			Integer[][] inhibition = new Integer[placesAmount][transitionsAmount];
 			
 			for(int i = 0; i < placesAmount; i++){
 				for(int j = 0; j < transitionsAmount; j++){
@@ -95,6 +98,7 @@ import org.javatuples.Triplet;
 					pre[i][j] = 0;
 					pos[i][j] = 0;
 					inc[i][j] = 0;
+					inhibition[i][j] = 0;
 				}
 			}
 			
@@ -110,7 +114,12 @@ import org.javatuples.Triplet;
 								// We don't use the place nor transition index here because there might be some index missing or repeated
 								// and that could cause and error
 								// e.g: t2 doesn't exist and t5 is the last but it will be on position 4 instead of 5
-								pre[i][j] = arc.getWeight();
+								if(arc.getType() == ArcType.STANDARD){
+									pre[i][j] = arc.getWeight();
+								} else if (arc.getType() == ArcType.INHIBITOR){
+									// for inhibitor arcs weight is ignored
+									inhibition[i][j] = 1;
+								}
 								arcDone = true;
 								break;
 							}
@@ -142,7 +151,7 @@ import org.javatuples.Triplet;
 				}
 			}
 			
-			return new Triplet<Integer[][], Integer[][], Integer[][]>(pre, pos, inc);
+			return new Quartet<Integer[][], Integer[][], Integer[][], Integer[][]>(pre, pos, inc, inhibition);
 		}
 		
 		/**

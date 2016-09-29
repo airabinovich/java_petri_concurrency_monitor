@@ -2,6 +2,7 @@ package Petri;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Implementation for petri net model.
@@ -16,14 +17,31 @@ public abstract class PetriNet {
 	protected Arc[] arcs;
 	protected Integer[][] pre;
 	protected Integer[][] post;
+	/** Incidece matrix */
 	protected Integer[][] inc;
 	protected Integer[] currentMarking;
 	protected Integer[] initialMarking;
 	protected boolean[] automaticTransitions;
 	protected boolean[] informedTransitions;
+	/** Inhibition matrix used for inhibition logic */
+	protected Integer[][] inhibitionMatrix;
 	
 	/** HashMap for guards. These variables can enable or disable associated transitions */
 	protected HashMap<String, Boolean> guards;
+	/**
+	 * Makes a PetriNet Object. This is intended to be used by PetriNetFactory
+	 * @param _places Array of Place objects (dimension p)
+	 * @param _transitions Array of Transition objects (dimension t)
+	 * @param _arcs Array of Arcs
+	 * @param _initialMarking Array of Integers (tokens in each place) (dimension p)
+	 * @param _preI Pre-Incidence matrix (dimension p*t)
+	 * @param _posI Post-Incidence matrix (dimension p*t)
+	 * @param _I Incidence matrix (dimension p*t)
+	 */	
+	protected PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
+			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I){
+		this(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, null);
+	}
 	
 	/**
 	 * Makes a PetriNet Object. This is intended to be used by PetriNetFactory
@@ -36,7 +54,8 @@ public abstract class PetriNet {
 	 * @param _I Incidence matrix (dimension p*t)
 	 */
 	protected PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
-			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I){
+			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I,
+			Integer[][] _inhibitionMatrix){
 		this.places = _places;
 		this.transitions = _transitions;
 		
@@ -53,6 +72,7 @@ public abstract class PetriNet {
 		this.pre = _preI;
 		this.post = _posI;
 		this.inc = _I;
+		this.inhibitionMatrix = _inhibitionMatrix;
 	}
 	
 	private void computeAutomaticandInformed() {
@@ -198,20 +218,30 @@ public abstract class PetriNet {
 	}
 	
 	/**
-	 * @return whether the transition is enabled or not
+	 * Checks if a transition is enabled
+	 * @param t Transition objects to check if it's enabled
+	 * @return True if the transition is enabled, False otherwise
 	 */
 	public boolean isEnabled(Transition t){
 		int transitionIndex = t.getIndex();
 		boolean enabled = true;
 		for(int i=0; i<places.length ; i++){
 			if (pre[i][transitionIndex] > currentMarking[i]){
-				enabled = false;
-				break;
+				return false;
 			}
 		}
 		if(t.hasGuard()){
 			String guardName = t.getGuardName();
 			enabled &= guards.get(guardName).equals(t.getGuardEnablingValue());
+		}
+		if(this.hasInhibitorArcs()){
+			for(int i = 0; i < places.length; i++){
+				boolean emptyPlace = places[i].getMarking() == 0;
+				boolean placeInhibitsTransition = inhibitionMatrix[i][transitionIndex] > 0;
+				if(!emptyPlace && placeInhibitsTransition){
+					return false;
+				}
+			}
 		}
 		return enabled;
 		
@@ -248,5 +278,31 @@ public abstract class PetriNet {
 	public int getGuardsAmount() {
 		return guards.size();
 	}
+	
+	/**
+	 * Checks if the petri has inhibition arcs.
+	 * @return True if the net has inhibition arcs.
+	 */
+	public boolean hasInhibitorArcs(){
+		// if the matrix is null or if all elements are zeros
+		// the net has no inhibition arcs
+		try{
+			// this trivial comparison is to throw a NullPointerException if inhibitionMatrix is null
+			inhibitionMatrix.equals(inhibitionMatrix);
+			boolean allZeros = true;
+			for( Integer[] row : inhibitionMatrix ){
+				// if hashset size is 1 all elements are equal
+				allZeros &= row[0] == 0 && 
+						new HashSet<Integer>(Arrays.asList(row)).size() == 1;
+				if(!allZeros){
+					return true;
+				}
+			}
+			return !allZeros;
+		} catch (NullPointerException e){
+			return false;
+		}
+	}
+	
 	
 }

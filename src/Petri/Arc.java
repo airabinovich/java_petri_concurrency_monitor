@@ -49,11 +49,29 @@ public class Arc {
 	/** Type of arc from {@link ArcType} */
 	private ArcType type;
 	
+	/**
+	 * @param _id Unique id to identify the arc
+	 * @param _id_source Unique id matching the arc's source
+	 * @param _id_target Unique id matching the arc's target
+	 * @param _weight A positive non-zero integer for the arc's weight
+	 * @throws IllegalArgumentException if the specified weight is less than one or if any field is null
+	 */
 	public Arc(String _id, String _id_source, String _id_target, Integer _weight) throws IllegalArgumentException {
 		this(_id, _id_source, _id_target, _weight, ArcType.STANDARD);
 	}
 	
+	/**
+	 * @param _id Unique id to identify the arc
+	 * @param _id_source Unique id matching the arc's source
+	 * @param _id_target Unique id matching the arc's target
+	 * @param _weight A positive non-zero integer for the arc's weight
+	 * @param _type An {@link ArcType} type
+	 * @throws IllegalArgumentException if the specified weight is less than one or if any field is null 
+	 */
 	public Arc(String _id, String _id_source, String _id_target, Integer _weight, ArcType _type) throws IllegalArgumentException{
+		if( _id == null || _id_source == null || _id_target == null || _weight == null || _type == null){
+			throw new IllegalArgumentException("Invalid null parameter recieved");
+		}
 		if(_weight < 1){
 			throw new IllegalArgumentException("Arc weight cannot be less that 1");
 		}

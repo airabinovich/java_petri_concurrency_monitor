@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-1852-121DE-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>petriWithInhibitor01</text>
+  </name>
+ <page id="g-1852-121E3-1">
+  <place id="p-1852-121E4-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>2</text>
+   </initialMarking>
+   <graphics>
+    <position x="70" y="30"/>
+   </graphics>
+  </place>
+  <place id="p-1852-121EA-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="70" y="225"/>
+   </graphics>
+  </place>
+  <place id="p-1852-121EC-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="155" y="130"/>
+   </graphics>
+  </place>
+  <transition id="t-1852-121EF-5">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="155" y="60"/>
+   </graphics>
+  </transition>
+  <transition id="t-1852-121F2-6">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="225" y="130"/>
+   </graphics>
+  </transition>
+  <transition id="t-1852-121F5-7">
+  <name>
+   <text>t2</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="70" y="130"/>
+   </graphics>
+  </transition>
+  <arc id="e-1852-121F8-8" source="p-1852-121EC-4" target="t-1852-121F5-7">
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="e-1852-121F9-9" source="t-1852-121F5-7" target="p-1852-121EA-3">
+  </arc>
+  <arc id="e-1852-121FA-10" source="p-1852-121E4-2" target="t-1852-121F5-7">
+  </arc>
+  <arc id="e-1852-121FC-11" source="p-1852-121EC-4" target="t-1852-121F2-6">
+  </arc>
+  <arc id="e-1852-121FD-12" source="t-1852-121EF-5" target="p-1852-121EC-4">
+  </arc>
+ </page>
+ </net>
+</pnml>
