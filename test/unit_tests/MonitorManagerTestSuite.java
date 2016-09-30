@@ -3,6 +3,7 @@ package unit_tests;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -37,6 +38,7 @@ public class MonitorManagerTestSuite {
 	private static final String MONITOR_TEST_03_PETRI = TEST_PETRI_FOLDER + "monitorTest03.pnml";
 	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
 	private static final String PETRI_WITH_GUARD_02 = TEST_PETRI_FOLDER + "petriWithGuard02.pnml";
+	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
 	
 	private static final String ID = "id";
 
@@ -112,7 +114,7 @@ public class MonitorManagerTestSuite {
 	 * <li>When I try to fire t2 using a worker thread</li>
 	 * <li>And I wait for t2 to go to sleep</li>
 	 * <li>And I fire t0</li>
-	 * <li>Then t1 and t2 are enabled (not testable from this scope)</li>
+	 * <li>Then t1 and t2 get enabled</li>
 	 * <li>And t1 is fired for being automatic</li>
 	 * <li>And t2 is fired because a worker thread was waiting for it to enable</li>
 	 * <li>And the final marking is {0, 0, 0, 2}</li>
@@ -141,7 +143,7 @@ public class MonitorManagerTestSuite {
 			e.printStackTrace();
 		}
 		
-		Assert.assertArrayEquals(expectedInitialMarking , this.petri.getCurrentMarking());
+		Assert.assertArrayEquals(expectedInitialMarking , petri.getCurrentMarking());
 		
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t1, obs);
@@ -149,12 +151,21 @@ public class MonitorManagerTestSuite {
 		
 		monitor.fireTransition(t0);
 		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 		ArrayList<String> events = obs.getEvents();
 		
-		Assert.assertEquals(1, events.size());
+		Assert.assertEquals(2, events.size());
 		try {
-			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
-			Assert.assertEquals(t1.getId(), obtainedId);
+			String[] expectedIds = { t1.getId(), t2.getId() };
+			ArrayList<String> obtainedIds = new ArrayList<String>();
+			obtainedIds.add(jsonParser.readTree(events.get(0)).get(ID).asText());
+			obtainedIds.add(jsonParser.readTree(events.get(1)).get(ID).asText());
+			Assert.assertTrue(obtainedIds.containsAll(Arrays.asList(expectedIds)));
 		} catch (IOException e) {
 			Assert.fail("Event is not in JSON format");
 		}
@@ -184,7 +195,7 @@ public class MonitorManagerTestSuite {
 		}
 		
 		Integer[] expectedMarkingAfterT0 = {0, 0, 0, 2};
-		Assert.assertArrayEquals(expectedMarkingAfterT0 , this.petri.getCurrentMarking());
+		Assert.assertArrayEquals(expectedMarkingAfterT0 , petri.getCurrentMarking());
 		
 		boolean[] expectedEnabled = {false, false, false};
 		Assert.assertArrayEquals(expectedEnabled, petri.getEnabledTransitions());
@@ -623,5 +634,81 @@ public class MonitorManagerTestSuite {
 		} catch (IOException e) {
 			Assert.fail("Event is not in JSON format");
 		}
+	}
+	
+	/**
+	 * <li> Given t0 feeds p2 </li>
+	 * <li> And t1 drains p2 </li>
+	 * <li> And t0 has been fired </li>
+	 * <li> And p2 has one token </li>
+	 * <li> And p0 has two tokens </li>
+	 * <li> And t2 is fed by p0 and inhibited by p2 </li>
+	 * <li> When th0 fires t2 </li>
+	 * <li> And t2 is not fired </li>
+	 * <li> And th1 fires t1 </li>
+	 * <li> And t1 is successfully fired </li>
+	 * <li> Then th0 wakes up</li>
+	 * <li> And t2 is successfully fired </li> 
+	 */
+	@Test
+	public void ThreadSleepingIntransitionDisabledByInhibitionShouldWakeUpWhenInhibitionDissapears(){
+		
+		setUpMonitor(PETRI_WITH_INHIBITOR_01);
+		
+		Transition[] transitions = petri.getTransitions();
+		Transition t0 = transitions[0];
+		Transition t1 = transitions[1];
+		Transition t2 = transitions[2];
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t1, obs);
+		monitor.subscribeToTransition(t2, obs);
+		
+		new Thread(() -> monitor.fireTransition(t0)).start();
+		
+		try{
+			Thread.sleep(100);
+		} catch(InterruptedException e){
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		Integer[] expectedMarking = {Integer.valueOf(2), Integer.valueOf(0), Integer.valueOf(1)};
+		Assert.assertArrayEquals(expectedMarking, petri.getCurrentMarking());
+		
+		// initial condition generate and check here finishes here
+		
+		Thread th0 = new Thread(() -> monitor.fireTransition(t2));
+		th0.start();
+		
+		try{
+			Thread.sleep(100);
+		} catch(InterruptedException e){
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		Assert.assertTrue(events.isEmpty());
+		
+		Thread th1 = new Thread(() -> monitor.fireTransition(t1));
+		th1.start();
+		
+		try{
+			Thread.sleep(100);
+		} catch(InterruptedException e){
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		Assert.assertFalse(events.isEmpty());
+		try {
+			String obtainedId0 = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t1.getId(), obtainedId0);
+			String obtainedId1 = jsonParser.readTree(events.get(1)).get(ID).asText();
+			Assert.assertEquals(t2.getId(), obtainedId1);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+		
+		
 	}
 }

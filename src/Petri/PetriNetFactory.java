@@ -40,7 +40,7 @@ import Petri.Arc.ArcType;
 		 * makes and returns the petri described in the PNML file passed to the factory
 		 * @return PetriNet object containing info described in PNML file
 		 * @param petriNetType petri net type from enum type {@link petriNetType}
-		 * @throws CannotCreatePetriNetError
+		 * @throws CannotCreatePetriNetError If the parsed info has inconsistent data.
 		 */
 		public PetriNet makePetriNet(petriNetType type) throws CannotCreatePetriNetError{
 			
@@ -82,8 +82,11 @@ import Petri.Arc.ArcType;
 		 * @param transitions petri net's transitions
 		 * @param arcs petri net's arcs
 		 * @return a 4-tuple containing (Pre matrix, Post matrix, Incidence matrix, Inhibition matrix)
+		 * @throws CannotCreatePetriNetError If a non-standard arc goes from transition to place 
+		 * @see Petri.Arc.ArcType
 		 */
-		protected Quartet<Integer[][], Integer[][], Integer[][], Integer[][]> rdpObjects2Matrices(Place[] places, Transition[] transitions, Arc[] arcs){
+		protected Quartet<Integer[][], Integer[][], Integer[][], Integer[][]> rdpObjects2Matrices(
+				Place[] places, Transition[] transitions, Arc[] arcs) throws CannotCreatePetriNetError{
 			final int placesAmount = places.length;
 			final int transitionsAmount = transitions.length;
 			Integer[][] pre = new Integer[placesAmount][transitionsAmount];
@@ -105,6 +108,7 @@ import Petri.Arc.ArcType;
 			for( Arc arc : arcs){
 				String arcSource = arc.getId_source();
 				String arcTarget = arc.getId_target();
+				ArcType type = arc.getType();
 				boolean arcDone = false;
 				for(int i = 0; i < placesAmount ; i++){
 					if(arcDone){ break;}
@@ -114,9 +118,9 @@ import Petri.Arc.ArcType;
 								// We don't use the place nor transition index here because there might be some index missing or repeated
 								// and that could cause and error
 								// e.g: t2 doesn't exist and t5 is the last but it will be on position 4 instead of 5
-								if(arc.getType() == ArcType.STANDARD){
+								if(type == ArcType.STANDARD){
 									pre[i][j] = arc.getWeight();
-								} else if (arc.getType() == ArcType.INHIBITOR){
+								} else if (type == ArcType.INHIBITOR){
 									// for inhibitor arcs weight is ignored
 									inhibition[i][j] = 1;
 								}
@@ -133,6 +137,9 @@ import Petri.Arc.ArcType;
 				for(int j = 0; j < transitionsAmount; j++){
 					if(arcDone){ break;	}
 					if(arcSource.equals(transitions[j].getId())){
+						if(type != ArcType.STANDARD){
+							throw new CannotCreatePetriNetError(type + " arc cannot go from transition to place");
+						}
 						for(int i = 0; i < placesAmount; i++){
 							if(arcTarget.equals(places[i].getId())){
 								pos[i][j] = arc.getWeight();
