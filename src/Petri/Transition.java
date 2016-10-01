@@ -17,10 +17,11 @@ public class Transition extends PetriNode{
 	 * @param _index The transition index. It must match the petri's column which correspond to this transition 
 	 * @param _interval TimeSpan object for the timed transition interval
 	 * @param _guard Pair<String,Boolean> name for the variable used as guard for this transition and value that enables the guard.
+	 * @param _name A User-defined name. Empty is not allowed
 	 * @throws IllegalArgumentException When _index is negative
 	 */
-	public Transition(String _id, Label _label, int _index, TimeSpan _interval, Pair<String, Boolean> _guard) throws IllegalArgumentException{
-		super(_id, _index);
+	public Transition(String _id, Label _label, int _index, TimeSpan _interval, Pair<String, Boolean> _guard, String _name) throws IllegalArgumentException{
+		super(_id, _index, _name);
 		this.label = _label;
 		this.interval = _interval;
 		if(_guard == null){
@@ -34,12 +35,13 @@ public class Transition extends PetriNode{
 	 * Constructor for transitions with guard
 	 * @param _id The transition id
 	 * @param _label The transition label object
-	 * @param _index The transition index. It must match the petri's column which correspond to this transition 
+	 * @param _index The transition index. It must match the petri's column which correspond to this transition
+	 * @param _name A User-defined name. Empty is not allowed
 	 * @param _guard Pair<String,Boolean> name for the variable used as guard for this transition and value that enables the guard.
 	 * @throws IllegalArgumentException When _index is negative
 	 */
-	public Transition(String _id, Label _label, int _index, Pair<String, Boolean> _guard) throws IllegalArgumentException{
-		this(_id, _label, _index, null, _guard);
+	public Transition(String _id, Label _label, int _index, Pair<String, Boolean> _guard, String _name) throws IllegalArgumentException{
+		this(_id, _label, _index, null, _guard, _name);
 	}
 	
 	/**
@@ -48,21 +50,23 @@ public class Transition extends PetriNode{
 	 * @param _label The transition label object
 	 * @param _index The transition index. It must match the petri's column which correspond to this transition 
 	 * @param _interval TimeSpan object for the timed transition interval
+	 * @param _name A User-defined name. Empty is not allowed
 	 * @throws IllegalArgumentException When _index is negative
 	 */
-	public Transition(String _id, Label _label, int _index, TimeSpan _interval) throws IllegalArgumentException{
-		this(_id, _label, _index, _interval, null);
+	public Transition(String _id, Label _label, int _index, TimeSpan _interval, String _name) throws IllegalArgumentException{
+		this(_id, _label, _index, _interval, null, _name);
 	}
 	
 	/**
 	 * Simple constructor for Transition without time nor guard
 	 * @param _id The transition id
 	 * @param _label The transition label object
-	 * @param _index The transition index. It must match the petri's column which correspond to this transition 
+	 * @param _index The transition index. It must match the petri's column which correspond to this transition
+	 * @param _name A User-defined name. Empty is not allowed
 	 * @throws IllegalArgumentException When _index is negative
 	 */
-	public Transition(String _id, Label _label, int _index) throws IllegalArgumentException{
-		this(_id, _label, _index, (TimeSpan) null, null);
+	public Transition(String _id, Label _label, int _index , String _name) throws IllegalArgumentException{
+		this(_id, _label, _index, (TimeSpan) null, null, _name);
 	}
 	
 	/**
