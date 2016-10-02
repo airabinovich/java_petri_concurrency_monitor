@@ -64,15 +64,15 @@ public class Arc {
 	 * @param _id Unique id to identify the arc
 	 * @param _id_source Unique id matching the arc's source
 	 * @param _id_target Unique id matching the arc's target
-	 * @param _weight A positive non-zero integer for the arc's weight
+	 * @param _weight A positive non-zero integer for the arc's weight. If _type is {@link ArcType#INHIBITOR}, _weight must be one
 	 * @param _type An {@link ArcType} type
-	 * @throws IllegalArgumentException if the specified weight is less than one or if any field is null 
+	 * @throws IllegalArgumentException if the specified weight is invalid or if any field is null 
 	 */
 	public Arc(String _id, String _id_source, String _id_target, Integer _weight, ArcType _type) throws IllegalArgumentException{
 		if( _id == null || _id_source == null || _id_target == null || _weight == null || _type == null){
 			throw new IllegalArgumentException("Invalid null parameter recieved");
 		}
-		if(_weight < 1){
+		if(!isValidWeightForArc(_weight, _type)){
 			throw new IllegalArgumentException("Arc weight cannot be less that 1");
 		}
 		this.id = _id;
@@ -112,6 +112,14 @@ public class Arc {
 	
 	public ArcType getType(){
 		return type;
+	}
+	
+	private boolean isValidWeightForArc(Integer _weight, ArcType _type){
+		if(type == ArcType.INHIBITOR){
+			return _weight == 1;
+		}
+		
+		return _weight > 0;
 	}
 
 }
