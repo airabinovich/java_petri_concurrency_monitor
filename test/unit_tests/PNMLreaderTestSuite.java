@@ -19,6 +19,7 @@ import Petri.Label;
 import Petri.PNMLreader;
 import Petri.Place;
 import Petri.Transition;
+import Petri.Arc.ArcType;
 
 public class PNMLreaderTestSuite {
 
@@ -28,6 +29,8 @@ public class PNMLreaderTestSuite {
 	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetriForReader.pnml";
 	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
 	private static final String PETRI_WITH_GUARD_BAD_FORMAT_01 = TEST_PETRI_FOLDER + "petriWithGuardBadFormat01.pnml";
+	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
+        private static final String PETRI_WITH_CUSTOM_NAMES = TEST_PETRI_FOLDER + "petriWithCustomNames.pnml";
 	private static final String PETRI_WITH_CUSTOM_NAMES = TEST_PETRI_FOLDER + "petriWithCustomNames.pnml";
 	
 	@BeforeClass
@@ -234,7 +237,7 @@ public class PNMLreaderTestSuite {
 			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
 			Transition[] transitions = petriObjects.getValue1();
 			
-			fail("An exception should¿ve been thrown");
+			fail("An exception should've been thrown");
 			
 		} catch (FileNotFoundException | SecurityException e) {
 			fail("Could not open file " + PETRI_WITH_GUARD_BAD_FORMAT_01);
@@ -243,6 +246,43 @@ public class PNMLreaderTestSuite {
 		}
 	}
 	
+	/**
+	 * <li> Given t0 feeds p2 and has no restriction places </li>
+	 * <li> And t1 drains p2 </li>
+	 * <li> And p0 has two tokens </li>
+	 * <li> And t2 is fed by p0 and inhibited by p2 </li>
+	 * <li> When the file is parsed </li>
+	 * <li> And the arcs are build </li>
+	 * <li> Then there must be one inhibiter arc from p2 to t2</li>
+	 */
+	@Test
+	public void PNMLreaderShouldRecognizeInhibiterArcs() {
+		try {
+			PNMLreader reader = new PNMLreader(PETRI_WITH_INHIBITOR_01);
+			
+			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
+			
+			Place p2 = petriObjects.getValue0()[2];
+			Transition t2 = petriObjects.getValue1()[2];
+			
+			// get all matching arcs filtering the array as a stream by source id and target id. This should be just one
+			Arc[] matchingArcs = Arrays.stream(petriObjects.getValue2())
+					.filter((Arc a) -> a.getId_source().equals(p2.getId()) &&  a.getId_target().equals(t2.getId()))
+					.toArray((size) -> new Arc[size]);
+			
+			assertEquals(1, matchingArcs.length);
+			
+			Arc arc = matchingArcs[0];
+			
+			assertEquals(ArcType.INHIBITOR, arc.getType());
+			
+		} catch (FileNotFoundException | SecurityException e) {
+			fail("Could not open file " + PETRI_WITH_INHIBITOR_01);
+		} catch (Exception e) {
+			fail("Exception thrown: " + e.getMessage());
+		}
+	}
+
 	/**
 	 * <li> Given the PNML file contains 4 places with custom names "input 01", "input 02", "product 01" and "product 02" </li>
 	 * <li> And the file contains 4 transitions with custom names "build 02 from input 01", "build 01", "build 02 from input 02" and "input arrives"  </li>
@@ -328,5 +368,5 @@ public class PNMLreaderTestSuite {
 		} catch (Exception e) {
 			fail("Exception thrown during test: " + e.getMessage());
 		}
-	}
+        }
 }

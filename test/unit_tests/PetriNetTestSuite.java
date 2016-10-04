@@ -20,6 +20,7 @@ public class PetriNetTestSuite {
 	private static final String TEST_PETRI_FOLDER = "test/unit_tests/testResources/";
 	private static final String READER_WRITER= TEST_PETRI_FOLDER + "readerWriter.pnml";
 	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
+	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
 	
 	private static PetriNetFactory factory;
 	private PetriNet petriNet;
@@ -323,4 +324,108 @@ public class PetriNetTestSuite {
 		}
 	}
 
+	/**
+	 * <li> Given p0 has two tokens </li>
+	 * <li> And t0 feeds p2 </li>
+	 * <li> And p2 has no tokens </li>
+	 * <li> And t2 is fed by p0 and inhibited by p2 </li>
+	 * <li> And t2 is enabled </li>
+	 * <li> When I fire t0 </li>
+	 * <li> And a token goes to p2 </li>
+	 * <li> Then t2 is disabled</li> 
+	 */
+	@Test
+	public void TransitionGetsDisabledByInhibitorArc(){
+		try{
+			readFileAndMakePetriNet(PETRI_WITH_INHIBITOR_01);
+			
+			Transition t0 = petriNet.getTransitions()[0];
+			Transition t2 = petriNet.getTransitions()[2];
+			
+			Integer[] expectedMarking = {Integer.valueOf(2) , Integer.valueOf(0), Integer.valueOf(0)};
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Assert.assertTrue(petriNet.isEnabled(t2));
+			
+			petriNet.fire(t0);
+			
+			expectedMarking[2] = 1;
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Assert.assertFalse(petriNet.isEnabled(t2));
+			
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + READER_WRITER);
+		}
+	}
+	
+	/**
+	 * <li> Given p0 has two tokens </li>
+	 * <li> And t0 feeds p2 </li>
+	 * <li> And p2 has no tokens </li>
+	 * <li> And t2 is fed by p0 and inhibited by p2 </li>
+	 * <li> And t2 is enabled </li>
+	 * <li> And I fire t0 </li>
+	 * <li> And a token goes to p2 </li>
+	 * <li> When I try to fire t2 </li>
+	 * <li> Then t2 is not fired </li>
+	 */
+	@Test
+	public void FireTransitionDisabledByInhibitorArcShouldReturnFalse(){
+		try{
+			readFileAndMakePetriNet(PETRI_WITH_INHIBITOR_01);
+			
+			Transition t0 = petriNet.getTransitions()[0];
+			Transition t2 = petriNet.getTransitions()[2];
+			
+			Integer[] expectedMarking = {Integer.valueOf(2) , Integer.valueOf(0), Integer.valueOf(0)};
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Assert.assertTrue(petriNet.isEnabled(t2));
+			
+			petriNet.fire(t0);
+			
+			expectedMarking[2] = 1;
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Assert.assertFalse(petriNet.fire(t2));
+			
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + READER_WRITER);
+		}
+	}
+	
+	/**
+	 * <li> Given p0 has two tokens </li>
+	 * <li> And p2 has no tokens </li>
+	 * <li> And t2 is fed by p0 and inhibited by p2 </li>
+	 * <li> And t2 is enabled </li>
+	 * <li> When I try to fire t2 </li>
+	 * <li> Then t2 is fired successfully </li>
+	 * <li> And a token is taken from p0 </li>
+	 * <li> And a token is put into p1</li>
+	 */
+	@Test
+	public void FireTransitionNotDisabledByInhibitorArcShouldReturnTrue(){
+		try{
+			readFileAndMakePetriNet(PETRI_WITH_INHIBITOR_01);
+			
+			Transition t2 = petriNet.getTransitions()[2];
+			
+			Integer[] expectedMarking = {Integer.valueOf(2) , Integer.valueOf(0), Integer.valueOf(0)};
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Assert.assertTrue(petriNet.isEnabled(t2));
+			
+			Assert.assertTrue(petriNet.fire(t2));
+			
+			expectedMarking[0] = 1;
+			expectedMarking[1] = 1;
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + READER_WRITER);
+		}
+	}
 }

@@ -11,6 +11,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import Petri.Arc;
+import Petri.Arc.ArcType;
 import Petri.Label;
 import Petri.Place;
 import Petri.Transition;
@@ -50,6 +51,8 @@ public class PNMLreader{
 	private static final String WEIGHT = "inscription";
 	private static final String SOURCE = "source";
 	private static final String TARGET = "target";
+	private static final String ARC_TYPE = "type";
+	private static final String VALUE = "value";
 	
 	private File pnmlFile;
 	
@@ -269,24 +272,32 @@ public class PNMLreader{
 		String source = arcElement.getAttribute(SOURCE);
 		String target = arcElement.getAttribute(TARGET);
 		if(source.isEmpty() || target.isEmpty()){
-			return null;
+			throw new BadPNMLFormatException("Error parsing arcs, invalid source or target found");
 		}
-		
+
 		Integer weight = 1;
-		for(int i=0; i<nl.getLength(); i++){
-			if(nl.item(i).getNodeName().equals(WEIGHT)){
-				weight = Integer.parseInt(nl.item(i).getTextContent().trim());
-				break;
+		ArcType type = ArcType.NORMAL;
+
+		try{
+			for(int i=0; i<nl.getLength(); i++){
+				Node item = nl.item(i);
+				String itemName = item.getNodeName();
+				if(itemName.equals(WEIGHT)){
+					weight = Integer.parseInt(nl.item(i).getTextContent().trim());
+				} else if (itemName.equals(ARC_TYPE)){
+					type = ArcType.fromString(((Element)item).getAttribute(VALUE));
+				}
 			}
+		} catch (NumberFormatException e){
+			throw new BadPNMLFormatException("Error parsing arcs", e);
 		}
-		
+
 		if(weight < 1){
 			throw new BadPNMLFormatException("Negative or zero weight found parsing arc");
 		}
-		
-		return new Arc(id, source, target, weight);
-	}
 
+		return new Arc(id, source, target, weight, type);
+	}
 	
 	/**
 	 * Builds and returns a TimeSpan object with info contained in attributes

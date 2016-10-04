@@ -1,0 +1,14 @@
+t 155.0 60.0 t0 c 0 w n {<D,I>} e
+t 70.0 130.0 t2 c 0 w n {<D,I>} w
+p 70.0 225.0 p1 0 w
+p 70.0 30.0 p0 2 w
+p 155.0 130.0 p2 0 s
+t 225.0 130.0 t1 c 0 w n {<D,I>} e
+e p2 t2 ?-1 n
+e t2 p1 1 n
+e p0 t2 1 n
+e p2 t1 1 n
+e t0 p2 1 n
+h petriWithInhibitor01
+
+

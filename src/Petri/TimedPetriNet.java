@@ -11,9 +11,9 @@ public class TimedPetriNet extends PetriNet{
 	 * the enabled transitions 
 	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][])
 	 */
-	protected TimedPetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs, Integer[] _initialMarking,
-			Integer[][] _preI, Integer[][] _posI, Integer[][] _I) {
-		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I);
+	public TimedPetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs, Integer[] _initialMarking,
+			Integer[][] _preI, Integer[][] _posI, Integer[][] _I, Integer[][] _inhibition) {
+		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, _inhibition);
 		enabledTransitions = new boolean[_transitions.length];
 		Arrays.fill(enabledTransitions, false);
 		this.enabledTransitions = computeEnabledTransitions();
