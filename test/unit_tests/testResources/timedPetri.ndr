@@ -5,13 +5,16 @@ t 220.0 320.0 t2 0 w n
 p 125.0 415.0 p3 0 n
 t 125.0 150.0 t0 -1001 -4001 n
 t 30.0 320.0 t1 c 0 w n {<A,N>} ne
-e t2 p3 1 n
-e t1 p3 1 n
-e p2 t2 1 n
-e p1 t1 1 n
-e t0 p2 1 n
-e t0 p1 1 n
+t 225.0 50.0 t3 0 w n
+n 160.0 80.0 n0 1 {t3 serves as a escape to t0 if  it never fires}
+e p0 t3 1 n
 e p0 t0 1 n
+e t0 p1 1 n
+e t0 p2 1 n
+e p1 t1 1 n
+e p2 t2 1 n
+e t1 p3 1 n
+e t2 p3 1 n
 h timedPetri
 
 

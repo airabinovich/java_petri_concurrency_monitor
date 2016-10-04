@@ -253,31 +253,42 @@ public class MonitorManager {
 		
 		while(keepFiring){
 			keepFiring = petri.isEnabled(transitionToFire);
-			long timeToFire = System.currentTimeMillis();
-			if(transitionToFire.getTimeSpan() != null){
-				insideTimeSpan = transitionToFire.getTimeSpan().inTimeSpan(timeToFire);
+			long fireAttemptTime = System.currentTimeMillis();
+			TimeSpan transitionSpan = transitionToFire.getTimeSpan();
+			if(transitionSpan != null){
+				insideTimeSpan = transitionSpan.inTimeSpan(fireAttemptTime);
 				isTimed = true;
 			}
 			if(keepFiring){
-				TimeSpan transitionSpan = transitionToFire.getTimeSpan();
 				while(isTimed && !insideTimeSpan){
 					//I came before time span, and there is nobody sleeping in the transition
-					if(transitionSpan.isBeforeTimeSpan(timeToFire) && !transitionSpan.anySleeping()){
+					if(transitionSpan.isBeforeTimeSpan(fireAttemptTime) && !transitionSpan.anySleeping()){
 						inQueue.release();
-						transitionSpan.sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - timeToFire);
+						transitionSpan.sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - fireAttemptTime);
+						// TODO: here, the waking thread shouldn't have to wait its turn to enter the monitor
+						// because it's inside its timespan and can miss its chance to fire waiting
+						// Issue #7 has to be fixed here
+						inQueue.acquire();
 					}
 					else{
 						// I came late, the time is over. Thus the thread releases the input mutex and goes to sleep
 						inQueue.release();
 						condVarQueue[transitionToFire.getIndex()].sleep();
+						// when waking up, don't take the mutex for the waking thread didn't release it
 					}
-					inQueue.acquire();
 					// at this point, the transition may have been disabled when the firing thread was sleeping
-					timeToFire = System.currentTimeMillis();
-					insideTimeSpan = transitionSpan.inTimeSpan(timeToFire);
+					fireAttemptTime = System.currentTimeMillis();
+					insideTimeSpan = transitionSpan.inTimeSpan(fireAttemptTime);
 				}
-				// TODO: check if the transition was fired sucessfully
-				petri.fire(transitionToFire);
+				
+				if(!petri.fire(transitionToFire)){
+					// if the transition wasn't fired sucessfully
+					// release the main mutex and go to sleep
+					inQueue.release();
+					condVarQueue[transitionToFire.getIndex()].sleep();
+					// after waking up try to fire inside the timespan again
+					continue;
+				}
 				
 				//the transition was fired successfully. If it's informed let's send an event
 				try{
