@@ -51,7 +51,10 @@ public class PNMLreader{
 	private static final String SOURCE = "source";
 	private static final String TARGET = "target";
 	
-	File pnmlFile;
+	private File pnmlFile;
+	
+	private int placesIndex;
+	private int transitionsIndex;
 	
 	public PNMLreader(String pnmlPath) throws FileNotFoundException, SecurityException, NullPointerException{
 		pnmlFile = new File(pnmlPath);
@@ -71,6 +74,8 @@ public class PNMLreader{
 	 */
 	public Triplet<Place[], Transition[], Arc[]> parseFileAndGetPetriObjects() throws BadPNMLFormatException{
 		try {
+			placesIndex = 0;
+			transitionsIndex = 0;
 			Triplet<Place[], Transition[], Arc[]> ret = null;
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -138,8 +143,9 @@ public class PNMLreader{
 			}
 		}
 		
-		places = checkFixAndSortElements(places);
-		transitions = checkFixAndSortElements(transitions);
+		// Just in case, let's order the places and transitions by index. It'll be needed for matrices generation
+		places.sort((Place p1, Place p2) -> p1.getIndex() - p2.getIndex());
+		transitions.sort((Transition t1, Transition t2) -> t1.getIndex() - t2.getIndex());
 		
 		Place[] retPlaces = new Place[places.size()];
 		Transition[] retTransitions = new Transition[transitions.size()];
@@ -157,31 +163,33 @@ public class PNMLreader{
 	 * @param id the object id embedded in the PNML
 	 * @param placeNode Node object from PNML
 	 * @param nl placeNode children nodes as NodeList
-	 * @return S place object containing the info parsed
+	 * @return A place object containing the info parsed
+	 * @throws BadPNMLFormatException If initial marking is not numerical
 	 * @see {@link Petri.Place}
 	 */
-	private Place getPlace(String id, Node placeNode, NodeList nl){
+	private Place getPlace(String id, Node placeNode, NodeList nl) throws BadPNMLFormatException{
 		Integer m_inicial = 0;
-		Integer placeIndex = null;
+		Integer placeIndex = this.placesIndex++;
+		String placeName = "";
 		for(int i=0; i<nl.getLength(); i++){
 			String currentNodeName = nl.item(i).getNodeName();
 			if(currentNodeName.equals(INITIAL_MARKING)){
 				try{
 					m_inicial = Integer.parseInt(nl.item(i).getTextContent().trim());
 				} catch (NumberFormatException ex){
-					return null;
+					throw new BadPNMLFormatException("Error parsing place initial marking, not numerical");
 				}
 			}
 			else if(currentNodeName.equals(NAME)){
-				placeIndex = getPetriObjectIndexFromName(nl.item(i).getTextContent().trim());
+				placeName = nl.item(i).getTextContent().trim();
 			}
 		}
 		
-		if(placeIndex == null){
-			return null;
+		if(placeName.isEmpty()){
+			placeName = "p" + placesIndex;
 		}
 		
-		return new Place(id, m_inicial, placeIndex);
+		return new Place(id, m_inicial, placeIndex, placeName);
 	}
 	
 	/**
@@ -198,7 +206,8 @@ public class PNMLreader{
 		TimeSpan timeSpan = null;
 		Label label = null;
 		Pair<String, Boolean> guard = null;
-		Integer transitionIndex = null;
+		Integer transitionIndex = this.transitionsIndex++;
+		String transitionName = "";
 		
 		for(int i=0; i<nl.getLength(); i++){
 			String currentNodeName = nl.item(i).getNodeName();
@@ -213,7 +222,7 @@ public class PNMLreader{
 				}
 			}
 			else if(currentNodeName.equals(NAME)){
-				transitionIndex = getPetriObjectIndexFromName(nl.item(i).getTextContent().trim());
+				transitionName = nl.item(i).getTextContent().trim();
 			}
 			else if(currentNodeName.equals(DELAY)){
 				NodeList delay = nl.item(i).getChildNodes();
@@ -228,11 +237,6 @@ public class PNMLreader{
 			}
 		}
 		
-		if(transitionIndex == null){
-			// if transitionIndex is null, the PNML is ill-formed
-			throw new BadPNMLFormatException("Invalid transition index");
-		}
-		
 		if(label == null) {
 			// if no label was found, by default it's fired and not informed
 			label = new Label(false, false);
@@ -243,7 +247,12 @@ public class PNMLreader{
 			guard = new Pair<String, Boolean>(null, false);
 		}
 		
-		return new Transition(id, label, transitionIndex, timeSpan, guard);
+		if(transitionName.isEmpty()){
+			// if no name specified, by default is t#
+			transitionName = "t" + transitionsIndex;
+		}
+		
+		return new Transition(id, label, transitionIndex, timeSpan, guard, transitionName);
 	}
 	
 	/**
@@ -277,68 +286,7 @@ public class PNMLreader{
 		
 		return new Arc(id, source, target, weight);
 	}
-	
-	/**
-	 * Parses the place or transition's name (e.g: t10, p5) and returns the index embedded
-	 * @param name place or transition name to be parsed
-	 * @return place or transition Index
-	 */
-	private Integer getPetriObjectIndexFromName(String objectName){
-		// gets object's name which contains its number
-		try{
-			// trims the letter away and parses the number
-			return Integer.parseInt(objectName.substring(1, objectName.length()));
-		} catch (NumberFormatException ex){
-			return null;
-		}
-	}
-	
-	/**
-	 * Sorts the elements (places or transitions) in petriNodes by index
-	 * If an index is missing,new indexes are specified
-	 * @param petriNodes An ArrayList containing the items to analyze
-	 * @return The same ArrayList but sorted and with fixed indexes
-	 * @see Petri.PetriNode
-	 * @see Petri.Place
-	 * @see Petri.Transition
-	 */
-	private <E extends PetriNode> ArrayList<E> checkFixAndSortElements(ArrayList<E> petriNodes){
-		if(petriNodes == null){
-			System.out.println("NULL petriNodes");
-			return null;
-		}
-		
-		if(petriNodes.isEmpty()){
-			System.out.println("EMPTY petriNodes");
-			return petriNodes;
-		}
-		
-		petriNodes.sort((E node1, E node2) -> (node1.getIndex() - node2.getIndex()));
-		
-		int patternIndex = 0;
-		boolean needToFix = false;
-		
-		for(E node : petriNodes){
-			if(node.getIndex() != patternIndex){
-				needToFix = true;
-				break;
-			}
-			patternIndex++;
-		}
-		
-		if(!needToFix){
-			return petriNodes;
-		}
-		
-		patternIndex = 0;
 
-		for(E node : petriNodes){
-			node.setIndex(patternIndex);
-			patternIndex++;
-		}
-		
-		return petriNodes;	
-	}
 	
 	/**
 	 * Builds and returns a TimeSpan object with info contained in attributes

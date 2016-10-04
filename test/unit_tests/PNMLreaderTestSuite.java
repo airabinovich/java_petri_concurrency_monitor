@@ -3,6 +3,8 @@ package unit_tests;
 import static org.junit.Assert.*;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.javatuples.Triplet;
@@ -26,6 +28,7 @@ public class PNMLreaderTestSuite {
 	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetriForReader.pnml";
 	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
 	private static final String PETRI_WITH_GUARD_BAD_FORMAT_01 = TEST_PETRI_FOLDER + "petriWithGuardBadFormat01.pnml";
+	private static final String PETRI_WITH_CUSTOM_NAMES = TEST_PETRI_FOLDER + "petriWithCustomNames.pnml";
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -237,6 +240,93 @@ public class PNMLreaderTestSuite {
 			fail("Could not open file " + PETRI_WITH_GUARD_BAD_FORMAT_01);
 		} catch (Exception e) {
 			assertEquals("BadPNMLFormatException", e.getClass().getSimpleName());
+		}
+	}
+	
+	/**
+	 * <li> Given the PNML file contains 4 places with custom names "input 01", "input 02", "product 01" and "product 02" </li>
+	 * <li> And the file contains 4 transitions with custom names "build 02 from input 01", "build 01", "build 02 from input 02" and "input arrives"  </li>
+	 * <li> When I parse the file </li>
+	 * <li> And I get the petri objects </li>
+	 * <li> Then all transition names must be in the transitions array </li>
+	 * <li> And no extra name has to be in the transition array </li>
+	 * <li> Then all transition names must be in the places array </li>
+	 * <li> And no extra name has to be in the places array </li>
+	 */
+	@Test
+	public void ParsePetriWithCustomNamesShouldStoreCustomNamesInPlacesAndTransitions(){
+		try{
+			PNMLreader reader = new PNMLreader(PETRI_WITH_CUSTOM_NAMES);
+			
+			String[] expectedTransitionNames = {
+				"build 02 from input 01",
+				"build 01",
+				"build 02 from input 02",
+				"input arrives"
+			};
+			
+			String[] expectedPlaceNames = {
+				"input 01",
+				"input 02",
+				"product 01",
+				"product 02"
+			};
+			
+			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
+			
+			Place[] places = petriObjects.getValue0();
+			Transition[] transitions = petriObjects.getValue1();
+			
+			ArrayList<String> placesNames = new ArrayList<String>();
+			Arrays.stream(places)
+				.map((Place p) -> p.getName())
+				.forEach(placesNames::add);
+			
+			ArrayList<String> transitionsNames = new ArrayList<String>();
+			Arrays.stream(transitions)
+				.map((Transition t) -> t.getName())
+				.forEach(transitionsNames::add);
+			
+			assertEquals(4, transitions.length);
+			assertTrue(placesNames.containsAll(Arrays.asList(expectedPlaceNames)));
+			
+			assertEquals(4, places.length);
+			assertTrue(transitionsNames.containsAll(Arrays.asList(expectedTransitionNames)));
+			
+		} catch (Exception e) {
+			fail("Exception thrown during test: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * <li> Given file contains 4 places and 4 transitions </li>
+	 * <li> When I parse the file </li>
+	 * <li> And I get the petri objects </li>
+	 * <li> Then places indexes have to go from 0 to 3 </li>
+	 * <li> And transitions indexes have to go from 0 to 3 </li>
+	 */
+	@Test
+	public void ParserShouldGenerateConsecutiveIndexed(){
+		try{
+			PNMLreader reader = new PNMLreader(PETRI_WITH_CUSTOM_NAMES);
+			
+			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
+			
+			Place[] places = petriObjects.getValue0();
+			Transition[] transitions = petriObjects.getValue1();
+			
+			int expectedLength = 4;
+			
+			assertEquals(expectedLength, places.length);
+			assertEquals(expectedLength, transitions.length);
+			
+			for( int patternIndex = 0; patternIndex < expectedLength; patternIndex++){
+				assertEquals(patternIndex, places[patternIndex].getIndex());
+				assertEquals(patternIndex, transitions[patternIndex].getIndex());
+			}
+			
+		} catch (Exception e) {
+			fail("Exception thrown during test: " + e.getMessage());
 		}
 	}
 }
