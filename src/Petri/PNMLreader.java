@@ -298,7 +298,6 @@ public class PNMLreader{
 
 		return new Arc(id, source, target, weight, type);
 	}
-
 	
 	/**
 	 * Builds and returns a TimeSpan object with info contained in attributes

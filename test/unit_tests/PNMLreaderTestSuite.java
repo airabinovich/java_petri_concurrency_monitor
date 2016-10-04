@@ -31,6 +31,7 @@ public class PNMLreaderTestSuite {
 	private static final String PETRI_WITH_GUARD_BAD_FORMAT_01 = TEST_PETRI_FOLDER + "petriWithGuardBadFormat01.pnml";
 	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
         private static final String PETRI_WITH_CUSTOM_NAMES = TEST_PETRI_FOLDER + "petriWithCustomNames.pnml";
+	private static final String PETRI_WITH_CUSTOM_NAMES = TEST_PETRI_FOLDER + "petriWithCustomNames.pnml";
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
