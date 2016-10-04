@@ -8,19 +8,28 @@ package Petri;
 public abstract class PetriNode {
 	
 	protected String id;
+	protected String name;
 	protected int index;
 	
-	public PetriNode(String _id, int _index) throws IllegalArgumentException{
+	public PetriNode(String _id, int _index, String _name) throws IllegalArgumentException{
+		if(_name == null || _name.isEmpty()){
+			throw new IllegalArgumentException("Invalid " + this.getClass().getSimpleName() + " name: " + _name );
+		}
 		this.id = _id;
 		setIndex(_index);
+		this.name = _name;
 	}
 	
-	/** Id used to identify univocally the node */
+	/** 
+	 * @return Id used to identify univocally the node
+	 */
 	public String getId(){
 		return this.id;
 	};
 	
-	/** Index used either as row or column index for the petri matrix */
+	/** 
+	 * @return Index used either as row or column index for the petri matrixes
+	 */
 	public int getIndex(){
 		return this.index;
 	}
@@ -38,6 +47,13 @@ public abstract class PetriNode {
 		}
 		
 		this.index = _index;
+	}
+	
+	/**
+	 * @return Get the custom name given by the petri net creator
+	 */
+	public String getName(){
+		return this.name;
 	}
 
 }

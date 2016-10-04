@@ -21,7 +21,7 @@ public class PlaceTestSuite {
 
 	@Before
 	public void setUp() throws Exception {
-		place = new Place("id", INITIAL_MARKING, INDEX);
+		place = new Place("id", INITIAL_MARKING, INDEX, "name");
 	}
 
 	@After

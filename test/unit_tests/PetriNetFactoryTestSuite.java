@@ -33,13 +33,13 @@ public class PetriNetFactoryTestSuite {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		final Place[] mockPlaces = {
-			new Place("p0", 2, 0),
-			new Place("p1", 1, 1),
-			new Place("p2", 0, 2)
+			new Place("p0", 2, 0, "p0"),
+			new Place("p1", 1, 1, "p1"),
+			new Place("p2", 0, 2, "p2")
 		};
 		final Transition[] mockTransitions = {
-			new Transition("t0", new Label(false, false), 0, new TimeSpan(0,0)),
-			new Transition("t1", new Label(false, false), 1, new TimeSpan(0,0))
+			new Transition("t0", new Label(false, false), 0, new TimeSpan(0,0), "t0"),
+			new Transition("t1", new Label(false, false), 1, new TimeSpan(0,0), "t1")
 		};
 		final Arc[] mockArcs = {
 			new Arc("a0", "p0", "t0", 2),

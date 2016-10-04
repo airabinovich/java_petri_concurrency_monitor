@@ -118,7 +118,7 @@ import Petri.Arc.ArcType;
 								// We don't use the place nor transition index here because there might be some index missing or repeated
 								// and that could cause and error
 								// e.g: t2 doesn't exist and t5 is the last but it will be on position 4 instead of 5
-								if(type == ArcType.STANDARD){
+								if(type == ArcType.NORMAL){
 									pre[i][j] = arc.getWeight();
 								} else if (type == ArcType.INHIBITOR){
 									// for inhibitor arcs weight is ignored
@@ -137,7 +137,7 @@ import Petri.Arc.ArcType;
 				for(int j = 0; j < transitionsAmount; j++){
 					if(arcDone){ break;	}
 					if(arcSource.equals(transitions[j].getId())){
-						if(type != ArcType.STANDARD){
+						if(type != ArcType.NORMAL){
 							throw new CannotCreatePetriNetError(type + " arc cannot go from transition to place");
 						}
 						for(int i = 0; i < placesAmount; i++){

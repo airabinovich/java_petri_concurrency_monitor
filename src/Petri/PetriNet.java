@@ -52,6 +52,7 @@ public abstract class PetriNet {
 	 * @param _preI Pre-Incidence matrix (dimension p*t)
 	 * @param _posI Post-Incidence matrix (dimension p*t)
 	 * @param _I Incidence matrix (dimension p*t)
+	 * @param _inhibitionMatrix Pre-Incidence matrix for inhibition arcs only
 	 */
 	protected PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
 			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I,

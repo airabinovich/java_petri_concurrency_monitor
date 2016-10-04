@@ -1,0 +1,19 @@
+p 190.0 175.0 {input 01} 0 e
+p 455.0 170.0 {input 02} 0 e
+t 190.0 285.0 {build 02 from input 01} w 0 w n {<D,I,(machine01)>} nw
+t 300.0 285.0 {build 01} e 0 w n {} ne
+t 455.0 285.0 {build 02 from input 02} se 0 w n {<D,I,(~machine01)>} e
+t 320.0 50.0 {input arrives} n 10 20 e {<A,I>} w
+p 300.0 375.0 {product 01} 0 e
+p 345.0 490.0 {product 02} 0 e
+e {input arrives} {input 02} 1 n
+e {input arrives} {input 01} 1 n
+e {build 01} {product 01} 1 n
+e {input 01} {build 01} 1 n
+e {build 02 from input 02} {product 02} 1 n
+e {input 02} {build 02 from input 02} 1 n
+e {build 02 from input 01} {product 02} 1 n
+e {input 01} {build 02 from input 01} 1 n
+h petriWithCustomNames
+
+

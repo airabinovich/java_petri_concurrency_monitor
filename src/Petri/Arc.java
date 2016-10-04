@@ -6,10 +6,10 @@ public class Arc {
 	 * Different types of arc available for petri nets
 	 */
 	public enum ArcType {
-		/** Standard arc. Connects a place to a transition or vice versa.
+		/** Normal arc. Connects a place to a transition or vice versa.
 		 * Its weight is the amount of token drained from or given to a place
 		 */
-		STANDARD,
+		NORMAL,
 		/** Inhibitor arc. Connects a place to a transition but not the other way.
 		 * Its weight must be one. When the source place has any tokens, it disables the target transition
 		 */
@@ -19,7 +19,7 @@ public class Arc {
 		 * or greater than the arc's weight to enable the target transition, but
 		 * in this type of arc the transition fire doesn't drain any tokens from the place
 		 */
-		READER;
+		READ;
 		
 		private static final String INHIBITOR_STR = "inhibitor";
 		private static final String READER_STR = "test";
@@ -35,9 +35,9 @@ public class Arc {
 				return INHIBITOR;
 			}
 			if (str.equalsIgnoreCase(READER_STR)){
-				return READER;
+				return READ;
 			}
-			return STANDARD;
+			return NORMAL;
 		}
 		
 	};
@@ -57,7 +57,7 @@ public class Arc {
 	 * @throws IllegalArgumentException if the specified weight is less than one or if any field is null
 	 */
 	public Arc(String _id, String _id_source, String _id_target, Integer _weight) throws IllegalArgumentException {
-		this(_id, _id_source, _id_target, _weight, ArcType.STANDARD);
+		this(_id, _id_source, _id_target, _weight, ArcType.NORMAL);
 	}
 	
 	/**
