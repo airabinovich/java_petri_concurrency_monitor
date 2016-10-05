@@ -26,6 +26,8 @@ public abstract class PetriNet {
 	/** Inhibition matrix used for inhibition logic */
 	protected Integer[][] inhibitionMatrix;
 	protected Integer[][] resetMatrix;
+	protected boolean isInhibitionMatrixZero;
+	protected boolean isResetMatrixZero;
 	
 	/** HashMap for guards. These variables can enable or disable associated transitions */
 	protected HashMap<String, Boolean> guards;
@@ -76,7 +78,13 @@ public abstract class PetriNet {
 		this.post = _posI;
 		this.inc = _I;
 		this.inhibitionMatrix = _inhibitionMatrix;
+		if (!isMatrixNonZero(inhibitionMatrix)){
+			isInhibitionMatrixZero = true;
+		}
 		this.resetMatrix = _resetMatrix;
+		if (!isMatrixNonZero(resetMatrix)){
+			isResetMatrixZero = true;
+		}
 	}
 	
 	private void computeAutomaticandInformed() {
@@ -120,6 +128,7 @@ public abstract class PetriNet {
 		// when d is a vector where every element is 0 but the nth which is 1
 		// it's equivalent to pick nth column from Incidence matrix (I) 
 		// and add it to the current marking (m_i)
+		// and if there is a reset arc, all tokens from its source place are taken.
 		if(!isEnabled(transitionIndex)){
 			return false;
 		}		
@@ -243,7 +252,7 @@ public abstract class PetriNet {
 			String guardName = t.getGuardName();
 			enabled &= guards.get(guardName).equals(t.getGuardEnablingValue());
 		}
-		if(this.isMatrixNonZero(inhibitionMatrix)){
+		if(!isInhibitionMatrixZero){
 			for(int i = 0; i < places.length; i++){
 				boolean emptyPlace = places[i].getMarking() == 0;
 				boolean placeInhibitsTransition = inhibitionMatrix[i][transitionIndex] > 0;
@@ -252,7 +261,7 @@ public abstract class PetriNet {
 				}
 			}
 		}
-		if(this.isMatrixNonZero(resetMatrix)){
+		if(!isResetMatrixZero){
 			for(int i = 0; i < places.length; i++){
 				boolean emptyPlace = places[i].getMarking() == 0;
 				//resetMatrix should be a binary matrix, so it never should have an element with value grater than 1

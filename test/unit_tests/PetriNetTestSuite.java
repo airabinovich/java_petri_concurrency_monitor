@@ -432,10 +432,10 @@ public class PetriNetTestSuite {
 	}
 	
 	/**
-	 * <li> Given p0, p1 and p2 have one token </li>
-	 * <li> And p3 has four tokens </li>
+	 * <li> Given p3 has four tokens </li>
 	 * <li> And p4 has no tokens </li>
 	 * <li> And t3 is fed by p3 with a reset arc </li>
+	 * <li> and t3 feeds p4 with normal arc </li>
 	 * <li> And t3 is enabled </li>
 	 * <li> When I try to fire t3 </li>
 	 * <li> Then t3 is fired successfully </li>
@@ -466,9 +466,9 @@ public class PetriNetTestSuite {
 	}
 	
 	/**
-	 * <li> Given p0, p1 and p2 have one token </li>
-	 * <li> And p3 and p4 have no tokens </li>
+	 * <li> Given p3 and p4 have no tokens </li>
 	 * <li> And t3 is fed by p3 with a reset arc </li>
+	 * <li> and t3 feeds p4 with normal arc </li>
 	 * <li> And t3 is not enabled </li>
 	 * <li> When I try to fire t3 </li>
 	 * <li> Then t3 is not fired successfully </li>

@@ -157,6 +157,15 @@ import Petri.Arc.ArcType;
 				}
 			}
 			
+			for(int i = 0; i < placesAmount; i++){
+				for(int j = 0; j < transitionsAmount; j++){
+					if (resetMatrix[i][j] > 0 && (inhibition[i][j] > 0 || pre[i][j] > 0)){
+						//This should be enhanced
+						throw new CannotCreatePetriNetError("If you have a transition with reset arc, you cannot add other entry arc");
+					}
+				}
+			}
+			
 			// now we have both matrixes pre and pos, let's get inc = pos - pre
 			for(int i = 0; i < placesAmount; i++){
 				for(int j = 0; j < transitionsAmount; j++){
