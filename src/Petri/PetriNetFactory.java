@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import org.javatuples.Quartet;
+import org.javatuples.Quintet;
 import org.javatuples.Triplet;
 
 import Petri.Arc.ArcType;
@@ -45,16 +46,16 @@ import Petri.Arc.ArcType;
 		public PetriNet makePetriNet(petriNetType type) throws CannotCreatePetriNetError{
 			
 			Quartet<Place[], Transition[], Arc[], Integer[]> petriObjects = PNML2PNObjects();
-			Quartet<Integer[][], Integer[][], Integer[][], Integer[][]> petriMatrices = 
+			Quintet<Integer[][], Integer[][], Integer[][], Integer[][], Integer[][]> petriMatrices = 
 					rdpObjects2Matrices(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2());
 			
 			switch(type){
 			case PT:
 				return new PTPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
-						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2(), petriMatrices.getValue3());
+						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2(), petriMatrices.getValue3(), petriMatrices.getValue4());
 			case TIMED:
 				return new TimedPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
-						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2(), petriMatrices.getValue3());
+						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2(), petriMatrices.getValue3(), petriMatrices.getValue4());
 			default:
 				throw new CannotCreatePetriNetError("Cannot create petri net from unknown type " + type);
 			}
@@ -81,11 +82,11 @@ import Petri.Arc.ArcType;
 		 * @param places petri net's places
 		 * @param transitions petri net's transitions
 		 * @param arcs petri net's arcs
-		 * @return a 4-tuple containing (Pre matrix, Post matrix, Incidence matrix, Inhibition matrix)
+		 * @return a 5-tuple containing (Pre matrix, Post matrix, Incidence matrix, Inhibition matrix, Reset matrix)
 		 * @throws CannotCreatePetriNetError If a non-standard arc goes from transition to place 
 		 * @see Petri.Arc.ArcType
 		 */
-		protected Quartet<Integer[][], Integer[][], Integer[][], Integer[][]> rdpObjects2Matrices(
+		protected Quintet<Integer[][], Integer[][], Integer[][], Integer[][], Integer[][]> rdpObjects2Matrices(
 				Place[] places, Transition[] transitions, Arc[] arcs) throws CannotCreatePetriNetError{
 			final int placesAmount = places.length;
 			final int transitionsAmount = transitions.length;
@@ -93,6 +94,7 @@ import Petri.Arc.ArcType;
 			Integer[][] pos = new Integer[placesAmount][transitionsAmount];
 			Integer[][] inc = new Integer[placesAmount][transitionsAmount];
 			Integer[][] inhibition = new Integer[placesAmount][transitionsAmount];
+			Integer[][] resetMatrix = new Integer[placesAmount][transitionsAmount];
 			
 			for(int i = 0; i < placesAmount; i++){
 				for(int j = 0; j < transitionsAmount; j++){
@@ -102,6 +104,7 @@ import Petri.Arc.ArcType;
 					pos[i][j] = 0;
 					inc[i][j] = 0;
 					inhibition[i][j] = 0;
+					resetMatrix[i][j] = 0;
 				}
 			}
 			
@@ -123,6 +126,9 @@ import Petri.Arc.ArcType;
 								} else if (type == ArcType.INHIBITOR){
 									// for inhibitor arcs weight is ignored
 									inhibition[i][j] = 1;
+								} else if (type == ArcType.RESET){
+									// for reset matrix arcs weight is ignored
+									resetMatrix[i][j] = 1;
 								}
 								arcDone = true;
 								break;
@@ -151,6 +157,23 @@ import Petri.Arc.ArcType;
 				}
 			}
 			
+			for(int i = 0; i < placesAmount; i++){
+				for(int j = 0; j < transitionsAmount; j++){
+					boolean resetArcEnters = resetMatrix[i][j] > 0;
+					if (resetArcEnters){
+						for(int k = 0; k < placesAmount; k++){
+							boolean anotherResetArcEntersTransition = k != j && resetMatrix[k][j] > 0;
+							boolean inhibitionArcEntersTransition = inhibition[k][j] > 0;
+							boolean normalArcEntersTransition = pre[k][j] > 0;
+							if(normalArcEntersTransition || inhibitionArcEntersTransition || anotherResetArcEntersTransition){
+								throw new CannotCreatePetriNetError(
+										"Cannot have another input arcs in transition " + j + " because there is a reset arc.");
+							}
+						}
+					}
+				}
+			}
+			
 			// now we have both matrixes pre and pos, let's get inc = pos - pre
 			for(int i = 0; i < placesAmount; i++){
 				for(int j = 0; j < transitionsAmount; j++){
@@ -158,7 +181,7 @@ import Petri.Arc.ArcType;
 				}
 			}
 			
-			return new Quartet<Integer[][], Integer[][], Integer[][], Integer[][]>(pre, pos, inc, inhibition);
+			return new Quintet<Integer[][], Integer[][], Integer[][], Integer[][], Integer[][]>(pre, pos, inc, inhibition, resetMatrix);
 		}
 		
 		/**

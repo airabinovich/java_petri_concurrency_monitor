@@ -14,6 +14,12 @@ public class Arc {
 		 * Its weight must be one. When the source place has any tokens, it disables the target transition
 		 */
 		INHIBITOR,
+		/** Reset arc. Connects a place to a transition but not the other way.
+		 * When the source place has any token, it enables the target transition.
+		 * When the target transition is fired, the arc drains all tokens from source place.
+		 * A transition that has a reset arc, must not have any other arc as input.
+		 */
+		RESET,
 		/** Reader arc. Connects a place to a transition but not the other way.
 		 * As the standard arc, a source place has no have an amount of token equal
 		 * or greater than the arc's weight to enable the target transition, but
@@ -22,6 +28,7 @@ public class Arc {
 		READ;
 		
 		private static final String INHIBITOR_STR = "inhibitor";
+		private static final String RESET_STR = "reset";
 		private static final String READER_STR = "test";
 		
 		/**
@@ -33,6 +40,9 @@ public class Arc {
 		public static ArcType fromString (String str){
 			if (str.equalsIgnoreCase(INHIBITOR_STR)){
 				return INHIBITOR;
+			}
+			if (str.equalsIgnoreCase(RESET_STR)){
+				return RESET;
 			}
 			if (str.equalsIgnoreCase(READER_STR)){
 				return READ;

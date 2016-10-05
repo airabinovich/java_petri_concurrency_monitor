@@ -21,6 +21,8 @@ public class PetriNetTestSuite {
 	private static final String READER_WRITER= TEST_PETRI_FOLDER + "readerWriter.pnml";
 	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
 	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
+	private static final String PETRI_WITH_RESET_01 = TEST_PETRI_FOLDER + "petriWithReset01.pnml";
+	private static final String PETRI_WITH_RESET_02 = TEST_PETRI_FOLDER + "petriWithReset02.pnml";
 	
 	private static PetriNetFactory factory;
 	private PetriNet petriNet;
@@ -211,7 +213,7 @@ public class PetriNetTestSuite {
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 		} catch (Exception e){
-			Assert.fail("Could not open or parse file " + READER_WRITER);
+			Assert.fail("Could not open or parse file " + PETRI_WITH_GUARD_01);
 		}
 	}
 	
@@ -248,7 +250,7 @@ public class PetriNetTestSuite {
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 		} catch (Exception e){
-			Assert.fail("Could not open or parse file " + READER_WRITER);
+			Assert.fail("Could not open or parse file " + PETRI_WITH_GUARD_01);
 		}
 	}
 	
@@ -283,7 +285,7 @@ public class PetriNetTestSuite {
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 		} catch (Exception e){
-			Assert.fail("Could not open or parse file " + READER_WRITER);
+			Assert.fail("Could not open or parse file " + PETRI_WITH_GUARD_01);
 		}
 	}
 	
@@ -320,7 +322,7 @@ public class PetriNetTestSuite {
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 		} catch (Exception e){
-			Assert.fail("Could not open or parse file " + READER_WRITER);
+			Assert.fail("Could not open or parse file " + PETRI_WITH_GUARD_01);
 		}
 	}
 
@@ -355,7 +357,7 @@ public class PetriNetTestSuite {
 			Assert.assertFalse(petriNet.isEnabled(t2));
 			
 		} catch (Exception e){
-			Assert.fail("Could not open or parse file " + READER_WRITER);
+			Assert.fail("Could not open or parse file " + PETRI_WITH_INHIBITOR_01);
 		}
 	}
 	
@@ -391,7 +393,7 @@ public class PetriNetTestSuite {
 			Assert.assertFalse(petriNet.fire(t2));
 			
 		} catch (Exception e){
-			Assert.fail("Could not open or parse file " + READER_WRITER);
+			Assert.fail("Could not open or parse file " + PETRI_WITH_INHIBITOR_01);
 		}
 	}
 	
@@ -425,7 +427,71 @@ public class PetriNetTestSuite {
 			
 			
 		} catch (Exception e){
-			Assert.fail("Could not open or parse file " + READER_WRITER);
+			Assert.fail("Could not open or parse file " + PETRI_WITH_INHIBITOR_01);
+		}
+	}
+	
+	/**
+	 * <li> Given p3 has four tokens </li>
+	 * <li> And p4 has no tokens </li>
+	 * <li> And t3 is fed by p3 with a reset arc </li>
+	 * <li> and t3 feeds p4 with normal arc </li>
+	 * <li> And t3 is enabled </li>
+	 * <li> When I try to fire t3 </li>
+	 * <li> Then t3 is fired successfully </li>
+	 * <li> And all tokens (four) are taken from p3 </li>
+	 * <li> And a token is put into p4</li>
+	 */
+	@Test
+	public void FireTransitionWithResetArcShouldEmptySourcePlace(){
+		try{
+			readFileAndMakePetriNet(PETRI_WITH_RESET_01);
+			
+			Transition t3 = petriNet.getTransitions()[3];
+			
+			Integer[] expectedMarking = {Integer.valueOf(1) , Integer.valueOf(1), Integer.valueOf(1), Integer.valueOf(4), Integer.valueOf(0)};
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Assert.assertTrue(petriNet.isEnabled(t3));
+			
+			Assert.assertTrue(petriNet.fire(t3));
+			
+			expectedMarking[3] = 0;
+			expectedMarking[4] = 1;
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + PETRI_WITH_RESET_01);
+		}
+	}
+	
+	/**
+	 * <li> Given p3 and p4 have no tokens </li>
+	 * <li> And t3 is fed by p3 with a reset arc </li>
+	 * <li> and t3 feeds p4 with normal arc </li>
+	 * <li> And t3 is not enabled </li>
+	 * <li> When I try to fire t3 </li>
+	 * <li> Then t3 is not fired successfully </li>
+	 * <li> And the current marking does not change </li>
+	 */
+	@Test
+	public void FireTransitionWithResetArcShouldNotBeEnabledWhenSourcePlaceHasNoMarking(){
+		try{
+			readFileAndMakePetriNet(PETRI_WITH_RESET_02);
+			
+			Transition t3 = petriNet.getTransitions()[3];
+			
+			Integer[] expectedMarking = {Integer.valueOf(1) , Integer.valueOf(1), Integer.valueOf(1), Integer.valueOf(0), Integer.valueOf(0)};
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Assert.assertFalse(petriNet.isEnabled(t3));
+			
+			Assert.assertFalse(petriNet.fire(t3));
+			
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + PETRI_WITH_RESET_02);
 		}
 	}
 }
