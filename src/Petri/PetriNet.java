@@ -25,6 +25,7 @@ public abstract class PetriNet {
 	protected boolean[] informedTransitions;
 	/** Inhibition matrix used for inhibition logic */
 	protected Integer[][] inhibitionMatrix;
+	protected Integer[][] resetMatrix;
 	
 	/** HashMap for guards. These variables can enable or disable associated transitions */
 	protected HashMap<String, Boolean> guards;
@@ -40,7 +41,7 @@ public abstract class PetriNet {
 	 */	
 	protected PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
 			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I){
-		this(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, null);
+		this(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, null, null);
 	}
 	
 	/**
@@ -53,10 +54,11 @@ public abstract class PetriNet {
 	 * @param _posI Post-Incidence matrix (dimension p*t)
 	 * @param _I Incidence matrix (dimension p*t)
 	 * @param _inhibitionMatrix Pre-Incidence matrix for inhibition arcs only
+	 * @param _resetMatrix Pre-Incidence matrix for reset arcs only
 	 */
 	protected PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
 			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I,
-			Integer[][] _inhibitionMatrix){
+			Integer[][] _inhibitionMatrix, Integer[][] _resetMatrix){
 		this.places = _places;
 		this.transitions = _transitions;
 		
@@ -74,6 +76,7 @@ public abstract class PetriNet {
 		this.post = _posI;
 		this.inc = _I;
 		this.inhibitionMatrix = _inhibitionMatrix;
+		this.resetMatrix = _resetMatrix;
 	}
 	
 	private void computeAutomaticandInformed() {
@@ -112,7 +115,7 @@ public abstract class PetriNet {
 	 * @param transitionIndex Transition's index to be fired
 	 * @return true if transitionIndex was fired
 	 */
-	public boolean fire(int transitionIndex){
+	public synchronized boolean fire(int transitionIndex){
 		// m_(i+1) = m_i + I*d
 		// when d is a vector where every element is 0 but the nth which is 1
 		// it's equivalent to pick nth column from Incidence matrix (I) 
@@ -123,7 +126,12 @@ public abstract class PetriNet {
 		for(int i = 0; i < currentMarking.length; i++){
 			currentMarking[i] +=  inc[i][transitionIndex];
 			places[i].setMarking(currentMarking[i]);
-		}		
+		}
+		for(int i = 0; i < currentMarking.length; i++){
+			if(resetMatrix[i][transitionIndex] == 1){
+				currentMarking[i] = 0;
+			}
+		}
 		return true;
 	}
 	
@@ -235,11 +243,21 @@ public abstract class PetriNet {
 			String guardName = t.getGuardName();
 			enabled &= guards.get(guardName).equals(t.getGuardEnablingValue());
 		}
-		if(this.hasInhibitorArcs()){
+		if(this.isMatrixNonZero(inhibitionMatrix)){
 			for(int i = 0; i < places.length; i++){
 				boolean emptyPlace = places[i].getMarking() == 0;
 				boolean placeInhibitsTransition = inhibitionMatrix[i][transitionIndex] > 0;
 				if(!emptyPlace && placeInhibitsTransition){
+					return false;
+				}
+			}
+		}
+		if(this.isMatrixNonZero(resetMatrix)){
+			for(int i = 0; i < places.length; i++){
+				boolean emptyPlace = places[i].getMarking() == 0;
+				//resetMatrix should be a binary matrix, so it never should have an element with value grater than 1
+				boolean placeResetsTransition = resetMatrix[i][transitionIndex] > 0;
+				if(placeResetsTransition && emptyPlace){
 					return false;
 				}
 			}
@@ -281,17 +299,19 @@ public abstract class PetriNet {
 	}
 	
 	/**
-	 * Checks if the petri has inhibition arcs.
+	 * Checks if all elements in the matrix are zero.
+	 * This is used to know if the petri has the type of arcs described by the matrix semantics.
+	 * @param matrix specifies the kind of arcs
 	 * @return True if the net has inhibition arcs.
 	 */
-	public boolean hasInhibitorArcs(){
+	protected boolean isMatrixNonZero(Integer[][] matrix){
 		// if the matrix is null or if all elements are zeros
-		// the net has no inhibition arcs
+		// the net does not have the type of arcs described by the matrix semantics
 		try{
-			// this trivial comparison is to throw a NullPointerException if inhibitionMatrix is null
-			inhibitionMatrix.equals(inhibitionMatrix);
+			// this trivial comparison is to throw a NullPointerException if matrix is null
+			matrix.equals(matrix);
 			boolean allZeros = true;
-			for( Integer[] row : inhibitionMatrix ){
+			for( Integer[] row : matrix ){
 				// if hashset size is 1 all elements are equal
 				allZeros &= row[0] == 0 && 
 						new HashSet<Integer>(Arrays.asList(row)).size() == 1;
