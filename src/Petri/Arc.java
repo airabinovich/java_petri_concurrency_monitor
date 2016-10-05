@@ -15,9 +15,9 @@ public class Arc {
 		 */
 		INHIBITOR,
 		/** Reset arc. Connects a place to a transition but not the other way.
-		 * It has no weight. When the source place has any token, it enables the target transition.
-		 * When the target transition is fired, the new marking of source place will be 0.
-		 * A transition that has a reset arc, must not have other arc as entry.
+		 * When the source place has any token, it enables the target transition.
+		 * When the target transition is fired, the arc drains all tokens from source place.
+		 * A transition that has a reset arc, must not have any other arc as input.
 		 */
 		RESET,
 		/** Reader arc. Connects a place to a transition but not the other way.

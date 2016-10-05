@@ -159,9 +159,17 @@ import Petri.Arc.ArcType;
 			
 			for(int i = 0; i < placesAmount; i++){
 				for(int j = 0; j < transitionsAmount; j++){
-					if (resetMatrix[i][j] > 0 && (inhibition[i][j] > 0 || pre[i][j] > 0)){
-						//This should be enhanced
-						throw new CannotCreatePetriNetError("If you have a transition with reset arc, you cannot add other entry arc");
+					boolean resetArcEnters = resetMatrix[i][j] > 0;
+					if (resetArcEnters){
+						for(int k = 0; k < placesAmount; k++){
+							boolean anotherResetArcEntersTransition = k != j && resetMatrix[k][j] > 0;
+							boolean inhibitionArcEntersTransition = inhibition[k][j] > 0;
+							boolean normalArcEntersTransition = pre[k][j] > 0;
+							if(normalArcEntersTransition || inhibitionArcEntersTransition || anotherResetArcEntersTransition){
+								throw new CannotCreatePetriNetError(
+										"Cannot have another input arcs in transition " + j + " because there is a reset arc.");
+							}
+						}
 					}
 				}
 			}
