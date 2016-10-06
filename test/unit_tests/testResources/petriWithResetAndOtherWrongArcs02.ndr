@@ -1,0 +1,14 @@
+p 115.0 50.0 p0 4 n
+t 115.0 145.0 t0 0 w n
+p 250.0 50.0 p1 1 n
+p 30.0 245.0 p2 0 n
+p 115.0 245.0 p3 0 n
+p 195.0 245.0 p4 0 n
+e t0 p4 1 n
+e t0 p3 1 n
+e p1 t0 1 n
+e p0 t0 !1 n
+e t0 p2 1 n
+h petriWithResetAndOtherWrongArcs02
+
+

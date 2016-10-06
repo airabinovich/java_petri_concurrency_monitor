@@ -3,6 +3,8 @@ package unit_tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.FileNotFoundException;
+
 import org.javatuples.Triplet;
 import org.junit.After;
 import org.junit.Assert;
@@ -185,5 +187,44 @@ public class PetriNetFactoryTestSuite {
 			fail("No exception should've been thrown");
 		}
 	}
-
+	
+	/**
+	 * <li> Given t1 is fed by p0 with an inhibitor arc </li>
+	 * <li> And t1 is fed by p1 with a reset arc </li>
+	 * <li> When the Petri Net Factory tries to create petri net</li>
+	 * <li> Then it throws an error</li>
+	 */
+	@Test
+	public void petriNetFactoryShouldThrowErrorWhenTransitionWithInputResetArcHasInhibitorInput() {
+		try{
+			String PNMLFile = "test/unit_tests/testResources/petriWithResetAndOtherWrongArcs01.pnml";
+			PNMLreader reader = new PNMLreader(PNMLFile);
+			new PetriNetFactory(reader).makePetriNet(petriNetType.PT);
+			fail("Error should've be thrown before this point");
+		} catch(Error e){
+			assertEquals("CannotCreatePetriNetError", e.getClass().getSimpleName());
+		} catch (FileNotFoundException | SecurityException | NullPointerException e) {
+			fail("Incorrect exception recieved: " + e.getClass().getSimpleName());
+		}
+	}
+	
+	/**
+	 * <li> Given t0 is fed by p0 with a reset arc </li>
+	 * <li> And t1 is fed by p1 with a normal arc </li>
+	 * <li> When the Petri Net Factory tries to create petri net</li>
+	 * <li> Then it throws an error</li>
+	 */
+	@Test
+	public void petriNetFactoryShouldThrowErrorWhenTransitionWithInputResetArcHasNormalInput() {
+		try{
+			String PNMLFile = "test/unit_tests/testResources/petriWithResetAndOtherWrongArcs02.pnml";
+			PNMLreader reader = new PNMLreader(PNMLFile);
+			new PetriNetFactory(reader).makePetriNet(petriNetType.PT);
+			fail("Error should've be thrown before this point");
+		} catch(Error e){
+			assertEquals("CannotCreatePetriNetError", e.getClass().getSimpleName());
+		} catch (FileNotFoundException | SecurityException | NullPointerException e) {
+			fail("Incorrect exception recieved: " + e.getClass().getSimpleName());
+		}
+	}
 }

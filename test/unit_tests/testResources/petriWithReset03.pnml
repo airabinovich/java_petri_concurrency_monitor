@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-1CEC-A40A9-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>petriWithReset03</text>
+  </name>
+ <page id="g-1CEC-A40B7-1">
+  <place id="p-1CEC-A40BA-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>4</text>
+   </initialMarking>
+   <graphics>
+    <position x="95" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-1CEC-A40C8-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="240"/>
+   </graphics>
+  </place>
+  <place id="p-1CEC-A40CC-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="95" y="240"/>
+   </graphics>
+  </place>
+  <place id="p-1CEC-A40CE-5">
+  <name>
+   <text>p3</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="160" y="240"/>
+   </graphics>
+  </place>
+  <transition id="t-1CEC-A40D1-6">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="95" y="145"/>
+   </graphics>
+  </transition>
+  <arc id="e-1CEC-A40D5-7" source="t-1CEC-A40D1-6" target="p-1CEC-A40CE-5">
+  </arc>
+  <arc id="e-1CEC-A40D8-8" source="t-1CEC-A40D1-6" target="p-1CEC-A40CC-4">
+  </arc>
+  <arc id="e-1CEC-A40D9-9" source="t-1CEC-A40D1-6" target="p-1CEC-A40C8-3">
+  </arc>
+  <arc id="e-1CEC-A40DB-10" source="p-1CEC-A40BA-2" target="t-1CEC-A40D1-6">
+   <type value="reset"/>
+  </arc>
+ </page>
+ </net>
+</pnml>

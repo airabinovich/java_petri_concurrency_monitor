@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-1320-387E8-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>petriWithResetAndOtherWrongArcs01</text>
+  </name>
+ <page id="g-1320-387F3-1">
+  <place id="p-1320-387F6-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="30" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-1320-38803-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>4</text>
+   </initialMarking>
+   <graphics>
+    <position x="30" y="235"/>
+   </graphics>
+  </place>
+  <place id="p-1320-38806-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="430"/>
+   </graphics>
+  </place>
+  <transition id="t-1320-38809-5">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="150"/>
+   </graphics>
+  </transition>
+  <transition id="t-1320-3880C-6">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="330"/>
+   </graphics>
+  </transition>
+  <arc id="e-1320-3880F-7" source="p-1320-387F6-2" target="t-1320-3880C-6">
+   <type value="inhibitor"/>
+   <graphics>
+    <position x="80" y="104" />
+    <position x="84" y="284" />
+   </graphics>  </arc>
+  <arc id="e-1320-38818-8" source="p-1320-387F6-2" target="t-1320-38809-5">
+  </arc>
+  <arc id="e-1320-38819-9" source="t-1320-38809-5" target="p-1320-38803-3">
+  </arc>
+  <arc id="e-1320-3881A-10" source="t-1320-3880C-6" target="p-1320-38806-4">
+  </arc>
+  <arc id="e-1320-3881B-11" source="p-1320-38803-3" target="t-1320-3880C-6">
+   <type value="reset"/>
+  </arc>
+ </page>
+ </net>
+</pnml>
