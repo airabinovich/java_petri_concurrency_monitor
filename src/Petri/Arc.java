@@ -130,7 +130,7 @@ public class Arc {
 	}
 	
 	/**
-	 * Checks is _weight is valid for an arc of type _type
+	 * Checks if _weight is valid for an arc of type _type
 	 * @param _weight an Integer for the weight to test
 	 * @param _type the arc type to test
 	 * @return True if the weight is valid for the arc type

@@ -42,13 +42,14 @@ import Petri.Arc.ArcType;
 		 * makes and returns the petri described in the PNML file passed to the factory
 		 * @return PetriNet object containing info described in PNML file
 		 * @param petriNetType petri net type from enum type {@link petriNetType}
-		 * @throws CannotCreatePetriNetError If the parsed info has inconsistent data.
+		 * @throws CannotCreatePetriNetError If any a non supported arc type is given,
+		 * or if a transition that has a reset arc as input has another arc as input
 		 */
 		public PetriNet makePetriNet(petriNetType type) throws CannotCreatePetriNetError{
 			
 			Quartet<Place[], Transition[], Arc[], Integer[]> petriObjects = PNML2PNObjects();
 			Quintet<Integer[][], Integer[][], Integer[][], Integer[][], Integer[][]> petriMatrices = 
-					rdpObjects2Matrices(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2());
+					petriNetObjectsToMatrices(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2());
 			
 			switch(type){
 			case PT:
@@ -65,7 +66,7 @@ import Petri.Arc.ArcType;
 		 * extracts petri net info from PNML file given as argument and returns a 4-tuple containing
 		 * places, transitions, arcs and initial marking
 		 * @return a 4-tuple containig (places, transitions, arcs, initial marking)
-		 * @throws CannotCreatePetriNetError
+		 * @throws CannotCreatePetriNetError If an error occurs during parsing
 		 */
 		protected Quartet<Place[], Transition[], Arc[], Integer[]> PNML2PNObjects() throws CannotCreatePetriNetError{
 			try{
@@ -73,8 +74,8 @@ import Petri.Arc.ArcType;
 			
 				return ret.add(getMarkingFromPlaces(ret.getValue0()));
 			} catch (BadPNMLFormatException e){
-				throw new CannotCreatePetriNetError("Error creating petriNet due to PNML error. "
-						+ e.getMessage());
+				throw new CannotCreatePetriNetError("Error creating petriNet due to PNML error " + e.getClass().getSimpleName()
+						+ ". Message: " + e.getMessage());
 			}
 		}
 		
@@ -88,7 +89,7 @@ import Petri.Arc.ArcType;
 		 * or if a transition that has a reset arc as input has another arc as input
 		 * @see Petri.Arc.ArcType
 		 */
-		protected Quintet<Integer[][], Integer[][], Integer[][], Integer[][], Integer[][]> rdpObjects2Matrices(
+		protected Quintet<Integer[][], Integer[][], Integer[][], Integer[][], Integer[][]> petriNetObjectsToMatrices(
 				Place[] places, Transition[] transitions, Arc[] arcs) throws CannotCreatePetriNetError{
 			final int placesAmount = places.length;
 			final int transitionsAmount = transitions.length;
