@@ -32,22 +32,21 @@ public class PetriNetFactoryTestSuite {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		final Place[] mockPlaces = {
-			new Place("p0", 2, 0, "p0"),
-			new Place("p1", 1, 1, "p1"),
-			new Place("p2", 0, 2, "p2")
-		};
-		final Transition[] mockTransitions = {
-			new Transition("t0", new Label(false, false), 0, new TimeSpan(0,0), "t0"),
-			new Transition("t1", new Label(false, false), 1, new TimeSpan(0,0), "t1")
-		};
+		Place p0 = new Place("p0", 2, 0, "p0");
+		Place p1 = new Place("p1", 1, 1, "p1");
+		Place p2 = new Place("p2", 0, 2, "p2");
+		final Place[] mockPlaces = { p0, p1, p2 };
+		
+		Transition t0 = new Transition("t0", new Label(false, false), 0, new TimeSpan(0,0), "t0");
+		Transition t1 = new Transition("t1", new Label(false, false), 1, new TimeSpan(0,0), "t1");
+		final Transition[] mockTransitions = { t0, t1 };
 		final Arc[] mockArcs = {
-			new Arc("a0", "p0", "t0", 2),
-			new Arc("a1", "p1", "t0", 1),
-			new Arc("a2", "t0", "p2", 1),
-			new Arc("a3", "p2", "t1", 1),
-			new Arc("a4", "t1", "p0", 2),
-			new Arc("a5", "t1", "p1", 1)
+			new Arc("a0", p0, t0, 2),
+			new Arc("a1", p1, t0, 1),
+			new Arc("a2", t0, p2, 1),
+			new Arc("a3", p2, t1, 1),
+			new Arc("a4", t1, p0, 2),
+			new Arc("a5", t1, p1, 1)
 		};
 		mockPetriObjects = new Triplet<Place[], Transition[], Arc[]>(mockPlaces, mockTransitions, mockArcs);
 		

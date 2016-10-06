@@ -2,6 +2,7 @@ package Petri;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.javatuples.Quartet;
 import org.javatuples.Quintet;
@@ -83,7 +84,8 @@ import Petri.Arc.ArcType;
 		 * @param transitions petri net's transitions
 		 * @param arcs petri net's arcs
 		 * @return a 5-tuple containing (Pre matrix, Post matrix, Incidence matrix, Inhibition matrix, Reset matrix)
-		 * @throws CannotCreatePetriNetError If a non-standard arc goes from transition to place 
+		 * @throws CannotCreatePetriNetError If any a non supported arc type is given,
+		 * or if a transition that has a reset arc as input has another arc as input
 		 * @see Petri.Arc.ArcType
 		 */
 		protected Quintet<Integer[][], Integer[][], Integer[][], Integer[][], Integer[][]> rdpObjects2Matrices(
@@ -108,68 +110,51 @@ import Petri.Arc.ArcType;
 				}
 			}
 			
-			for( Arc arc : arcs){
-				String arcSource = arc.getId_source();
-				String arcTarget = arc.getId_target();
+			for(Arc arc : arcs){
+				PetriNode source = arc.getSource();
+				PetriNode target = arc.getTarget();
 				ArcType type = arc.getType();
-				boolean arcDone = false;
-				for(int i = 0; i < placesAmount ; i++){
-					if(arcDone){ break;}
-					if(arcSource.equals(places[i].getId())){
-						for(int j = 0; j < transitionsAmount; j++){
-							if(arcTarget.equals(transitions[j].getId())){
-								// We don't use the place nor transition index here because there might be some index missing or repeated
-								// and that could cause and error
-								// e.g: t2 doesn't exist and t5 is the last but it will be on position 4 instead of 5
-								if(type == ArcType.NORMAL){
-									pre[i][j] = arc.getWeight();
-								} else if (type == ArcType.INHIBITOR){
-									// for inhibitor arcs weight is ignored
-									inhibition[i][j] = 1;
-								} else if (type == ArcType.RESET){
-									// for reset matrix arcs weight is ignored
-									resetMatrix[i][j] = 1;
-								}
-								arcDone = true;
-								break;
-							}
-						}
+				switch(type){
+				case NORMAL:
+					if(source.getClass().getSimpleName().equals("Place")){
+						// arc goes from place to transition, let's fill the pre-incidence matrix
+						pre[source.getIndex()][target.getIndex()] = arc.getWeight();
 					}
-				}
-				if(arcDone){
-					// if I already filled a pre matrix field, I won't fill any pos matrix field with this arc's info
-					continue;
-				}
-				for(int j = 0; j < transitionsAmount; j++){
-					if(arcDone){ break;	}
-					if(arcSource.equals(transitions[j].getId())){
-						if(type != ArcType.NORMAL){
-							throw new CannotCreatePetriNetError(type + " arc cannot go from transition to place");
-						}
-						for(int i = 0; i < placesAmount; i++){
-							if(arcTarget.equals(places[i].getId())){
-								pos[i][j] = arc.getWeight();
-								arcDone = true;
-								break;
-							}
-						}
+					else {
+						// arc goes from transition to place, let's fill the post-incidence matrix
+						pos[target.getIndex()][source.getIndex()] = arc.getWeight();
 					}
+					break;
+				case INHIBITOR:
+					// source has to be a place and target a transition
+					inhibition[source.getIndex()][target.getIndex()] = 1;
+					break;
+				case RESET:
+					resetMatrix[source.getIndex()][target.getIndex()] = 1;
+					break;
+				case READ:
+				default:
+					throw new CannotCreatePetriNetError("Arc " + type + " not supported");
 				}
 			}
 			
-			for(int i = 0; i < placesAmount; i++){
-				for(int j = 0; j < transitionsAmount; j++){
-					boolean resetArcEnters = resetMatrix[i][j] > 0;
-					if (resetArcEnters){
-						for(int k = 0; k < placesAmount; k++){
-							boolean anotherResetArcEntersTransition = k != j && resetMatrix[k][j] > 0;
-							boolean inhibitionArcEntersTransition = inhibition[k][j] > 0;
-							boolean normalArcEntersTransition = pre[k][j] > 0;
-							if(normalArcEntersTransition || inhibitionArcEntersTransition || anotherResetArcEntersTransition){
-								throw new CannotCreatePetriNetError(
-										"Cannot have another input arcs in transition " + j + " because there is a reset arc.");
-							}
-						}
+			
+			// Now let's check if any transition that has a reset arc as input also has any other input arc
+			// That is an illegal condition
+			
+			Arc[] resetArcs = Arrays.stream(arcs)
+					.filter((Arc a) -> a.getType() == ArcType.RESET)
+					.toArray((int size) -> new Arc[size]);
+			for(Arc resetArc : resetArcs){
+				int placeIndex = resetArc.getSource().getIndex();
+				int transitionIndex = resetArc.getTarget().getIndex();
+				for(int i = 0; i < placesAmount; i++){
+					boolean anotherResetArcEntersTransition = i != placeIndex && resetMatrix[i][transitionIndex] > 0;
+					boolean inhibitionArcEntersTransition = inhibition[i][transitionIndex] > 0;
+					boolean normalArcEntersTransition = pre[i][transitionIndex] > 0;
+					if(normalArcEntersTransition || inhibitionArcEntersTransition || anotherResetArcEntersTransition){
+						throw new CannotCreatePetriNetError(
+								"Cannot have another input arcs in transition " + resetArc.getTarget().getName() + ", id: " + transitionIndex + ", because there is a reset arc.");
 					}
 				}
 			}

@@ -24,7 +24,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-
+import java.util.Optional;
+import java.util.stream.Stream;
 import java.lang.Integer;
 
 public class PNMLreader{
@@ -128,6 +129,7 @@ public class PNMLreader{
 		ArrayList<Place> places = new ArrayList<Place>();
 		ArrayList<Transition> transitions = new ArrayList<Transition>();
 		ArrayList<Arc> arcs = new ArrayList<Arc>();
+		ArrayList<Triplet<String, Node, NodeList>> pendingArcs = new ArrayList<Triplet<String, Node, NodeList>>();
 		for(int index = 0; index < netElements.getLength(); index++){
 			Node child = netElements.item(index);
 			if(child.getNodeType() == Node.ELEMENT_NODE ){
@@ -141,7 +143,8 @@ public class PNMLreader{
 					transitions.add(getTransition(id, child, nl));
 				}
 				else if(child.getNodeName().equals(ARC)){
-					arcs.add(getArc(id, child, nl));
+					// leave arcs for the last. We'll need to know if the source and target id matches a place or a transition
+					pendingArcs.add(new Triplet<String, Node, NodeList>(id, child,nl));
 				}
 			}
 		}
@@ -149,6 +152,10 @@ public class PNMLreader{
 		// Just in case, let's order the places and transitions by index. It'll be needed for matrices generation
 		places.sort((Place p1, Place p2) -> p1.getIndex() - p2.getIndex());
 		transitions.sort((Transition t1, Transition t2) -> t1.getIndex() - t2.getIndex());
+		
+		for(Triplet<String, Node, NodeList> arcData : pendingArcs){
+			arcs.add(getArc(arcData.getValue0(), arcData.getValue1(), arcData.getValue2(), places, transitions));
+		}
 		
 		Place[] retPlaces = new Place[places.size()];
 		Transition[] retTransitions = new Transition[transitions.size()];
@@ -264,14 +271,23 @@ public class PNMLreader{
 	 * @param arcNode Node object from PNML
 	 * @param nl arcNode children nodes as NodeList
 	 * @return Arc object containing the info parsed
-	 * @throws BadPNMLFormatException if weight is less than 1
+	 * @throws BadPNMLFormatException if any of these errors occur:
+	 * <li> Source id or Target id are empty </li>
+	 * <li> Weight is a non-numeric string </li>
+	 * <li> Weight is less than 1 </li>
+	 * <li> A source or target id doesn't match any place nor transition existing </li>
+	 * <li> Source and Transition are both places </li>
+	 * <li> Source and Transition are both transitions </li>
+	 * <li> A non-normal arc goes from transition to place </li>
 	 * @see {@link Petri.Arc}
 	 */
-	private Arc getArc(String id, Node arcNode, NodeList nl) throws BadPNMLFormatException{
+	private Arc getArc(String id, Node arcNode, NodeList nl, ArrayList<Place> places, ArrayList<Transition> transitions) throws BadPNMLFormatException{
 		Element arcElement = (Element)arcNode;
-		String source = arcElement.getAttribute(SOURCE);
-		String target = arcElement.getAttribute(TARGET);
-		if(source.isEmpty() || target.isEmpty()){
+		String sourceId = arcElement.getAttribute(SOURCE);
+		String targetId = arcElement.getAttribute(TARGET);
+		PetriNode source;
+		PetriNode target;
+		if(sourceId.isEmpty() || targetId.isEmpty()){
 			throw new BadPNMLFormatException("Error parsing arcs, invalid source or target found");
 		}
 
@@ -294,6 +310,60 @@ public class PNMLreader{
 
 		if(weight < 1){
 			throw new BadPNMLFormatException("Negative or zero weight found parsing arc");
+		}
+		
+		Stream<Place> placesStream = places.stream();
+		Stream<Transition> transitionsStream = transitions.stream();
+		
+		Optional<Place> sourcePlace = placesStream.filter((Place p) -> p.getId().equals(sourceId)).findFirst();
+		Optional<Transition> sourceTransition = transitionsStream.filter((Transition t) -> t.getId().equals(sourceId)).findFirst();
+		
+		boolean sourceIsPlace = false;
+		boolean sourceIsTransition = false;
+		boolean targetIsPlace = false;
+		boolean targetIsTransition = false;
+		
+		if(sourcePlace.isPresent()){
+			source = sourcePlace.get();
+			sourceIsPlace = true;
+		} 
+		else if(sourceTransition.isPresent()){
+			source = sourceTransition.get();
+			sourceIsTransition = true;
+		} 
+		else {
+			throw new BadPNMLFormatException("Arc source id doesn't match any place nor transition for arc " + id);
+		}
+		
+		// reopen the closed streams
+		placesStream = places.stream();
+		transitionsStream = transitions.stream();
+		
+		Optional<Place> targetPlace = placesStream.filter((Place p) -> p.getId().equals(targetId)).findFirst();
+		Optional<Transition> targetTransition = transitionsStream.filter((Transition t) -> t.getId().equals(targetId)).findFirst();
+		
+		if(targetPlace.isPresent()){
+			target = targetPlace.get();
+			targetIsPlace = true;
+		} 
+		else if(targetTransition.isPresent()){
+			target = targetTransition.get();
+			targetIsTransition = true;
+		} 
+		else {
+			throw new BadPNMLFormatException("Arc target id doesn't match any palce nor transition for arc " + id);
+		}
+		
+		if(sourceIsPlace && targetIsPlace){
+			throw new BadPNMLFormatException("Arc " + id + " goes from place to place");
+		}
+		
+		if(sourceIsTransition && targetIsTransition){
+			throw new BadPNMLFormatException("Arc " + id + " goes from transition to transition");
+		}
+		
+		if(type != ArcType.NORMAL && targetIsPlace){
+			throw new BadPNMLFormatException("Arc " + id + " of type " + type + " is input to a place");
 		}
 
 		return new Arc(id, source, target, weight, type);

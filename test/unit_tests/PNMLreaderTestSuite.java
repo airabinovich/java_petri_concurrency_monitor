@@ -107,18 +107,27 @@ public class PNMLreaderTestSuite {
 			
 			final int expectedArcsAmount = 12;
 			HashMap<String, Arc> expectedArcs = new HashMap<String, Arc>();
-			expectedArcs.put("e-3DC6-6BDC2-11", new Arc("e-3DC6-6BDC2-11", "p-3DC6-6BDB5-6", "t-3DC6-6BDBA-8", 1));
-			expectedArcs.put("e-3DC6-6BDC3-12", new Arc("e-3DC6-6BDC3-12", "p-3DC6-6BDAF-3", "t-3DC6-6BDBD-9", 1));
-			expectedArcs.put("e-3DC6-6BDC4-13", new Arc("e-3DC6-6BDC4-13", "t-3DC6-6BDB6-7", "p-3DC6-6BDAF-3", 1));
-			expectedArcs.put("e-3DC6-6BDC4-14", new Arc("e-3DC6-6BDC4-14", "p-3DC6-6BDA9-2", "t-3DC6-6BDB6-7", 1));
-			expectedArcs.put("e-3DC6-6BDC6-15", new Arc("e-3DC6-6BDC6-15", "t-3DC6-6BDBF-10", "p-3DC6-6BDB5-6", 1));
-			expectedArcs.put("e-3DC6-6BDC7-16", new Arc("e-3DC6-6BDC7-16", "t-3DC6-6BDBF-10", "p-3DC6-6BDB0-4", 1));
-			expectedArcs.put("e-3DC6-6BDD7-17", new Arc("e-3DC6-6BDD7-17", "p-3DC6-6BDB2-5", "t-3DC6-6BDBF-10", 1));
-			expectedArcs.put("e-3DC6-6BDD8-18", new Arc("e-3DC6-6BDD8-18", "t-3DC6-6BDBA-8", "p-3DC6-6BDB2-5", 1));
-			expectedArcs.put("e-3DC6-6BDD8-19", new Arc("e-3DC6-6BDD8-19", "p-3DC6-6BDB0-4", "t-3DC6-6BDBA-8", 1));
-			expectedArcs.put("e-3DC6-6BDD9-20", new Arc("e-3DC6-6BDD9-20", "t-3DC6-6BDBD-9", "p-3DC6-6BDB5-6", 5));
-			expectedArcs.put("e-3DC6-6BDDA-21", new Arc("e-3DC6-6BDDA-21", "p-3DC6-6BDB5-6", "t-3DC6-6BDB6-7", 5));
-			expectedArcs.put("e-3DC6-6BDDC-22", new Arc("e-3DC6-6BDDC-22", "t-3DC6-6BDBD-9", "p-3DC6-6BDA9-2", 1));
+			Place p0 = new Place("p-3DC6-6BDA9-2", 1, 0, "p0");
+			Place p1 = new Place("p-3DC6-6BDAF-3", 0, 1, "p1");
+			Place p2 = new Place("p-3DC6-6BDB0-4", 5, 2, "p2");
+			Place p3 = new Place("p-3DC6-6BDB2-5", 0, 3, "p3");
+			Place p4 = new Place("p-3DC6-6BDB5-6", 5, 4, "p4");
+			Transition t0 = new Transition("t-3DC6-6BDB6-7", new Label(false, false), 0, "t0");
+			Transition t1 = new Transition("t-3DC6-6BDBA-8", new Label(false, false), 1, "t1");
+			Transition t2 = new Transition("t-3DC6-6BDBD-9", new Label(true, true), 2, "t2");
+			Transition t3 = new Transition("t-3DC6-6BDBF-10", new Label(true, true), 3, "t3");
+			expectedArcs.put("e-3DC6-6BDC2-11", new Arc("e-3DC6-6BDC2-11", p4, t1, 1));
+			expectedArcs.put("e-3DC6-6BDC3-12", new Arc("e-3DC6-6BDC3-12", p1, t2, 1));
+			expectedArcs.put("e-3DC6-6BDC4-13", new Arc("e-3DC6-6BDC4-13", t0, p1, 1));
+			expectedArcs.put("e-3DC6-6BDC4-14", new Arc("e-3DC6-6BDC4-14", p0, t0, 1));
+			expectedArcs.put("e-3DC6-6BDC6-15", new Arc("e-3DC6-6BDC6-15", t3, p4, 1));
+			expectedArcs.put("e-3DC6-6BDC7-16", new Arc("e-3DC6-6BDC7-16", t3, p2, 1));
+			expectedArcs.put("e-3DC6-6BDD7-17", new Arc("e-3DC6-6BDD7-17", p3, t3, 1));
+			expectedArcs.put("e-3DC6-6BDD8-18", new Arc("e-3DC6-6BDD8-18", t1, p3, 1));
+			expectedArcs.put("e-3DC6-6BDD8-19", new Arc("e-3DC6-6BDD8-19", p2, t1, 1));
+			expectedArcs.put("e-3DC6-6BDD9-20", new Arc("e-3DC6-6BDD9-20", t2, p4, 5));
+			expectedArcs.put("e-3DC6-6BDDA-21", new Arc("e-3DC6-6BDDA-21", p4, t0, 5));
+			expectedArcs.put("e-3DC6-6BDDC-22", new Arc("e-3DC6-6BDDC-22", t2, p0, 1));
 			
 			Arc[] obtainedArcs = petriObjects.getValue2();
 			
@@ -127,8 +136,8 @@ public class PNMLreaderTestSuite {
 			for(Arc arc : obtainedArcs){
 				try{
 					Arc expectedArc = expectedArcs.get(arc.getId());
-					assertEquals(expectedArc.getId_source(), arc.getId_source());
-					assertEquals(expectedArc.getId_target(), arc.getId_target());
+					assertEquals(expectedArc.getSource().getId(), arc.getSource().getId());
+					assertEquals(expectedArc.getTarget().getId(), arc.getTarget().getId());
 					assertEquals(expectedArc.getWeight(), arc.getWeight());
 				} catch (IndexOutOfBoundsException ex){
 					fail("An unexpected arc was recieved");
@@ -266,7 +275,7 @@ public class PNMLreaderTestSuite {
 			
 			// get all matching arcs filtering the array as a stream by source id and target id. This should be just one
 			Arc[] matchingArcs = Arrays.stream(petriObjects.getValue2())
-					.filter((Arc a) -> a.getId_source().equals(p2.getId()) &&  a.getId_target().equals(t2.getId()))
+					.filter((Arc a) -> a.getSource().getId().equals(p2.getId()) &&  a.getTarget().getId().equals(t2.getId()))
 					.toArray((size) -> new Arc[size]);
 			
 			assertEquals(1, matchingArcs.length);
