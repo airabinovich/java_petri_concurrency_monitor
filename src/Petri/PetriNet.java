@@ -24,8 +24,8 @@ public abstract class PetriNet {
 	protected boolean[] automaticTransitions;
 	protected boolean[] informedTransitions;
 	/** Inhibition matrix used for inhibition logic */
-	protected Integer[][] inhibitionMatrix;
-	protected Integer[][] resetMatrix;
+	protected Boolean[][] inhibitionMatrix;
+	protected Boolean[][] resetMatrix;
 	protected boolean hasInhibitionArcs;
 	protected boolean hasResetArcs;
 	
@@ -60,7 +60,7 @@ public abstract class PetriNet {
 	 */
 	protected PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
 			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I,
-			Integer[][] _inhibitionMatrix, Integer[][] _resetMatrix){
+			Boolean[][] _inhibitionMatrix, Boolean[][] _resetMatrix){
 		this.places = _places;
 		this.transitions = _transitions;
 		
@@ -133,7 +133,7 @@ public abstract class PetriNet {
 			places[i].setMarking(currentMarking[i]);
 		}
 		for(int i = 0; i < currentMarking.length; i++){
-			if(resetMatrix[i][transitionIndex] == 1){
+			if(resetMatrix[i][transitionIndex]){
 				currentMarking[i] = 0;
 			}
 		}
@@ -251,7 +251,7 @@ public abstract class PetriNet {
 		if(hasInhibitionArcs){
 			for(int i = 0; i < places.length; i++){
 				boolean emptyPlace = places[i].getMarking() == 0;
-				boolean placeInhibitsTransition = inhibitionMatrix[i][transitionIndex] > 0;
+				boolean placeInhibitsTransition = inhibitionMatrix[i][transitionIndex];
 				if(!emptyPlace && placeInhibitsTransition){
 					return false;
 				}
@@ -261,7 +261,7 @@ public abstract class PetriNet {
 			for(int i = 0; i < places.length; i++){
 				boolean emptyPlace = places[i].getMarking() == 0;
 				//resetMatrix should be a binary matrix, so it never should have an element with value grater than 1
-				boolean placeResetsTransition = resetMatrix[i][transitionIndex] > 0;
+				boolean placeResetsTransition = resetMatrix[i][transitionIndex];
 				if(placeResetsTransition && emptyPlace){
 					return false;
 				}
@@ -304,22 +304,22 @@ public abstract class PetriNet {
 	}
 	
 	/**
-	 * Checks if all elements in the matrix are zero.
+	 * Checks if all elements in the matrix are false.
 	 * This is used to know if the petri has the type of arcs described by the matrix semantics.
 	 * @param matrix specifies the kind of arcs
 	 * @return True if the net has inhibition arcs.
 	 */
-	protected boolean isMatrixNonZero(Integer[][] matrix){
+	protected boolean isMatrixNonZero(Boolean[][] matrix){
 		// if the matrix is null or if all elements are zeros
 		// the net does not have the type of arcs described by the matrix semantics
 		try{
 			// this trivial comparison is to throw a NullPointerException if matrix is null
 			matrix.equals(matrix);
 			boolean allZeros = true;
-			for( Integer[] row : matrix ){
+			for( Boolean[] row : matrix ){
 				// if hashset size is 1 all elements are equal
-				allZeros &= row[0] == 0 && 
-						new HashSet<Integer>(Arrays.asList(row)).size() == 1;
+				allZeros &= !row[0] &&
+						new HashSet<Boolean>(Arrays.asList(row)).size() == 1;
 				if(!allZeros){
 					return true;
 				}

@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.lang.Integer;
 
@@ -270,6 +271,8 @@ public class PNMLreader{
 	 * @param id the object id embedded in the PNML
 	 * @param arcNode Node object from PNML
 	 * @param nl arcNode children nodes as NodeList
+	 * @param places An ArrayList containing the places parsed from the PNML
+	 * @param transitions An ArrayList containing the transitions parsed from the PNML
 	 * @return Arc object containing the info parsed
 	 * @throws BadPNMLFormatException if any of these errors occur:
 	 * <li> Source id or Target id are empty </li>
@@ -312,46 +315,35 @@ public class PNMLreader{
 			throw new BadPNMLFormatException("Negative or zero weight found parsing arc");
 		}
 		
-		Stream<Place> placesStream = places.stream();
-		Stream<Transition> transitionsStream = transitions.stream();
-		
-		Optional<Place> sourcePlace = placesStream.filter((Place p) -> p.getId().equals(sourceId)).findFirst();
-		Optional<Transition> sourceTransition = transitionsStream.filter((Transition t) -> t.getId().equals(sourceId)).findFirst();
-		
 		boolean sourceIsPlace = false;
 		boolean sourceIsTransition = false;
 		boolean targetIsPlace = false;
 		boolean targetIsTransition = false;
 		
-		if(sourcePlace.isPresent()){
-			source = sourcePlace.get();
-			sourceIsPlace = true;
-		} 
-		else if(sourceTransition.isPresent()){
-			source = sourceTransition.get();
-			sourceIsTransition = true;
-		} 
-		else {
-			throw new BadPNMLFormatException("Arc source id doesn't match any place nor transition for arc " + id);
+		source = getFirstFromFilteredList(places, (Place p) -> p.getId().equals(sourceId));
+		sourceIsPlace = source != null;
+		
+		if(!sourceIsPlace){
+			
+			source = getFirstFromFilteredList(transitions, (Transition t) -> t.getId().equals(sourceId));
+			sourceIsTransition = source != null;
+			
+			if(!sourceIsTransition){
+				throw new BadPNMLFormatException("Arc source id doesn't match any place nor transition for arc " + id);
+			}
 		}
 		
-		// reopen the closed streams
-		placesStream = places.stream();
-		transitionsStream = transitions.stream();
+		target = getFirstFromFilteredList(places, (Place p) -> p.getId().equals(targetId));
+		targetIsPlace = target != null;
 		
-		Optional<Place> targetPlace = placesStream.filter((Place p) -> p.getId().equals(targetId)).findFirst();
-		Optional<Transition> targetTransition = transitionsStream.filter((Transition t) -> t.getId().equals(targetId)).findFirst();
-		
-		if(targetPlace.isPresent()){
-			target = targetPlace.get();
-			targetIsPlace = true;
-		} 
-		else if(targetTransition.isPresent()){
-			target = targetTransition.get();
-			targetIsTransition = true;
-		} 
-		else {
-			throw new BadPNMLFormatException("Arc target id doesn't match any palce nor transition for arc " + id);
+		if(!targetIsPlace){
+			
+			target = getFirstFromFilteredList(transitions, (Transition t) -> t.getId().equals(targetId));
+			targetIsTransition = target != null;
+			
+			if(!targetIsTransition){
+				throw new BadPNMLFormatException("Arc transition id doesn't match any place nor transition for arc " + id);
+			}
 		}
 		
 		if(sourceIsPlace && targetIsPlace){
@@ -367,6 +359,23 @@ public class PNMLreader{
 		}
 
 		return new Arc(id, source, target, weight, type);
+	}
+	
+	/**
+	 * Filters a list using the given predicate and returns the first element that matches the condition if any.
+	 * This is typically used for filtering places or transitions
+	 * @param list The list of PetriNode objects to filter
+	 * @param predicate The filtering function
+	 * @return A PetriNode object matching the predicate condition or null if none matches
+	 */
+	private <E extends PetriNode> E getFirstFromFilteredList(ArrayList<E> list, Predicate<E> predicate){
+		
+		Stream<E> streamList = list.stream();
+		
+		Optional<E> filteredElement = streamList.filter(predicate).findFirst();
+		
+		return filteredElement.orElse(null);
+		
 	}
 	
 	/**

@@ -47,8 +47,8 @@ import Petri.Arc.ArcType;
 		 */
 		public PetriNet makePetriNet(petriNetType type) throws CannotCreatePetriNetError{
 			
-			Quartet<Place[], Transition[], Arc[], Integer[]> petriObjects = PNML2PNObjects();
-			Quintet<Integer[][], Integer[][], Integer[][], Integer[][], Integer[][]> petriMatrices = 
+			Quartet<Place[], Transition[], Arc[], Integer[]> petriObjects = pnmlInfoToPetriNetObjects();
+			Quintet<Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][]> petriMatrices =
 					petriNetObjectsToMatrices(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2());
 			
 			switch(type){
@@ -63,12 +63,12 @@ import Petri.Arc.ArcType;
 			}
 		}
 		/**
-		 * extracts petri net info from PNML file given as argument and returns a 4-tuple containing
+		 * extracts petri net info from PNML file given when constructed and returns a 4-tuple containing
 		 * places, transitions, arcs and initial marking
 		 * @return a 4-tuple containig (places, transitions, arcs, initial marking)
 		 * @throws CannotCreatePetriNetError If an error occurs during parsing
 		 */
-		protected Quartet<Place[], Transition[], Arc[], Integer[]> PNML2PNObjects() throws CannotCreatePetriNetError{
+		protected Quartet<Place[], Transition[], Arc[], Integer[]> pnmlInfoToPetriNetObjects() throws CannotCreatePetriNetError{
 			try{
 				Triplet<Place[], Transition[], Arc[]> ret = reader.parseFileAndGetPetriObjects();
 			
@@ -89,15 +89,15 @@ import Petri.Arc.ArcType;
 		 * or if a transition that has a reset arc as input has another arc as input
 		 * @see Petri.Arc.ArcType
 		 */
-		protected Quintet<Integer[][], Integer[][], Integer[][], Integer[][], Integer[][]> petriNetObjectsToMatrices(
+		protected Quintet<Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][]> petriNetObjectsToMatrices(
 				Place[] places, Transition[] transitions, Arc[] arcs) throws CannotCreatePetriNetError{
 			final int placesAmount = places.length;
 			final int transitionsAmount = transitions.length;
 			Integer[][] pre = new Integer[placesAmount][transitionsAmount];
 			Integer[][] pos = new Integer[placesAmount][transitionsAmount];
 			Integer[][] inc = new Integer[placesAmount][transitionsAmount];
-			Integer[][] inhibition = new Integer[placesAmount][transitionsAmount];
-			Integer[][] resetMatrix = new Integer[placesAmount][transitionsAmount];
+			Boolean[][] inhibition = new Boolean[placesAmount][transitionsAmount];
+			Boolean[][] resetMatrix = new Boolean[placesAmount][transitionsAmount];
 			
 			for(int i = 0; i < placesAmount; i++){
 				for(int j = 0; j < transitionsAmount; j++){
@@ -106,8 +106,8 @@ import Petri.Arc.ArcType;
 					pre[i][j] = 0;
 					pos[i][j] = 0;
 					inc[i][j] = 0;
-					inhibition[i][j] = 0;
-					resetMatrix[i][j] = 0;
+					inhibition[i][j] = false;
+					resetMatrix[i][j] = false;
 				}
 			}
 			
@@ -115,23 +115,30 @@ import Petri.Arc.ArcType;
 				PetriNode source = arc.getSource();
 				PetriNode target = arc.getTarget();
 				ArcType type = arc.getType();
+				int sourceIndex = source.getIndex();
+				int targetIndex = target.getIndex();
+				int arcWeight = arc.getWeight();
 				switch(type){
 				case NORMAL:
-					if(source.getClass().getSimpleName().equals("Place")){
+					if(source.getClass().equals(Place.class)){
 						// arc goes from place to transition, let's fill the pre-incidence matrix
-						pre[source.getIndex()][target.getIndex()] = arc.getWeight();
+						pre[sourceIndex][targetIndex] = arcWeight;
+						// since inc = pos - pre, here substract the arcWeight from the incidence matrix
+						inc[sourceIndex][targetIndex] -= arcWeight;
 					}
 					else {
 						// arc goes from transition to place, let's fill the post-incidence matrix
-						pos[target.getIndex()][source.getIndex()] = arc.getWeight();
+						pos[targetIndex][sourceIndex] = arcWeight;
+						// since inc = pos - pre, here add the arcWeight from the incidence matrix
+						inc[targetIndex][sourceIndex] += arcWeight;
 					}
 					break;
 				case INHIBITOR:
 					// source has to be a place and target a transition
-					inhibition[source.getIndex()][target.getIndex()] = 1;
+					inhibition[sourceIndex][targetIndex] = true;
 					break;
 				case RESET:
-					resetMatrix[source.getIndex()][target.getIndex()] = 1;
+					resetMatrix[sourceIndex][targetIndex] = true;
 					break;
 				case READ:
 				default:
@@ -150,8 +157,8 @@ import Petri.Arc.ArcType;
 				int placeIndex = resetArc.getSource().getIndex();
 				int transitionIndex = resetArc.getTarget().getIndex();
 				for(int i = 0; i < placesAmount; i++){
-					boolean anotherResetArcEntersTransition = i != placeIndex && resetMatrix[i][transitionIndex] > 0;
-					boolean inhibitionArcEntersTransition = inhibition[i][transitionIndex] > 0;
+					boolean anotherResetArcEntersTransition = i != placeIndex && resetMatrix[i][transitionIndex];
+					boolean inhibitionArcEntersTransition = inhibition[i][transitionIndex];
 					boolean normalArcEntersTransition = pre[i][transitionIndex] > 0;
 					if(normalArcEntersTransition || inhibitionArcEntersTransition || anotherResetArcEntersTransition){
 						throw new CannotCreatePetriNetError(
@@ -160,14 +167,7 @@ import Petri.Arc.ArcType;
 				}
 			}
 			
-			// now we have both matrixes pre and pos, let's get inc = pos - pre
-			for(int i = 0; i < placesAmount; i++){
-				for(int j = 0; j < transitionsAmount; j++){
-					inc[i][j] = pos[i][j] - pre[i][j];
-				}
-			}
-			
-			return new Quintet<Integer[][], Integer[][], Integer[][], Integer[][], Integer[][]>(pre, pos, inc, inhibition, resetMatrix);
+			return new Quintet<Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][]>(pre, pos, inc, inhibition, resetMatrix);
 		}
 		
 		/**
