@@ -404,7 +404,9 @@ public class PNMLreader{
 			if(node.getNodeName().equals(CLOSURE)){
 				String closure = node.getTextContent();
 				timeB += (closure.equals(OPEN) || closure.equals(OPENCLOSED)) ? 1 : 0;
-				timeE -= (closure.equals(OPEN) || closure.equals(CLOSEDOPEN)) ? 1 : 0;
+				if(timeE < Long.MAX_VALUE){
+					timeE -= (closure.equals(OPEN) || closure.equals(CLOSEDOPEN)) ? 1 : 0;
+				}
 			}
 		}
 		return new TimeSpan(timeB, timeE);
