@@ -130,12 +130,10 @@ public abstract class PetriNet {
 		}		
 		for(int i = 0; i < currentMarking.length; i++){
 			currentMarking[i] +=  inc[i][transitionIndex];
-			places[i].setMarking(currentMarking[i]);
-		}
-		for(int i = 0; i < currentMarking.length; i++){
 			if(resetMatrix[i][transitionIndex] == 1){
 				currentMarking[i] = 0;
 			}
+			places[i].setMarking(currentMarking[i]);
 		}
 		return true;
 	}

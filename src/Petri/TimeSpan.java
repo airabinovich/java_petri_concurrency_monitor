@@ -48,7 +48,15 @@ public class TimeSpan {
 	 * @return true if time is inside the span
 	 */
 	public boolean inTimeSpan(long time){
-		return (time >= enableTime + timeBegin) && (time <= enableTime + timeEnd);
+		if(time >= enableTime + timeBegin){
+			if(timeEnd == Long.MAX_VALUE){
+				return true;
+			}
+			else if (time <= enableTime + timeEnd){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**

@@ -459,6 +459,8 @@ public class PetriNetTestSuite {
 			expectedMarking[3] = 0;
 			expectedMarking[4] = 1;
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			Assert.assertEquals(expectedMarking[3].intValue(), petriNet.getPlaces()[3].getMarking());
+			Assert.assertEquals(expectedMarking[4].intValue(), petriNet.getPlaces()[4].getMarking());
 			
 		} catch (Exception e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_RESET_01);
