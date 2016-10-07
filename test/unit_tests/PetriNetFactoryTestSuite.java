@@ -3,6 +3,8 @@ package unit_tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.FileNotFoundException;
+
 import org.javatuples.Triplet;
 import org.junit.After;
 import org.junit.Assert;
@@ -32,22 +34,21 @@ public class PetriNetFactoryTestSuite {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		final Place[] mockPlaces = {
-			new Place("p0", 2, 0, "p0"),
-			new Place("p1", 1, 1, "p1"),
-			new Place("p2", 0, 2, "p2")
-		};
-		final Transition[] mockTransitions = {
-			new Transition("t0", new Label(false, false), 0, new TimeSpan(0,0), "t0"),
-			new Transition("t1", new Label(false, false), 1, new TimeSpan(0,0), "t1")
-		};
+		Place p0 = new Place("p0", 2, 0, "p0");
+		Place p1 = new Place("p1", 1, 1, "p1");
+		Place p2 = new Place("p2", 0, 2, "p2");
+		final Place[] mockPlaces = { p0, p1, p2 };
+		
+		Transition t0 = new Transition("t0", new Label(false, false), 0, new TimeSpan(0,0), "t0");
+		Transition t1 = new Transition("t1", new Label(false, false), 1, new TimeSpan(0,0), "t1");
+		final Transition[] mockTransitions = { t0, t1 };
 		final Arc[] mockArcs = {
-			new Arc("a0", "p0", "t0", 2),
-			new Arc("a1", "p1", "t0", 1),
-			new Arc("a2", "t0", "p2", 1),
-			new Arc("a3", "p2", "t1", 1),
-			new Arc("a4", "t1", "p0", 2),
-			new Arc("a5", "t1", "p1", 1)
+			new Arc("a0", p0, t0, 2),
+			new Arc("a1", p1, t0, 1),
+			new Arc("a2", t0, p2, 1),
+			new Arc("a3", p2, t1, 1),
+			new Arc("a4", t1, p0, 2),
+			new Arc("a5", t1, p1, 1)
 		};
 		mockPetriObjects = new Triplet<Place[], Transition[], Arc[]>(mockPlaces, mockTransitions, mockArcs);
 		
@@ -186,5 +187,44 @@ public class PetriNetFactoryTestSuite {
 			fail("No exception should've been thrown");
 		}
 	}
-
+	
+	/**
+	 * <li> Given t1 is fed by p0 with an inhibitor arc </li>
+	 * <li> And t1 is fed by p1 with a reset arc </li>
+	 * <li> When the Petri Net Factory tries to create petri net</li>
+	 * <li> Then it throws an error</li>
+	 */
+	@Test
+	public void petriNetFactoryShouldThrowErrorWhenTransitionWithInputResetArcHasInhibitorInput() {
+		try{
+			String PNMLFile = "test/unit_tests/testResources/petriWithResetAndOtherWrongArcs01.pnml";
+			PNMLreader reader = new PNMLreader(PNMLFile);
+			new PetriNetFactory(reader).makePetriNet(petriNetType.PT);
+			fail("Error should've be thrown before this point");
+		} catch(Error e){
+			assertEquals("CannotCreatePetriNetError", e.getClass().getSimpleName());
+		} catch (FileNotFoundException | SecurityException | NullPointerException e) {
+			fail("Incorrect exception recieved: " + e.getClass().getSimpleName());
+		}
+	}
+	
+	/**
+	 * <li> Given t0 is fed by p0 with a reset arc </li>
+	 * <li> And t1 is fed by p1 with a normal arc </li>
+	 * <li> When the Petri Net Factory tries to create petri net</li>
+	 * <li> Then it throws an error</li>
+	 */
+	@Test
+	public void petriNetFactoryShouldThrowErrorWhenTransitionWithInputResetArcHasNormalInput() {
+		try{
+			String PNMLFile = "test/unit_tests/testResources/petriWithResetAndOtherWrongArcs02.pnml";
+			PNMLreader reader = new PNMLreader(PNMLFile);
+			new PetriNetFactory(reader).makePetriNet(petriNetType.PT);
+			fail("Error should've be thrown before this point");
+		} catch(Error e){
+			assertEquals("CannotCreatePetriNetError", e.getClass().getSimpleName());
+		} catch (FileNotFoundException | SecurityException | NullPointerException e) {
+			fail("Incorrect exception recieved: " + e.getClass().getSimpleName());
+		}
+	}
 }

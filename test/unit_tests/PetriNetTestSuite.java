@@ -23,6 +23,7 @@ public class PetriNetTestSuite {
 	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
 	private static final String PETRI_WITH_RESET_01 = TEST_PETRI_FOLDER + "petriWithReset01.pnml";
 	private static final String PETRI_WITH_RESET_02 = TEST_PETRI_FOLDER + "petriWithReset02.pnml";
+	private static final String PETRI_WITH_RESET_03 = TEST_PETRI_FOLDER + "petriWithReset03.pnml";
 	
 	private static PetriNetFactory factory;
 	private PetriNet petriNet;
@@ -494,6 +495,42 @@ public class PetriNetTestSuite {
 			
 		} catch (Exception e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_RESET_02);
+		}
+	}
+	
+	/**
+	 * <li> Given p0 has four tokens </li>
+	 * <li> And p1, p2 and p3 have no tokens </li>
+	 * <li> And t0 is fed by p0 with a reset arc </li>
+	 * <li> and t3 feeds p1, p2 and p3 with normal arcs </li>
+	 * <li> And t3 is enabled </li>
+	 * <li> When I try to fire t3 </li>
+	 * <li> Then t3 is fired successfully </li>
+	 * <li> And all tokens (four) are taken from p0 </li>
+	 * <li> And a token is put into p1, p2 and p3</li>
+	 */
+	@Test
+	public void FireTransitionWithResetArcAndOtherOutputArcsShouldFireSuccesfully(){
+		try{
+			readFileAndMakePetriNet(PETRI_WITH_RESET_03);
+			
+			Transition t0 = petriNet.getTransitions()[0];
+			
+			Integer[] expectedMarking = {Integer.valueOf(4) , Integer.valueOf(0), Integer.valueOf(0), Integer.valueOf(0)};
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Assert.assertTrue(petriNet.isEnabled(t0));
+			
+			Assert.assertTrue(petriNet.fire(t0));
+			
+			expectedMarking[0] = 0;
+			expectedMarking[1] = 1;
+			expectedMarking[2] = 1;
+			expectedMarking[3] = 1;
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + PETRI_WITH_RESET_03);
 		}
 	}
 }

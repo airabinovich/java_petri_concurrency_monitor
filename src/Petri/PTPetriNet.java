@@ -7,7 +7,7 @@ public class PTPetriNet extends PetriNet{
 	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][])
 	 */
 	public PTPetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs, Integer[] _initialMarking,
-			Integer[][] _preI, Integer[][] _posI, Integer[][] _I, Integer[][] _inhibition, Integer[][] _resetMatrix) {
+			Integer[][] _preI, Integer[][] _posI, Integer[][] _I, Boolean[][] _inhibition, Boolean[][] _resetMatrix) {
 		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, _inhibition, _resetMatrix);
 	}
 
