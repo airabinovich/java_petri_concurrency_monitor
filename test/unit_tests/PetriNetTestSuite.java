@@ -19,6 +19,7 @@ public class PetriNetTestSuite {
 
 	private static final String TEST_PETRI_FOLDER = "test/unit_tests/testResources/";
 	private static final String READER_WRITER= TEST_PETRI_FOLDER + "readerWriter.pnml";
+	private static final String MUTUAL_EXCLUSION = TEST_PETRI_FOLDER + "mutualExclusion.pnml";
 	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
 	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
 	private static final String PETRI_WITH_RESET_01 = TEST_PETRI_FOLDER + "petriWithReset01.pnml";
@@ -531,6 +532,70 @@ public class PetriNetTestSuite {
 			
 		} catch (Exception e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_RESET_03);
+		}
+	}
+	
+	/**
+	 * <li> Given t2 is disabled </li>
+	 * <li> When I try to perennial fire t2 </li>
+	 * <li> Then the fire returns true </li>
+	 * <li> And the marking didn't change </li>
+	 */
+	@Test
+	public void PereniallFireTransitionShouldReturnTrueWhenTransitionIsDisabledButNotFireIt() {
+		try{
+			readFileAndMakePetriNet(MUTUAL_EXCLUSION);
+			
+			Integer[] initialMarking = {1, 1, 0, 0, 1};
+			
+			Transition t2 = petriNet.getTransitions()[2];
+			
+			Assert.assertFalse(petriNet.isEnabled(t2));
+			
+			Assert.assertTrue(petriNet.fire(t2, true));
+			
+			Assert.assertArrayEquals(initialMarking, petriNet.getCurrentMarking());
+			
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + MUTUAL_EXCLUSION);
+		}
+	}
+	
+	/**
+	 * <li> Given p0 and p4 feed t0 </li>
+	 * <li> And p0 and p4 have one token each </li>
+	 * <li> And t0 is enabled </li>
+	 * <li> And t0 feeds p2 </li>
+	 * <li> And p2 has no tokens </li>
+	 * <li> When I try to perennial fire t0 </li>
+	 * <li> Then the fire returns true </li>
+	 * <li> And p0 and p4 lose their tokens </li>
+	 * <li> And a token goes to p2 </li>
+	 */
+	@Test
+	public void PereniallFireTransitionShouldReturnTrueWhenTransitionIsEnabledAndFireIt() {
+		try{
+			readFileAndMakePetriNet(MUTUAL_EXCLUSION);
+			
+			Integer[] expectedMarking = {1, 1, 0, 0, 1};
+			
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Transition t0 = petriNet.getTransitions()[0];
+			
+			Assert.assertTrue(petriNet.isEnabled(t0));
+			
+			Assert.assertTrue(petriNet.fire(t0, true));
+			
+			expectedMarking[0] = 0;
+			expectedMarking[4] = 0;
+			
+			expectedMarking[2] = 1;
+			
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + MUTUAL_EXCLUSION);
 		}
 	}
 }

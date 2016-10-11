@@ -20,7 +20,11 @@ public class TimedPetriNet extends PetriNet{
 	}
 	
 	public boolean fire(int transitionIndex){
-		boolean fire = super.fire(transitionIndex);
+		return fire(transitionIndex, false);
+	}
+	
+	public boolean fire(int transitionIndex, boolean perennialFire){
+		boolean fire = super.fire(transitionIndex, perennialFire);
 		//Compute new enabled transitions and set new timestamp 
 		this.enabledTransitions = computeEnabledTransitions();
 		return fire;
@@ -30,13 +34,15 @@ public class TimedPetriNet extends PetriNet{
 		return this.enabledTransitions;
 	}
 	
-	public boolean[] computeEnabledTransitions(){
+	protected boolean[] computeEnabledTransitions(){
 		boolean[] _enabledTransitions = new boolean[transitions.length];
 		for(Transition t : transitions){
-			_enabledTransitions[t.getIndex()] = isEnabled(t);
+			int transitionIndex = t.getIndex();
+			boolean transitionEnabled = isEnabled(t);
+			_enabledTransitions[transitionIndex] = transitionEnabled;
 			if(t.getTimeSpan() != null){
 				//Check if the enabled transition was enabled by this fire.
-				if (isEnabled(t) && !enabledTransitions[t.getIndex()]){
+				if (transitionEnabled && !enabledTransitions[transitionIndex]){
 					t.getTimeSpan().setEnableTime(System.currentTimeMillis());
 				}
 			}			

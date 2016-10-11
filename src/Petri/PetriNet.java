@@ -106,32 +106,58 @@ public abstract class PetriNet {
 	}
 
 	/**
-	 * Fires the transition t if it's enabled and updates current marking
-	 * @param t Transition to be fired
-	 * @return true if t was fired
+	 * Fires the transition t if it's enabled and updates current marking.
+	 * @param t Transition to be fired.
+	 * @return true if t was fired.
 	 */
 	public boolean fire(Transition t) {
-		return fire(t.getIndex());
+		return fire(t.getIndex(), false);
 	}
 	
 	/**
-	 * Fires the transition whose index if transitionIndex if it's enabled and updates current marking
-	 * @param transitionIndex Transition's index to be fired
-	 * @return true if transitionIndex was fired
+	 * Fires the transition t if it's enabled and updates current marking.
+	 * A perennial fire returns true even if the transition wasn't fired.
+	 * @param t Transition to be fired
+	 * @param perennialFire True indicates a perennial fire.
+	 * @return true if t was fired. For a perennial fire, returns true in any case.
 	 */
-	public synchronized boolean fire(int transitionIndex){
+	public boolean fire(Transition t, boolean perennialFire) {
+		return fire(t.getIndex(), perennialFire);
+	}
+	
+	/**
+	 * Fires the transition whose index is transitionIndex if it's enabled and updates current marking.
+	 * @param t Transition to be fired
+	 * @return true if t was fired
+	 */
+	public boolean fire(int transitionIndex) {
+		return fire(transitionIndex, false);
+	}
+	
+	/**
+	 * Fires the transition whose index is transitionIndex if it's enabled and updates current marking.
+	 * A perennial fire returns true even if the transition wasn't fired.
+	 * @param transitionIndex Transition's index to be fired.
+	 * @param perennialFire True indicates a perennial fire.
+	 * @return true if transitionIndex was fired. For a perennial fire, returns true in any case.
+	 */
+	public synchronized boolean fire(int transitionIndex, boolean perennialFire){
 		// m_(i+1) = m_i + I*d
 		// when d is a vector where every element is 0 but the nth which is 1
 		// it's equivalent to pick nth column from Incidence matrix (I) 
 		// and add it to the current marking (m_i)
 		// and if there is a reset arc, all tokens from its source place are taken.
 		if(!isEnabled(transitionIndex)){
-			return false;
+			// if perennialFire is true, let's return true
+			// else, this has failed, so return false anyway
+			return perennialFire;
 		}		
 		for(int i = 0; i < currentMarking.length; i++){
-			currentMarking[i] +=  inc[i][transitionIndex];
 			if(resetMatrix[i][transitionIndex]){
 				currentMarking[i] = 0;
+			}
+			else {
+				currentMarking[i] +=  inc[i][transitionIndex];
 			}
 			places[i].setMarking(currentMarking[i]);
 		}
