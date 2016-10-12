@@ -109,48 +109,33 @@ public abstract class PetriNet {
 	 * Fires the transition t if it's enabled and updates current marking.
 	 * @param t Transition to be fired.
 	 * @return true if t was fired.
+	 * @throws IllegalArgumentException If t is null or if it doesn't match any transition index
 	 */
-	public boolean fire(Transition t) {
-		return fire(t.getIndex(), false);
+	public boolean fire(final Transition t) throws IllegalArgumentException{
+		if(t == null){
+			throw new IllegalArgumentException("Null Transition passed as argument");
+		}
+		return fire(t.getIndex());
 	}
-	
-	/**
-	 * Fires the transition t if it's enabled and updates current marking.
-	 * A perennial fire returns true even if the transition wasn't fired.
-	 * @param t Transition to be fired
-	 * @param perennialFire True indicates a perennial fire.
-	 * @return true if t was fired. For a perennial fire, returns true in any case.
-	 */
-	public boolean fire(Transition t, boolean perennialFire) {
-		return fire(t.getIndex(), perennialFire);
-	}
+
 	
 	/**
 	 * Fires the transition whose index is transitionIndex if it's enabled and updates current marking.
-	 * @param t Transition to be fired
-	 * @return true if t was fired
-	 */
-	public boolean fire(int transitionIndex) {
-		return fire(transitionIndex, false);
-	}
-	
-	/**
-	 * Fires the transition whose index is transitionIndex if it's enabled and updates current marking.
-	 * A perennial fire returns true even if the transition wasn't fired.
 	 * @param transitionIndex Transition's index to be fired.
-	 * @param perennialFire True indicates a perennial fire.
 	 * @return true if transitionIndex was fired. For a perennial fire, returns true in any case.
+	 * @throws IllegalArgumentException If transitionIndex is negative of grater than the last transition index.
 	 */
-	public synchronized boolean fire(int transitionIndex, boolean perennialFire){
+	public synchronized boolean fire(int transitionIndex) throws IllegalArgumentException{
 		// m_(i+1) = m_i + I*d
 		// when d is a vector where every element is 0 but the nth which is 1
 		// it's equivalent to pick nth column from Incidence matrix (I) 
 		// and add it to the current marking (m_i)
 		// and if there is a reset arc, all tokens from its source place are taken.
+		if(transitionIndex < 0 || transitionIndex > transitions.length){
+			throw new IllegalArgumentException("Invalid transition index: " + transitionIndex);
+		}
 		if(!isEnabled(transitionIndex)){
-			// if perennialFire is true, let's return true
-			// else, this has failed, so return false anyway
-			return perennialFire;
+			return false;
 		}		
 		for(int i = 0; i < currentMarking.length; i++){
 			if(resetMatrix[i][transitionIndex]){
@@ -260,7 +245,7 @@ public abstract class PetriNet {
 	 * @param t Transition objects to check if it's enabled
 	 * @return True if the transition is enabled, False otherwise
 	 */
-	public boolean isEnabled(Transition t){
+	public boolean isEnabled(final Transition t){
 		int transitionIndex = t.getIndex();
 		boolean enabled = true;
 		for(int i=0; i<places.length ; i++){

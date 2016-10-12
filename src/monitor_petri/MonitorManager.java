@@ -75,11 +75,10 @@ public class MonitorManager {
 	 * </ul>
 	 * For timed transitions, the calling thread sleeps until the transition reaches its time span, only then fires it.
 	 * @param transitionToFire The transition to fire
-	 * @param perenialFire True indicates a perennial fire
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
-	public void fireTransition(Transition transitionToFire){
+	public void fireTransition(final Transition transitionToFire){
 		fireTransition(transitionToFire, false);
 	}
 
@@ -104,7 +103,7 @@ public class MonitorManager {
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
-	public void fireTransition(Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError{
+	public void fireTransition(final Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError{
 		// An attempt to fire an automatic transition is a severe error and the application should stop automatically
 		if(transitionToFire.getLabel().isAutomatic()){
 			throw new IllegalTransitionFiringError("An automatic transition has tried to be fired manually");
@@ -157,7 +156,7 @@ public class MonitorManager {
 	 * @throws IllegalArgumentException if the given transition is not informed
 	 * @return a Subscription object used to unsubscribe
 	 */
-	public Subscription subscribeToTransition(Transition _transition, Observer<String> _observer) throws IllegalArgumentException{
+	public Subscription subscribeToTransition(final Transition _transition, final Observer<String> _observer) throws IllegalArgumentException{
 		if(_transition == null || _observer == null){
 			throw new IllegalArgumentException("invalid transition or observer recieved");
 		} else if (!_transition.getLabel().isInformed()){

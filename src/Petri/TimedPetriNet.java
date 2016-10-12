@@ -18,18 +18,35 @@ public class TimedPetriNet extends PetriNet{
 		Arrays.fill(enabledTransitions, false);
 		this.enabledTransitions = computeEnabledTransitions();
 	}
-	
-	public boolean fire(int transitionIndex){
-		return fire(transitionIndex, false);
-	}
-	
-	public boolean fire(int transitionIndex, boolean perennialFire){
-		boolean fire = super.fire(transitionIndex, perennialFire);
+
+	/**
+	 * Fires the transition specified by transitionIndex and updates the enabled transitions with their timestamps
+	 * @param transitionIndex The index of the transition to be fired
+	 * @return True if the fire was successful
+	 * @throws IllegalArgumentException If the index is negative or greater than the last transition index.
+	 * @see PetriNet#fire(int)
+	 */
+	public boolean fire(int transitionIndex) throws IllegalArgumentException{
+		boolean wasFired = super.fire(transitionIndex);
 		//Compute new enabled transitions and set new timestamp 
 		this.enabledTransitions = computeEnabledTransitions();
-		return fire;
+		return wasFired;
 	}
-	
+
+	/**
+	 * Fires the specified transition and updates the enabled transitions with their timestamps
+	 * @param t The transition to be fired
+	 * @return True if the fire was successful
+	 * @throws IllegalArgumentException If t is null or if it doesn't match any transition index.
+	 * @see PetriNet#fire(Transition)
+	 */
+	public boolean fire(final Transition t) throws IllegalArgumentException{
+		if(t == null){
+			throw new IllegalArgumentException("Tried to fire null transition");
+		}
+		return fire(t.getIndex());
+	}
+
 	public boolean[] getEnabledTransitions(){
 		return this.enabledTransitions;
 	}
