@@ -1,0 +1,64 @@
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-1D88-A233C-0" type ="http://www.pnml.org/version-2009/grammar/ptnet">
+  <name>
+   <text>petriWIthDuplicatedNamesTransition</text>
+  </name>
+ <page id="g-1D88-A2341-1">
+  <place id="p-1D88-A2343-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="85" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-1D88-A2349-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="85" y="265"/>
+   </graphics>
+  </place>
+  <transition id="t-1D88-A234B-4">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="25" y="150"/>
+   </graphics>
+  </transition>
+  <transition id="t-1D88-A234B-4">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="150" y="150"/>
+   </graphics>
+  </transition>
+  <arc id="e-1D88-A2350-6" source="t-1D88-A234D-5" target="p-1D88-A2343-2">
+  </arc>
+  <arc id="e-1D88-A2351-7" source="p-1D88-A2349-3" target="t-1D88-A234D-5">
+  </arc>
+  <arc id="e-1D88-A2352-8" source="t-1D88-A234B-4" target="p-1D88-A2349-3">
+  </arc>
+  <arc id="e-1D88-A2352-9" source="p-1D88-A2343-2" target="t-1D88-A234B-4">
+  </arc>
+ </page>
+ </net>
+</pnml>

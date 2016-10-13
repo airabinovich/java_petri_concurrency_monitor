@@ -1,7 +1,9 @@
 package monitor_petri;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.Semaphore;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,6 +37,7 @@ public class MonitorManager {
 	
 	private final static String ID = "id";
 	private final static String INDEX = "index";
+	private final static String NAME = "name";
 
 	public MonitorManager(final PetriNet _petri, TransitionsPolicy _policy) {
 		if(_petri == null || _policy == null){
@@ -92,6 +95,24 @@ public class MonitorManager {
 			// the firing is done, release the mutex and leave
 			inQueue.release(permitsToRelease);
 		}
+	}
+	
+	/**
+	 * 
+	 * @param transitionName The name of the transition to fire.
+	 * @throws IllegalArgumentException If no transition matches transitionName
+	 * @throws IllegalTransitionFiringError If transitionName matches an automatic transition
+	 */
+	public void fireTransition(final String transitionName) throws IllegalArgumentException, IllegalTransitionFiringError {
+		Optional<Transition> filteredTransition = Arrays.stream(petri.getTransitions())
+				.filter((Transition t) -> t.getName().equals(transitionName))
+				// I can get only the first here because I made sure the name is unique in the parsing
+				.findFirst();
+		if(!filteredTransition.isPresent()){
+			throw new IllegalArgumentException("No transition matches the name " + transitionName);
+		}
+		
+		fireTransition(filteredTransition.get());
 	}
 	
 	/**
@@ -229,6 +250,7 @@ public class MonitorManager {
 			HashMap<String, String> firedTransitionInfoMap = new HashMap<String, String>();
 			firedTransitionInfoMap.put(ID, t.getId());
 			firedTransitionInfoMap.put(INDEX, Integer.toString(t.getIndex()));
+			firedTransitionInfoMap.put(NAME, t.getName());
 			informedTransitionsObservable.onNext(
 					jsonMapper.writeValueAsString(firedTransitionInfoMap));
 		} catch (JsonProcessingException e) {

@@ -15,6 +15,8 @@ import org.junit.Test;
 
 import Petri.Arc;
 import Petri.BadPNMLFormatException;
+import Petri.DuplicatedIDError;
+import Petri.DuplicatedNameError;
 import Petri.Label;
 import Petri.PNMLreader;
 import Petri.Place;
@@ -31,6 +33,10 @@ public class PNMLreaderTestSuite {
 	private static final String PETRI_WITH_GUARD_BAD_FORMAT_01 = TEST_PETRI_FOLDER + "petriWithGuardBadFormat01.pnml";
 	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
 	private static final String PETRI_WITH_CUSTOM_NAMES = TEST_PETRI_FOLDER + "petriWithCustomNames.pnml";
+	private static final String PETRI_WITH_DUPLICATED_NAMES_PLACE = TEST_PETRI_FOLDER + "petriWithDuplicatedNamesPlace.pnml";
+	private static final String PETRI_WITH_DUPLICATED_NAMES_TRANSITION = TEST_PETRI_FOLDER + "petriWithDuplicatedNamesTransition.pnml";
+	private static final String PETRI_WITH_DUPLICATED_IDS_PLACE = TEST_PETRI_FOLDER + "petriWithDuplicatedIdsPlace.pnml";
+	private static final String PETRI_WITH_DUPLICATED_IDS_TRANSITION = TEST_PETRI_FOLDER + "petriWithDuplicatedIdsTransition.pnml";
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -376,5 +382,85 @@ public class PNMLreaderTestSuite {
 		} catch (Exception e) {
 			fail("Exception thrown during test: " + e.getMessage());
 		}
-        }
+	}
+	
+	/**
+	 * <li> Given there are two places whose name is "p0" </li>
+	 * <li> When I parse the file </li>
+	 * <li> Then DuplicatedNameError should be thrown </li>
+	 */
+	@Test
+	public void ParserShouldThrowErrorWhenPlaceNamesAreDuplicated(){
+		try{
+			PNMLreader reader = new PNMLreader(PETRI_WITH_DUPLICATED_NAMES_PLACE);
+			
+			reader.parseFileAndGetPetriObjects();
+			
+			fail("An error should've been thrown before this point");
+		} catch (Error e){
+			assertEquals(DuplicatedNameError.class, e.getClass());
+		} catch (Exception e) {
+			fail("Exception thrown during test: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * <li> Given there are two transitions whose name is "t0" </li>
+	 * <li> When I parse the file </li>
+	 * <li> Then DuplicatedNameError should be thrown </li>
+	 */
+	@Test
+	public void ParserShouldThrowErrorWhenTransitionNamesAreDuplicated(){
+		try{
+			PNMLreader reader = new PNMLreader(PETRI_WITH_DUPLICATED_NAMES_TRANSITION);
+			
+			reader.parseFileAndGetPetriObjects();
+			
+			fail("An error should've been thrown before this point");
+		} catch (Error e){
+			assertEquals(DuplicatedNameError.class, e.getClass());
+		} catch (Exception e) {
+			fail("Exception thrown during test: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * <li> Given p0 and p1 have the same ID </li>
+	 * <li> When I parse the file </li>
+	 * <li> Then DuplicatedIDError should be thrown </li>
+	 */
+	@Test
+	public void ParserShouldThrowErrorWhenPlaceIdsAreDuplicated(){
+		try{
+			PNMLreader reader = new PNMLreader(PETRI_WITH_DUPLICATED_IDS_PLACE);
+			
+			reader.parseFileAndGetPetriObjects();
+			
+			fail("An error should've been thrown before this point");
+		} catch (Error e){
+			assertEquals(DuplicatedIDError.class, e.getClass());
+		} catch (Exception e) {
+			fail("Exception thrown during test: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * <li> Given t0 and t1 have the same ID </li>
+	 * <li> When I parse the file </li>
+	 * <li> Then DuplicatedIDError should be thrown </li>
+	 */
+	@Test
+	public void ParserShouldThrowErrorWhenTransitionIdsAreDuplicated(){
+		try{
+			PNMLreader reader = new PNMLreader(PETRI_WITH_DUPLICATED_IDS_TRANSITION);
+			
+			reader.parseFileAndGetPetriObjects();
+			
+			fail("An error should've been thrown before this point");
+		} catch (Error e){
+			assertEquals(DuplicatedIDError.class, e.getClass());
+		} catch (Exception e) {
+			fail("Exception thrown during test: " + e.getMessage());
+		}
+	}
 }
