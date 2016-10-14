@@ -65,21 +65,48 @@ public class MonitorManager {
 	/**
 	 * Tries to fire a transition.
 	 * <ul>
-	 * <li>If fails, the calling thread sleeps in the corresponding VarCondQueue</li>
+	 * <li>If fails, the calling thread sleeps in the corresponding transition's queue</li>
 	 * <li>If succeeds, it checks if there are new enabled transitions.
-	 * If not it leaves, else it tries to fire any new enabled transition.
+	 * If not it leaves, else it tries to fire some new enabled transition 
+	 * (which transition is to be fired is the policy's decision).
 	 * This may lead into two situations:</li>
 	 * <ul>
-	 * <li>The transition to fire is automatic, just fire it</li>
+	 * <li>The transition to fire is automatic, then just fire it</li>
 	 * <li>The transition to fire is not automatic but another thread was waiting to fire it.
-	 * 		  In that case, wake up that thread and leave the monitor</li>
+	 * In that case, wake up that thread and leave the monitor</li>
 	 * </ul>
 	 * </ul>
-	 * @param transitionToFire the transition to fire
+	 * For timed transitions, the calling thread sleeps until the transition reaches its time span, only then fires it.
+	 * @param transitionToFire The transition to fire
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
-	 * @see PetriNet#fire(Transition)
+	 * @see PetriNet#fire(Transition, boolean)
 	 */
-	public void fireTransition(Transition transitionToFire) throws IllegalTransitionFiringError{
+	public void fireTransition(final Transition transitionToFire){
+		fireTransition(transitionToFire, false);
+	}
+
+	/**
+	 * Tries to fire a transition.
+	 * <ul>
+	 * <li>If fails, the calling thread sleeps in the corresponding transition's queue</li>
+	 * <li>If succeeds, it checks if there are new enabled transitions.
+	 * If not it leaves, else it tries to fire some new enabled transition 
+	 * (which transition is to be fired is the policy's decision).
+	 * This may lead into two situations:</li>
+	 * <ul>
+	 * <li>The transition to fire is automatic, then just fire it</li>
+	 * <li>The transition to fire is not automatic but another thread was waiting to fire it.
+	 * In that case, wake up that thread and leave the monitor</li>
+	 * </ul>
+	 * </ul>
+	 * For timed transitions, the calling thread sleeps until the transition reaches its time span, only then fires it.
+	 * A perennial fire doesn't send a thread to sleep when the firing failed.
+	 * @param transitionToFire The transition to fire
+	 * @param perenialFire True indicates a perennial fire
+	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
+	 * @see PetriNet#fire(Transition, boolean)
+	 */
+	public void fireTransition(final Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError{
 		// An attempt to fire an automatic transition is a severe error and the application should stop automatically
 		if(transitionToFire.getLabel().isAutomatic()){
 			throw new IllegalTransitionFiringError("An automatic transition has tried to be fired manually");
@@ -88,7 +115,7 @@ public class MonitorManager {
 		try {
 			// take the mutex to access the monitor
 			inQueue.acquire();
-			permitsToRelease = internalFireTransition(transitionToFire);
+			permitsToRelease = internalFireTransition(transitionToFire, perennialFire);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} finally{
@@ -150,7 +177,7 @@ public class MonitorManager {
 	 * @throws IllegalArgumentException if the given transition is not informed
 	 * @return a Subscription object used to unsubscribe
 	 */
-	public Subscription subscribeToTransition(Transition _transition, Observer<String> _observer) throws IllegalArgumentException{
+	public Subscription subscribeToTransition(final Transition _transition, final Observer<String> _observer) throws IllegalArgumentException{
 		if(_transition == null || _observer == null){
 			throw new IllegalArgumentException("invalid transition or observer recieved");
 		} else if (!_transition.getLabel().isInformed()){
@@ -193,7 +220,7 @@ public class MonitorManager {
 			int nextTransitionToFireIndex = getNextTransitionAvailableToFire();
 			if(nextTransitionToFireIndex >= 0){
 				if(petri.getAutomaticTransitions()[nextTransitionToFireIndex]){
-					permitsToRelease = internalFireTransition(petri.getTransitions()[nextTransitionToFireIndex]);
+					permitsToRelease = internalFireTransition(petri.getTransitions()[nextTransitionToFireIndex], false);
 				} else {
 					// if a fired transition was enabled by the guard, wake up a thread waiting for it
 					permitsToRelease = 0;
@@ -263,11 +290,13 @@ public class MonitorManager {
 	 * This method implements the firing logic with minimal checks.
 	 * It is intended for using internally, when a {@link #inQueue} mutex was already taken.
 	 * This method doesn't check for automatic transitions
+	 * A perennial fire doesn't send a thread to sleep.
 	 * @param transitionToFire
+	 * @param perennialFire
 	 * @return permits to release to mutex {@link #inQueue}
 	 * @throws InterruptedException if the calling thread is interrupted
 	 */
-	private int internalFireTransition(Transition transitionToFire) throws InterruptedException{
+	private int internalFireTransition(Transition transitionToFire, boolean perennialFire) throws InterruptedException{
 		int permitsToRelease = 1;
 		boolean keepFiring = true;
 		boolean insideTimeSpan = false;
@@ -283,7 +312,7 @@ public class MonitorManager {
 			}
 			if(keepFiring){
 				while(isTimed && !insideTimeSpan){
-					//I came before time span, and there is nobody sleeping in the transition
+					//The calling thread came before time span, and there is nobody sleeping in the transition
 					if(transitionSpan.isBeforeTimeSpan(fireAttemptTime) && !transitionSpan.anySleeping()){
 						inQueue.release();
 						transitionSpan.sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - fireAttemptTime);
@@ -292,11 +321,15 @@ public class MonitorManager {
 						// Issue #7 has to be fixed here
 						inQueue.acquire();
 					}
-					else{
-						// I came late, the time is over. Thus the thread releases the input mutex and goes to sleep
+					else if(!perennialFire) {
+						//The calling thread came late, the time is over. Thus the thread releases the input mutex and goes to sleep
 						inQueue.release();
 						condVarQueue[transitionToFire.getIndex()].sleep();
 						// when waking up, don't take the mutex for the waking thread didn't release it
+					}
+					else{
+						// a perennial fire should not wait in the queue for the transition to get enabled again
+						return permitsToRelease;
 					}
 					// at this point, the transition may have been disabled when the firing thread was sleeping
 					fireAttemptTime = System.currentTimeMillis();
@@ -304,6 +337,12 @@ public class MonitorManager {
 				}
 				
 				if(!petri.fire(transitionToFire)){
+					if(perennialFire){
+						// the firing failed but since it's a perennial fire
+						// the calling thread doesn't have to sleep
+						// so return the permits to be released
+						return permitsToRelease;
+					}
 					// if the transition wasn't fired sucessfully
 					// release the main mutex and go to sleep
 					inQueue.release();
@@ -340,7 +379,8 @@ public class MonitorManager {
 					permitsToRelease = 1;
 				}
 			}
-			else{
+			// if this is a perennial fire and the transition is not enabled, don't send the thread to sleep
+			else if(!perennialFire){
 				// the fire failed, thus the thread releases the input mutex and goes to sleep
 				inQueue.release();
 				condVarQueue[transitionToFire.getIndex()].sleep();

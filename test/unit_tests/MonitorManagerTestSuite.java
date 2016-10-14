@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -711,9 +710,126 @@ public class MonitorManagerTestSuite {
 		} catch (IOException e) {
 			Assert.fail("Event is not in JSON format");
 		}
-
 	}
 	
+	/**
+	 * <li> Given t1 is disabled </li>
+	 * <li> When th0 perennial fires t1 </li>
+	 * <li> Then th0 doesn't go to sleep </li>
+	 */
+	@Test
+	public void PerennialFiringShouldNotSendAThreadToSleepWhenTransitionIsDisabled(){
+		
+		setUpMonitor(MONITOR_TEST_03_PETRI);
+		
+		Transition t1 = petri.getTransitions()[1];
+		
+		Thread th0 = new Thread(() -> monitor.fireTransition(t1, true));
+		th0.start();
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		Assert.assertFalse(monitor.getQueuesState()[1]);
+	}
+	
+	/**
+	 * <li> Given t1 is disabled </li>
+	 * <li> And p1 feeds t1 </li>
+	 * <li> And t1 feeds p0 </li>
+	 * <li> And p0 has one token </li>
+	 * <li> And p1 has no tokens </li>
+	 * <li> And obs subscribes to t1's events </li>
+	 * <li> When th0 perennial fires t1 </li>
+	 * <li> Then obs gets no events </li>
+	 * <li> And the marking didn't change </li>
+	 */
+	@Test
+	public void PerennialFiringShouldNotFireTransitionWhenTransitionIsDisabled(){
+		
+		setUpMonitor(MONITOR_TEST_03_PETRI);
+		
+		Transition t1 = petri.getTransitions()[1];
+		
+		Integer[] expectedMarking = {1, 0};
+		Assert.assertArrayEquals(expectedMarking, petri.getCurrentMarking());
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t1, obs);
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		Assert.assertTrue(events.isEmpty());
+		
+		Thread th0 = new Thread(() -> monitor.fireTransition(t1, true));
+		th0.start();
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		Assert.assertTrue(events.isEmpty());
+		
+		Assert.assertArrayEquals(expectedMarking, petri.getCurrentMarking());
+	}
+	
+	/**
+	 * <li> Given t0 is enabled </li>
+	 * <li> And p0 feeds t0 </li>
+	 * <li> And t0 feeds p1 </li>
+	 * <li> And p0 has one token </li>
+	 * <li> And p1 has no tokens </li>
+	 * <li> And obs subscribes to t0's events </li>
+	 * <li> When th0 perennial fires t0 </li>
+	 * <li> Then obs gets one events matching t0's id </li>
+	 * <li> And p0 has no tokens </li>
+	 * <li> And p1 has one token </li>
+	 */
+	@Test
+	public void PerennialFiringShouldFireTransitionWhenTransitionIsEnabled(){
+		
+		setUpMonitor(MONITOR_TEST_03_PETRI);
+		
+		Transition t0 = petri.getTransitions()[0];
+		
+		Integer[] expectedMarking = {1, 0};
+		Assert.assertArrayEquals(expectedMarking, petri.getCurrentMarking());
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs);
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		Assert.assertTrue(events.isEmpty());
+		
+		Thread th0 = new Thread(() -> monitor.fireTransition(t0, true));
+		th0.start();
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		Assert.assertFalse(events.isEmpty());
+		try {
+			String obtainedId0 = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t0.getId(), obtainedId0);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+		
+		expectedMarking[0] = 0;
+		expectedMarking[1] = 1;
+		Assert.assertArrayEquals(expectedMarking, petri.getCurrentMarking());
+		
+	}
+
 	/**
 	 * <li> Given t0 is enabled </li>
 	 * <li> And t0 is informed </li>
@@ -746,7 +862,7 @@ public class MonitorManagerTestSuite {
 			Assert.assertEquals(t0.getId(), obtainedID);
 			Assert.assertEquals(t0.getName(), obtainedName);
 		} catch (IOException e) {
-			Assert.fail("Events is not is JSON format");
+			Assert.fail("Event is not in JSON format");
 		}
 	}
 }
