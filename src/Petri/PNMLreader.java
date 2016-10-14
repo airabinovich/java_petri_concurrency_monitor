@@ -75,9 +75,11 @@ public class PNMLreader{
 	/**
 	 * parses PNML file and returns all petri objects embedded
 	 * @return a Triplet containing places, transitions and arcs inside the PNML
-	 * @throws BadPNMLFormatException 
+	 * @throws BadPNMLFormatException
+	 * @throws DuplicatedNameError If two or more places or transitions share names (empty names are not a problem)
+	 * @throws DuplicatedIDError If two or more places or transitions share ids
 	 */
-	public Triplet<Place[], Transition[], Arc[]> parseFileAndGetPetriObjects() throws BadPNMLFormatException{
+	public Triplet<Place[], Transition[], Arc[]> parseFileAndGetPetriObjects() throws BadPNMLFormatException, DuplicatedNameError, DuplicatedIDError {
 		try {
 			placesIndex = 0;
 			transitionsIndex = 0;
@@ -125,8 +127,10 @@ public class PNMLreader{
 	 * @param netElements a list of nodes children of page node
 	 * @return a Triplet containing all places, transitions and arcs inside netElements
 	 * @throws BadPNMLFormatException 
+	 * @throws DuplicatedNameError If two or more places or transitions share names (empty names are not a problem)
+	 * @throws DuplicatedIDError If two or more places or transitions share ids
 	 */
-	private Triplet<Place[], Transition[], Arc[]> getPetriObjectsFromNodeList(NodeList netElements) throws BadPNMLFormatException{
+	private Triplet<Place[], Transition[], Arc[]> getPetriObjectsFromNodeList(NodeList netElements) throws BadPNMLFormatException, DuplicatedNameError, DuplicatedIDError{
 		ArrayList<Place> places = new ArrayList<Place>();
 		ArrayList<Transition> transitions = new ArrayList<Transition>();
 		ArrayList<Arc> arcs = new ArrayList<Arc>();
@@ -136,12 +140,12 @@ public class PNMLreader{
 			if(child.getNodeType() == Node.ELEMENT_NODE ){
 				NodeList nl = child.getChildNodes();
 				String id = ((Element)(child)).getAttribute(ID);
-				//child tiene el elemento que necesitamos (plaza, transicion o arco)
+				//child has the element to parse (place, transition or arc)
 				if(child.getNodeName().equals(PLACE)){
-					places.add(getPlace(id, child, nl));
+					places.add(getPlace(id, child, nl, places));
 				}
 				else if(child.getNodeName().equals(TRANSITION)){
-					transitions.add(getTransition(id, child, nl));
+					transitions.add(getTransition(id, child, nl, transitions));
 				}
 				else if(child.getNodeName().equals(ARC)){
 					// leave arcs for the last. We'll need to know if the source and target id matches a place or a transition
@@ -174,11 +178,14 @@ public class PNMLreader{
 	 * @param id the object id embedded in the PNML
 	 * @param placeNode Node object from PNML
 	 * @param nl placeNode children nodes as NodeList
+	 * @param places An arrayList containing all places known until
 	 * @return A place object containing the info parsed
 	 * @throws BadPNMLFormatException If initial marking is not numerical
+	 * @throws DuplicatedNameError If the new place has the same name as any created before
+	 * @throws DuplicatedIDError If the new place has the same id as any created before
 	 * @see {@link Petri.Place}
 	 */
-	private Place getPlace(String id, Node placeNode, NodeList nl) throws BadPNMLFormatException{
+	private Place getPlace(String id, Node placeNode, NodeList nl, final ArrayList<Place> places) throws BadPNMLFormatException, DuplicatedNameError, DuplicatedIDError{
 		Integer m_inicial = 0;
 		Integer placeIndex = this.placesIndex++;
 		String placeName = "";
@@ -196,6 +203,16 @@ public class PNMLreader{
 			}
 		}
 		
+		for(Place p : places){
+			String pName = p.getName();
+			if(!pName.isEmpty() && pName.equalsIgnoreCase(placeName)){
+				throw new DuplicatedNameError("Name " + placeName + " is repeated for places");
+			}
+			if(p.getId().equals(id)){
+				throw new DuplicatedIDError("ID " + id + " is repeated for places");
+			}
+		}
+		
 		if(placeName.isEmpty()){
 			placeName = "p" + placesIndex;
 		}
@@ -208,11 +225,14 @@ public class PNMLreader{
 	 * @param id the object id embedded in the PNML
 	 * @param transitionNode Node object from PNML
 	 * @param nl transitionNode children nodes as NodeList
+	 * @param transitions An arraylist containing all transitions known
 	 * @return A transition object containing the info parsed
 	 * @throws BadPNMLFormatException
+	 * @throws DuplicatedNameError If the new transition has the same name as any created before
+	 * @throws DuplicatedIDError If the new transition has the same id as any created before 
 	 * @see {@link Petri.Transition}
 	 */
-	private Transition getTransition(String id, Node transitionNode, NodeList nl) throws BadPNMLFormatException{
+	private Transition getTransition(String id, Node transitionNode, NodeList nl, ArrayList<Transition> transitions) throws BadPNMLFormatException, DuplicatedNameError, DuplicatedIDError{
 		
 		TimeSpan timeSpan = null;
 		Label label = null;
@@ -256,6 +276,16 @@ public class PNMLreader{
 		if(guard == null){
 			// if no guard was found, let's create an empty one
 			guard = new Pair<String, Boolean>(null, false);
+		}
+		
+		for(Transition t : transitions){
+			String tName = t.getName();
+			if(!tName.isEmpty() && tName.equalsIgnoreCase(transitionName)){
+				throw new DuplicatedNameError("Name " + transitionName + " is repeated for transitions");
+			}
+			if(t.getId().equals(id)){
+				throw new DuplicatedIDError("Id " + id + " is repeated for transitions");
+			}
 		}
 		
 		if(transitionName.isEmpty()){

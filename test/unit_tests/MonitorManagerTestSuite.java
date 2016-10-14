@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Petri.PetriNet;
@@ -41,6 +42,7 @@ public class MonitorManagerTestSuite {
 	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
 	
 	private static final String ID = "id";
+	private static final String NAME = "name";
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -826,5 +828,41 @@ public class MonitorManagerTestSuite {
 		expectedMarking[1] = 1;
 		Assert.assertArrayEquals(expectedMarking, petri.getCurrentMarking());
 		
+	}
+
+	/**
+	 * <li> Given t0 is enabled </li>
+	 * <li> And t0 is informed </li>
+	 * <li> And obs is subscripted to t0's events </li>
+	 * <li> When I fire t0 by its name </li>
+	 * <li> Then obs gets an event matching t0's ID and NAME </li>
+	 */
+	@Test
+	public void MonitorShouldAcceptTransitionNameAsFireArgument(){
+		
+		setUpMonitor(MONITOR_TEST_03_PETRI);
+		
+		Transition t0 = petri.getTransitions()[0];
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs);
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		Assert.assertTrue(events.isEmpty());
+		
+		monitor.fireTransition(t0.getName());
+		
+		Assert.assertFalse(events.isEmpty());
+		
+		try {
+			JsonNode obtainedData = jsonParser.readTree(events.get(0));
+			String obtainedID = obtainedData.get(ID).asText();
+			String obtainedName = obtainedData.get(NAME).asText();
+			Assert.assertEquals(t0.getId(), obtainedID);
+			Assert.assertEquals(t0.getName(), obtainedName);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
 	}
 }

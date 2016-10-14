@@ -123,7 +123,7 @@ public abstract class PetriNet {
 	 * Fires the transition whose index is transitionIndex if it's enabled and updates current marking.
 	 * @param transitionIndex Transition's index to be fired.
 	 * @return true if transitionIndex was fired. For a perennial fire, returns true in any case.
-	 * @throws IllegalArgumentException If transitionIndex is negative or grater than the last transition index.
+	 * @throws IllegalArgumentException If transitionIndex is negative or greater than the last transition index.
 	 */
 	public synchronized boolean fire(int transitionIndex) throws IllegalArgumentException{
 		// m_(i+1) = m_i + I*d
