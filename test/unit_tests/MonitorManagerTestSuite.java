@@ -736,6 +736,8 @@ public class MonitorManagerTestSuite {
 	
 	/**
 	 * <li> Given t1 is disabled </li>
+	 * <li> And p1 feeds t1 </li>
+	 * <li> And t1 feeds p0 </li>
 	 * <li> And p0 has one token </li>
 	 * <li> And p1 has no tokens </li>
 	 * <li> And obs subscribes to t1's events </li>
