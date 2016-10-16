@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-4C0F-5FD02-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>petriWithReader01</text>
+  </name>
+ <page id="g-4C0F-5FD07-1">
+  <place id="p-4C0F-5FD08-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>2</text>
+   </initialMarking>
+   <graphics>
+    <position x="70" y="30"/>
+   </graphics>
+  </place>
+  <place id="p-4C0F-5FD0D-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="70" y="220"/>
+   </graphics>
+  </place>
+  <place id="p-4C0F-5FD0F-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="160" y="130"/>
+   </graphics>
+  </place>
+  <transition id="t-4C0F-5FD12-5">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="160" y="60"/>
+   </graphics>
+  </transition>
+  <transition id="t-4C0F-5FD15-6">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="220" y="130"/>
+   </graphics>
+  </transition>
+  <transition id="t-4C0F-5FD18-7">
+  <name>
+   <text>t2</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="70" y="130"/>
+   </graphics>
+  </transition>
+  <arc id="e-4C0F-5FD1A-8" source="t-4C0F-5FD12-5" target="p-4C0F-5FD0F-4">
+  </arc>
+  <arc id="e-4C0F-5FD1B-9" source="p-4C0F-5FD0F-4" target="t-4C0F-5FD15-6">
+  </arc>
+  <arc id="e-4C0F-5FD1C-10" source="p-4C0F-5FD08-2" target="t-4C0F-5FD18-7">
+  </arc>
+  <arc id="e-4C0F-5FD1E-11" source="t-4C0F-5FD18-7" target="p-4C0F-5FD0D-3">
+  </arc>
+  <arc id="e-4C0F-5FD1E-12" source="p-4C0F-5FD0F-4" target="t-4C0F-5FD18-7">
+   <type value="test"/>
+  </arc>
+ </page>
+ </net>
+</pnml>

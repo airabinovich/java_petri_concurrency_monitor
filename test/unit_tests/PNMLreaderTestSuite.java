@@ -32,6 +32,7 @@ public class PNMLreaderTestSuite {
 	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
 	private static final String PETRI_WITH_GUARD_BAD_FORMAT_01 = TEST_PETRI_FOLDER + "petriWithGuardBadFormat01.pnml";
 	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
+	private static final String PETRI_WITH_READER_01 = TEST_PETRI_FOLDER + "petriWithReader01.pnml";
 	private static final String PETRI_WITH_CUSTOM_NAMES = TEST_PETRI_FOLDER + "petriWithCustomNames.pnml";
 	private static final String PETRI_WITH_DUPLICATED_NAMES_PLACE = TEST_PETRI_FOLDER + "petriWithDuplicatedNamesPlace.pnml";
 	private static final String PETRI_WITH_DUPLICATED_NAMES_TRANSITION = TEST_PETRI_FOLDER + "petriWithDuplicatedNamesTransition.pnml";
@@ -461,6 +462,40 @@ public class PNMLreaderTestSuite {
 			assertEquals(DuplicatedIDError.class, e.getClass());
 		} catch (Exception e) {
 			fail("Exception thrown during test: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * <li> Given p2 feeds t2 with a read arc </li>
+	 * <li> When the file is parsed </li>
+	 * <li> And the arcs are built </li>
+	 * <li> Then there must be one reader arc from p2 to t2</li>
+	 */
+	@Test
+	public void PNMLreaderShouldRecognizeReaderArcs() {
+		try {
+			PNMLreader reader = new PNMLreader(PETRI_WITH_READER_01);
+			
+			Triplet<Place[], Transition[], Arc[]> petriObjects = reader.parseFileAndGetPetriObjects();
+			
+			Place p2 = petriObjects.getValue0()[2];
+			Transition t2 = petriObjects.getValue1()[2];
+			
+			// get all matching arcs filtering the array as a stream by source id and target id. This should be just one
+			Arc[] matchingArcs = Arrays.stream(petriObjects.getValue2())
+					.filter((Arc a) -> a.getSource().getId().equals(p2.getId()) &&  a.getTarget().getId().equals(t2.getId()))
+					.toArray((size) -> new Arc[size]);
+			
+			assertEquals(1, matchingArcs.length);
+			
+			Arc arc = matchingArcs[0];
+			
+			assertEquals(ArcType.READ, arc.getType());
+			
+		} catch (FileNotFoundException | SecurityException e) {
+			fail("Could not open file " + PETRI_WITH_INHIBITOR_01);
+		} catch (Exception e) {
+			fail("Exception thrown: " + e.getMessage());
 		}
 	}
 }
