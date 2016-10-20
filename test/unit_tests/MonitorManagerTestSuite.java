@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import Petri.PetriNet;
 import Petri.PetriNetFactory;
 import Petri.PetriNetFactory.petriNetType;
+import Petri.TimedPetriNet;
 import Petri.Transition;
 import monitor_petri.FirstInLinePolicy;
 import monitor_petri.MonitorManager;
@@ -28,6 +29,7 @@ public class MonitorManagerTestSuite {
 	
 	MonitorManager monitor;
 	PetriNet petri;
+	TimedPetriNet timedPetriNet;
 	static TransitionsPolicy policy;
 	static PetriNetFactory factory;
 	
@@ -59,13 +61,22 @@ public class MonitorManagerTestSuite {
 	}
 	
 	/**
+	 * Creates factory, petri and monitor from given PNML
+	 * @param PNML Path to the PNML file
+	 * @param type The petri type to create
+	 */
+	private void setUpMonitor(String PNML, petriNetType type){
+		factory = new PetriNetFactory(PNML);
+		petri = factory.makePetriNet(type);
+		monitor = new MonitorManager(petri, policy);		
+	}
+	
+	/**
 	 * Creates builder, petri and monitor from given PNML
 	 * @param PNML path to the PNML file
 	 */
 	private void setUpMonitor(String PNML){
-		factory = new PetriNetFactory(PNML);
-		petri = factory.makePetriNet(petriNetType.PT);
-		monitor = new MonitorManager(petri, policy);
+		setUpMonitor(PNML, petriNetType.PT);
 	}
 
 	/**

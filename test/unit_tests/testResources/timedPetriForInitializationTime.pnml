@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-14EC-EE620-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>timedPetriForInitializationTime</text>
+  </name>
+ <page id="g-14EC-EE630-1">
+  <place id="p-14EC-EE633-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="35" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-14EC-EE63F-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="35" y="220"/>
+   </graphics>
+  </place>
+  <transition id="t-14EC-EE643-4">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="closed">
+     <cn>20</cn>
+     <cn>202</cn>
+    </interval>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="35" y="130"/>
+   </graphics>
+  </transition>
+  <arc id="e-14EC-EE649-5" source="t-14EC-EE643-4" target="p-14EC-EE63F-3">
+  </arc>
+  <arc id="e-14EC-EE64D-6" source="p-14EC-EE633-2" target="t-14EC-EE643-4">
+  </arc>
+ </page>
+ </net>
+</pnml>
