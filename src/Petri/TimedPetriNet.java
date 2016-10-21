@@ -22,19 +22,11 @@ public class TimedPetriNet extends PetriNet{
 
 	/**
 	 * Computes the enabled transitions
-	 * Uses the method computeEnabledTransitions and set the times in order to
-	 * avoid the time race condition related to initialization times
+	 * Uses the method computeEnabledTransitions and set the times
 	 * @see {@link TimedPetriNet#computeEnabledTransitions()} 
 	 */
 	public void startTimes(){
-		long time = System.currentTimeMillis();
-		for(Transition t : transitions){
-			boolean transitionEnabled = isEnabled(t);
-			this.enabledTransitions[t.getIndex()] = transitionEnabled;
-			if (t.getTimeSpan() != null && isEnabled(t)){
-				t.getTimeSpan().setEnableTime(time);
-			}
-		}
+		this.enabledTransitions = computeEnabledTransitions();
 	}
 	
 	/**
@@ -70,9 +62,9 @@ public class TimedPetriNet extends PetriNet{
 	}
 	
 	/**
-	 * Computes the enabled transitions, setting the enable times if it is necessary
-	 * If a transition was enabled, its timespan is not updated
-	 * @return True if the fire was successful
+	 * Computes the enabled transitions, setting the enable times for new enabled transitions only
+	 * If a transition was already enabled, its timespan is not updated
+	 * @return the boolean array with enabled transitions
 	 */
 	protected boolean[] computeEnabledTransitions(){
 		boolean[] _enabledTransitions = new boolean[transitions.length];

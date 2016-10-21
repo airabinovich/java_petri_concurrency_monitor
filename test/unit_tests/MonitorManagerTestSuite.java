@@ -68,7 +68,7 @@ public class MonitorManagerTestSuite {
 	private void setUpMonitor(String PNML, petriNetType type){
 		factory = new PetriNetFactory(PNML);
 		petri = factory.makePetriNet(type);
-		monitor = new MonitorManager(petri, policy);		
+		monitor = new MonitorManager(petri, policy);
 	}
 	
 	/**

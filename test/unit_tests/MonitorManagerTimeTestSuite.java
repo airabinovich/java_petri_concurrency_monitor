@@ -67,7 +67,7 @@ public class MonitorManagerTimeTestSuite {
 	 * <li> And p0 has one token</li>
 	 * <li> And t0 is timed [a,b], a>0, b>a </li>
 	 * <li> When thread worker fires t0 at time ti < a (before timespan) </li>
-	 * <li> Then worker goes to sleep into transition (not to the varCond queue) </li>
+	 * <li> Then worker goes to sleep by itself </li>
 	 */
 	@Test
 	public void testAThreadGoesToSleepWhenComeBeforeTimeSpan() {
@@ -97,7 +97,7 @@ public class MonitorManagerTimeTestSuite {
 	 * <li> And t0 is timed [a,b], a>0, b>a </li>
 	 * <li> When thread worker1 tries to fires t0 at time ti < a (before timespan) </li>
 	 * <li> And thread worker2 tries to fires t0 at time tj, where ti < tj < a (before timespan as well) </li>
-	 * <li> Then worker1 goes to sleep into transition (not to the varCond queue) </li>
+	 * <li> Then worker1 goes to sleep by itself </li>
 	 * <li> And worker2 goes to sleep into varCond queue </li>
 	 */
 	@Test
@@ -143,7 +143,7 @@ public class MonitorManagerTimeTestSuite {
 	 * <li> And p0 has one token</li>
 	 * <li> And t0 is timed [a,b], a>0, b>a </li>
 	 * <li> When thread worker tries to fires t0 at time ti < a (before timespan) </li>
-	 * <li> Then worker goes to sleep into transition (not to the varCond queue) </li>
+	 * <li> Then worker goes to sleep by itself </li>
 	 * <li> And worker wakes up after the time "a - ti" and fires the transition succefully</li>
 	 */
 	@Test
@@ -354,12 +354,10 @@ public class MonitorManagerTimeTestSuite {
 	/**
 	 * <li> Given t0 is enabled </li>
 	 * <li> And t0 is timed with timespan [a,b], a>0, b>a </li>
-	 * <li> And after set up the petri net, the main thread sleeps simulating the time </li>
-	 * <li> spent in set up the custom software</li>
+	 * <li> And some time passes after initialization </li>
 	 * <li> And the timespans are initialized </li>
-	 * <li> When thread th0 tries to fire t0 at time ti</li>
-	 * <li> Then th0 fires t0 succefully, although it comes before timespan, because in that case </li>
-	 * <li> th0 goes to sleep for a while (a - ti) and then wakes up and fires the transition</li>
+	 * <li> When thread th0 tries to fire t0 </li>
+	 * <li> Then th0 fires t0 succefully </li>
 	 */
 	@Test
 	public void MonitorShouldRestartTheEnablingTimesAndHasNoRaceTimeCondition(){
@@ -389,7 +387,6 @@ public class MonitorManagerTimeTestSuite {
 		
 		expectedMarking[0] = 0;
 		expectedMarking[1] = 1;	
-		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());		
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
 	}
-
 }
