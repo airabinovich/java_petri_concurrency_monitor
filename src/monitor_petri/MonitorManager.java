@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.concurrent.Semaphore;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import Petri.PetriNet;
 import Petri.TimeSpan;
 import Petri.Transition;
+import monitor_petri.PriorityBinaryLock.LockPriority;
 import rx.Observer;
 import rx.Subscription;
 import rx.subjects.PublishSubject;
@@ -21,7 +21,7 @@ public class MonitorManager {
 	/** Petri Net to command the monitor orchestration */
 	private PetriNet petri;
 	/** Mutex for the monitor access with a FIFO queue associated*/
-	private Semaphore inQueue = new Semaphore(1,true);
+	private PriorityBinaryLock inQueue = new PriorityBinaryLock();
 	/** Condition variable queues where locked threads will wait */
 	private VarCondQueue[] condVarQueue;	
 	/** The policy to be used for transitions management. This will decide which transition
@@ -111,16 +111,16 @@ public class MonitorManager {
 		if(transitionToFire.getLabel().isAutomatic()){
 			throw new IllegalTransitionFiringError("An automatic transition has tried to be fired manually");
 		}
-		int permitsToRelease = 1;
+		boolean releaseLock = true;
 		try {
 			// take the mutex to access the monitor
-			inQueue.acquire();
-			permitsToRelease = internalFireTransition(transitionToFire, perennialFire);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+			inQueue.lock();
+			releaseLock = internalFireTransition(transitionToFire, perennialFire);
 		} finally{
 			// the firing is done, release the mutex and leave
-			inQueue.release(permitsToRelease);
+			if(releaseLock){
+				inQueue.unlock();
+			}
 		}
 	}
 	
@@ -209,9 +209,9 @@ public class MonitorManager {
 			throw new NullPointerException("Empty guard name not allowed");
 		}
 		boolean couldSet = false;
-		int permitsToRelease = 1;
+		boolean releaseLock = true;
 		try{
-			inQueue.acquire();
+			inQueue.lock();
 			petri.readGuard(guardName);
 			couldSet = petri.addGuard(guardName, newValue);
 			// setting this guard could've enabled some transitions
@@ -220,17 +220,17 @@ public class MonitorManager {
 			int nextTransitionToFireIndex = getNextTransitionAvailableToFire();
 			if(nextTransitionToFireIndex >= 0){
 				if(petri.getAutomaticTransitions()[nextTransitionToFireIndex]){
-					permitsToRelease = internalFireTransition(petri.getTransitions()[nextTransitionToFireIndex], false);
+					releaseLock = internalFireTransition(petri.getTransitions()[nextTransitionToFireIndex], false);
 				} else {
 					// if a fired transition was enabled by the guard, wake up a thread waiting for it
-					permitsToRelease = 0;
+					releaseLock = false;
 					condVarQueue[nextTransitionToFireIndex].wakeUp();
 				}
 			}
-		} catch(InterruptedException e){
-			e.printStackTrace();
 		} finally {
-			inQueue.release(permitsToRelease);
+			if(releaseLock){
+				inQueue.unlock();
+			}
 		}
 		return couldSet;
 	}
@@ -293,11 +293,10 @@ public class MonitorManager {
 	 * A perennial fire doesn't send a thread to sleep.
 	 * @param transitionToFire
 	 * @param perennialFire
-	 * @return permits to release to mutex {@link #inQueue}
-	 * @throws InterruptedException if the calling thread is interrupted
+	 * @return Whether to release the mutex {@link #inQueue}
 	 */
-	private int internalFireTransition(Transition transitionToFire, boolean perennialFire) throws InterruptedException{
-		int permitsToRelease = 1;
+	private boolean internalFireTransition(Transition transitionToFire, boolean perennialFire){
+		boolean releaseLock = true;
 		boolean keepFiring = true;
 		boolean insideTimeSpan = false;
 		boolean isTimed = false;
@@ -312,24 +311,29 @@ public class MonitorManager {
 			}
 			if(keepFiring){
 				while(isTimed && !insideTimeSpan){
-					//The calling thread came before time span, and there is nobody sleeping in the transition
 					if(transitionSpan.isBeforeTimeSpan(fireAttemptTime) && !transitionSpan.anySleeping()){
-						inQueue.release();
+						// The calling thread came before time span, and there is nobody sleeping in the transition,
+						// release the input mutex and sleep here until the time has come.
+						inQueue.unlock();
 						transitionSpan.sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - fireAttemptTime);
-						// TODO: here, the waking thread shouldn't have to wait its turn to enter the monitor
-						// because it's inside its timespan and can miss its chance to fire waiting
-						// Issue #7 has to be fixed here
-						inQueue.acquire();
+						// when this thread wakes up, its time to fire has come and may be short
+						// so take the lock with high priority to avoid waiting for the incoming threads
+						// This way, only as high-prioritized threads as this one may cause waiting
+						inQueue.lock(LockPriority.HIGH);
 					}
 					else if(!perennialFire) {
-						//The calling thread came late, the time is over. Thus the thread releases the input mutex and goes to sleep
-						inQueue.release();
-						condVarQueue[transitionToFire.getIndex()].sleep();
+						// The calling thread came late, the time is over. Thus the thread releases the input mutex and goes to sleep
+						inQueue.unlock();
+						// Go to sleep in the condition queue but with high priority.
+						// This is because when this thread is waken, it'll have a limited amount of time to fire its transition
+						// And this way it won't need to wait for other threads who came after it.
+						// It's going to be the first in line due to timestamp and priority ordering
+						condVarQueue[transitionToFire.getIndex()].sleepWithHighPriority();;
 						// when waking up, don't take the mutex for the waking thread didn't release it
 					}
 					else{
 						// a perennial fire should not wait in the queue for the transition to get enabled again
-						return permitsToRelease;
+						return releaseLock;
 					}
 					// at this point, the transition may have been disabled when the firing thread was sleeping
 					fireAttemptTime = System.currentTimeMillis();
@@ -340,12 +344,12 @@ public class MonitorManager {
 					if(perennialFire){
 						// the firing failed but since it's a perennial fire
 						// the calling thread doesn't have to sleep
-						// so return the permits to be released
-						return permitsToRelease;
+						// so return whether to release the mutex
+						return releaseLock;
 					}
 					// if the transition wasn't fired sucessfully
 					// release the main mutex and go to sleep
-					inQueue.release();
+					inQueue.unlock();
 					condVarQueue[transitionToFire.getIndex()].sleep();
 					// after waking up try to fire inside the timespan again
 					continue;
@@ -367,26 +371,26 @@ public class MonitorManager {
 					else{
 						// The transition chosen isn't automatic
 						// so wake up the associated thread to that transition
-						// and leave the monitor without releasing the input mutex (permits = 0)
+						// and leave the monitor without releasing the input mutex
 						condVarQueue[nextTransitionToFireIndex].wakeUp();
-						permitsToRelease = 0;
+						releaseLock = false;
 						keepFiring = false;
 					}
 				}
 				else{
-					// no transition left to fire, leave the monitor releasing one permit
+					// no transition left to fire, leave the monitor releasing the lock
 					keepFiring = false;
-					permitsToRelease = 1;
+					releaseLock = true;
 				}
 			}
 			// if this is a perennial fire and the transition is not enabled, don't send the thread to sleep
 			else if(!perennialFire){
 				// the fire failed, thus the thread releases the input mutex and goes to sleep
-				inQueue.release();
+				inQueue.unlock();
 				condVarQueue[transitionToFire.getIndex()].sleep();
 				keepFiring = true;
 			}
 		}
-		return permitsToRelease;
+		return releaseLock;
 	}
 }

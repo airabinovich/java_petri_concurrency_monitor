@@ -8,6 +8,13 @@ public interface VarCondQueue{
 	public void sleep();
 	
 	/**
+	 * Sends the calling thread to sleep with the guarantee
+	 * that a {@link #wakeUp()} call will signal it before any other
+	 * thread who called {@link #sleep()}
+	 */
+	public void sleepWithHighPriority();
+	
+	/**
 	 * Wakes a sleeping thread up if there is any.
 	 * The woken thread is the one that has been waiting the longer
 	 */
