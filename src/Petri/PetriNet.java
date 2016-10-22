@@ -47,42 +47,9 @@ public abstract class PetriNet {
 	 * @param _preI Pre-Incidence matrix (dimension p*t)
 	 * @param _posI Post-Incidence matrix (dimension p*t)
 	 * @param _I Incidence matrix (dimension p*t)
-	 */	
-	protected PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
-			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I){
-		this(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, null, null, null);
-	}
-
-	/**
-	 * Makes a PetriNet Object. This is intended to be used by PetriNetFactory
-	 * @param _places Array of Place objects (dimension p)
-	 * @param _transitions Array of Transition objects (dimension t)
-	 * @param _arcs Array of Arcs
-	 * @param _initialMarking Array of Integers (tokens in each place) (dimension p)
-	 * @param _preI Pre-Incidence matrix (dimension p*t)
-	 * @param _posI Post-Incidence matrix (dimension p*t)
-	 * @param _I Incidence matrix (dimension p*t)
-	 * @param _inhibitionMatrix Pre-Incidence matrix for inhibition arcs only
-	 * @param _resetMatrix Pre-Incidence matrix for reset arcs only
-	 */
-	protected PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
-			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I,
-			Boolean[][] _inhibitionMatrix, Boolean[][] _resetMatrix){
-		this(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, _inhibitionMatrix, _resetMatrix, null);
-	}
-
-	/**
-	 * Makes a PetriNet Object. This is intended to be used by PetriNetFactory
-	 * @param _places Array of Place objects (dimension p)
-	 * @param _transitions Array of Transition objects (dimension t)
-	 * @param _arcs Array of Arcs
-	 * @param _initialMarking Array of Integers (tokens in each place) (dimension p)
-	 * @param _preI Pre-Incidence matrix (dimension p*t)
-	 * @param _posI Post-Incidence matrix (dimension p*t)
-	 * @param _I Incidence matrix (dimension p*t)
-	 * @param _inhibitionMatrix Pre-Incidence matrix for inhibition arcs only
-	 * @param _resetMatrix Pre-Incidence matrix for reset arcs only
-	 * @param _readerMatrix Pre-Incidence matrix for reader arcs only
+	 * @param _inhibitionMatrix Pre-Incidence matrix for inhibition arcs only. If no inhibition arcs, null is accepted.
+	 * @param _resetMatrix Pre-Incidence matrix for reset arcs only. If no reset arcs, null is accepted.
+	 * @param _readerMatrix Pre-Incidence matrix for reader arcs only. If no reader arcs, null is accepted.
 	 */
 	protected PetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs,
 			Integer[] _initialMarking, Integer[][] _preI, Integer[][] _posI, Integer[][] _I,

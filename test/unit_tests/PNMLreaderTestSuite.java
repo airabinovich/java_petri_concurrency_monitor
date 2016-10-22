@@ -466,7 +466,7 @@ public class PNMLreaderTestSuite {
 	}
 	
 	/**
-	 * <li> Given p2 feeds t2 with a read arc </li>
+	 * <li> Given p2 feeds t2 with a reader arc </li>
 	 * <li> When the file is parsed </li>
 	 * <li> And the arcs are built </li>
 	 * <li> Then there must be one reader arc from p2 to t2</li>
