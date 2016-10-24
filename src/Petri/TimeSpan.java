@@ -18,6 +18,7 @@ public class TimeSpan {
 	public TimeSpan(long timeB, long timeE){
 		this.timeBegin = timeB;
 		this.timeEnd = timeE;
+		this.enableTime = -1;
 	}
 	
 	/**
@@ -47,7 +48,10 @@ public class TimeSpan {
 	 * @param time timestamp in miliseconds to figure out whether it's inside the span
 	 * @return true if time is inside the span
 	 */
-	public boolean inTimeSpan(long time){
+	public boolean inTimeSpan(long time) throws NotInitializedTimedPetriNetException{
+		if(enableTime == -1){
+			throw new NotInitializedTimedPetriNetException("The Petri Net times are not initialized");
+		}
 		if(time >= enableTime + timeBegin){
 			if(timeEnd == Long.MAX_VALUE){
 				return true;
@@ -63,7 +67,10 @@ public class TimeSpan {
 	 * @param time timestamp in miliseconds to figure out whether it's before the span
 	 * @return true if time is befire the span
 	 */
-	public boolean isBeforeTimeSpan(long time){
+	public boolean isBeforeTimeSpan(long time) throws NotInitializedTimedPetriNetException{
+		if(enableTime == -1){
+			throw new NotInitializedTimedPetriNetException("The Petri Net times are not initialized");
+		}
 		return time < enableTime + timeBegin;
 	}
 	

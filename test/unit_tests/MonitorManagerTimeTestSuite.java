@@ -13,12 +13,14 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import Petri.NotInitializedTimedPetriNetException;
 import Petri.PetriNet;
 import Petri.PetriNetFactory;
 import Petri.TimedPetriNet;
 import Petri.PetriNetFactory.petriNetType;
 import Petri.Transition;
 import monitor_petri.FirstInLinePolicy;
+import monitor_petri.IllegalTransitionFiringError;
 import monitor_petri.MonitorManager;
 import monitor_petri.TransitionsPolicy;
 import test_utils.TransitionEventObserver;
@@ -78,7 +80,11 @@ public class MonitorManagerTimeTestSuite {
 		Transition t0 = timedPetriNet.getTransitions()[0];
 		
 		Thread worker = new Thread(() -> {
-			monitor.fireTransition(t0);
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
 		worker.start();
 		
@@ -112,10 +118,18 @@ public class MonitorManagerTimeTestSuite {
 		long t0BeginTime = t0.getTimeSpan().getTimeBegin();
 		
 		Thread worker1 = new Thread(() -> {
-			monitor.fireTransition(t0);
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
 		Thread worker2 = new Thread(() -> {
-			monitor.fireTransition(t0);
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
 		worker1.start();
 		
@@ -157,7 +171,11 @@ public class MonitorManagerTimeTestSuite {
 		long t0BeginTime = t0.getTimeSpan().getTimeBegin();
 		
 		Thread worker = new Thread(() -> {
-			monitor.fireTransition(t0);
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
 		worker.start();
 		
@@ -205,7 +223,11 @@ public class MonitorManagerTimeTestSuite {
 		Assert.assertFalse(t0.getTimeSpan().anySleeping());
 		
 		Thread th0 = new Thread(() -> {
-			monitor.fireTransition(t0);
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
 		th0.start();
 		
@@ -216,13 +238,24 @@ public class MonitorManagerTimeTestSuite {
 			Assert.fail("Main thread interrupted. Message: " + e.getMessage());
 		}
 		
-		Assert.assertFalse(t0.getTimeSpan().inTimeSpan(System.currentTimeMillis()));
+		boolean insideTimeSpan = false;
+		try {
+			insideTimeSpan = t0.getTimeSpan().inTimeSpan(System.currentTimeMillis());
+		} catch (NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
+		
+		Assert.assertFalse(insideTimeSpan);
 		Assert.assertTrue(t0.getTimeSpan().anySleeping());
 		
 		Assert.assertTrue(timedPetriNet.isEnabled(t0));
 		Assert.assertTrue(timedPetriNet.isEnabled(t3));
 		
-		monitor.fireTransition(t3);
+		try {
+			monitor.fireTransition(t3);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		Assert.assertFalse(timedPetriNet.isEnabled(t0));
 		
@@ -269,7 +302,13 @@ public class MonitorManagerTimeTestSuite {
 		
 		ArrayList<String> events = obs.getEvents();
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t0, true));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0, true);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th0.start();
 		
 		try {
@@ -334,7 +373,13 @@ public class MonitorManagerTimeTestSuite {
 			Assert.fail("Main thread interrupted. Message: " + e.getMessage());
 		}
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t0, true));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0, true);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th0.start();
 		
 		try {
@@ -369,7 +414,13 @@ public class MonitorManagerTimeTestSuite {
 		Integer[] expectedMarking = {1, 0};
 		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t0));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		
 		try {
 			Thread.sleep(200);
@@ -387,6 +438,43 @@ public class MonitorManagerTimeTestSuite {
 		
 		expectedMarking[0] = 0;
 		expectedMarking[1] = 1;	
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+	}
+	
+	/**
+	 * <li> Given t0 is enabled </li>
+	 * <li> And t0 is timed with timespan [a,b], a>0, b>a </li>
+	 * <li> And some time passes after initialization </li>
+	 * <li> And the timespans are initialized </li>
+	 * <li> When thread th0 tries to fire t0 </li>
+	 * <li> Then th0 fires t0 succefully </li>
+	 */
+	@Test
+	public void MonitorShouldThrowsAnExceptionWhenThreadTriesToFireBeforeStartPetriNetTimes(){
+		
+		setUpMonitor(PETRI_FOR_INITIALIZATION_TIME);
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		
+		Integer[] expectedMarking = {1, 0};
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+		
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.assertEquals(NotInitializedTimedPetriNetException.class, e.getClass());
+			}
+		});
+		
+		th0.start();		
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
 		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
 	}
 }

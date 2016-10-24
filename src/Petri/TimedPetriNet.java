@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 public class TimedPetriNet extends PetriNet{
 
+	protected boolean timesStarted;
 	protected boolean[] enabledTransitions;
 	
 	/**
@@ -18,25 +19,28 @@ public class TimedPetriNet extends PetriNet{
 		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, _inhibition, _resetMatrix);
 		enabledTransitions = new boolean[_transitions.length];
 		Arrays.fill(enabledTransitions, false);
+		this.timesStarted = false;
 	}
 
 	/**
-	 * Computes the enabled transitions
+	 * Computes the enabled transitions for first time
 	 * Uses the method computeEnabledTransitions and set the times
-	 * @see {@link TimedPetriNet#computeEnabledTransitions()} 
+	 * @see TimedPetriNet#computeEnabledTransitions() 
 	 */
 	public void startTimes(){
 		this.enabledTransitions = computeEnabledTransitions();
+		this.timesStarted = true;
 	}
 	
 	/**
 	 * Fires the transition specified by transitionIndex and updates the enabled transitions with their timestamps
 	 * @param transitionIndex The index of the transition to be fired
 	 * @return True if the fire was successful
-	 * @throws IllegalArgumentException If the index is negative or greater than the last transition index.
+	 * @throws NotInitializedTimedPetriNetException if the times are not initialized
+	 * @see TimedPetriNet#startTimes()
 	 * @see PetriNet#fire(int)
 	 */
-	public boolean fire(int transitionIndex) throws IllegalArgumentException{
+	public boolean fire(int transitionIndex){
 		boolean wasFired = super.fire(transitionIndex);
 		//Compute new enabled transitions and set new timestamp 
 		this.enabledTransitions = computeEnabledTransitions();
@@ -48,6 +52,7 @@ public class TimedPetriNet extends PetriNet{
 	 * @param t The transition to be fired
 	 * @return True if the fire was successful
 	 * @throws IllegalArgumentException If t is null or if it doesn't match any transition index.
+	 * @see TimedPetriNet#startTimes()
 	 * @see PetriNet#fire(Transition)
 	 */
 	public boolean fire(final Transition t) throws IllegalArgumentException{
@@ -81,4 +86,9 @@ public class TimedPetriNet extends PetriNet{
 		}
 		return _enabledTransitions;
 	}
+	
+	public boolean isTimesStarted() {
+		return this.timesStarted;
+	}
+
 }
