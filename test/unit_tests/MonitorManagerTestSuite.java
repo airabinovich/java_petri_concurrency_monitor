@@ -14,11 +14,14 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import Petri.NotInitializedTimedPetriNetException;
 import Petri.PetriNet;
 import Petri.PetriNetFactory;
 import Petri.PetriNetFactory.petriNetType;
+import Petri.TimedPetriNet;
 import Petri.Transition;
 import monitor_petri.FirstInLinePolicy;
+import monitor_petri.IllegalTransitionFiringError;
 import monitor_petri.MonitorManager;
 import monitor_petri.TransitionsPolicy;
 import rx.Subscription;
@@ -28,6 +31,7 @@ public class MonitorManagerTestSuite {
 	
 	MonitorManager monitor;
 	PetriNet petri;
+	TimedPetriNet timedPetriNet;
 	static TransitionsPolicy policy;
 	static PetriNetFactory factory;
 	
@@ -59,13 +63,22 @@ public class MonitorManagerTestSuite {
 	}
 	
 	/**
-	 * Creates builder, petri and monitor from given PNML
+	 * Creates factory, petri and monitor from given PNML
+	 * @param PNML Path to the PNML file
+	 * @param type The petri type to create
+	 */
+	private void setUpMonitor(String PNML, petriNetType type){
+		factory = new PetriNetFactory(PNML);
+		petri = factory.makePetriNet(type);
+		monitor = new MonitorManager(petri, policy);
+	}
+	
+	/**
+	 * Creates factory, petri and monitor from given PNML
 	 * @param PNML path to the PNML file
 	 */
 	private void setUpMonitor(String PNML){
-		factory = new PetriNetFactory(PNML);
-		petri = factory.makePetriNet(petriNetType.PT);
-		monitor = new MonitorManager(petri, policy);
+		setUpMonitor(PNML, petriNetType.PT);
 	}
 
 	/**
@@ -92,7 +105,11 @@ public class MonitorManagerTestSuite {
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t1, obs);
 		
-		monitor.fireTransition(t0);
+		try {
+			monitor.fireTransition(t0);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exeption thrown in test execution");
+		}
 		
 		// this means that t1 emmited an event when it was fired
 		try {
@@ -135,7 +152,11 @@ public class MonitorManagerTestSuite {
 		final Transition t2 = petri.getTransitions()[2];
 		
 		Thread worker = new Thread(() -> {
-			monitor.fireTransition(t2);
+			try {
+				monitor.fireTransition(t2);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
 		worker.start();
 		
@@ -151,7 +172,11 @@ public class MonitorManagerTestSuite {
 		monitor.subscribeToTransition(t1, obs);
 		monitor.subscribeToTransition(t2, obs);
 		
-		monitor.fireTransition(t0);
+		try {
+			monitor.fireTransition(t0);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		try {
 			Thread.sleep(100);
@@ -212,6 +237,8 @@ public class MonitorManagerTestSuite {
 			Assert.fail("An IllegalTransitionFiringError should've been thrown before this point");
 		} catch (Error err){
 			Assert.assertEquals("IllegalTransitionFiringError", err.getClass().getSimpleName());
+		} catch (NotInitializedTimedPetriNetException e) {
+			Assert.fail("Exception thrown in test execution");
 		}
 	}
 	
@@ -236,7 +263,11 @@ public class MonitorManagerTestSuite {
 		
 		monitor.subscribeToTransition(t1, obs);
 		
-		monitor.fireTransition(t0);
+		try {
+			monitor.fireTransition(t0);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		ArrayList<String> events = obs.getEvents();
 		
@@ -324,7 +355,11 @@ public class MonitorManagerTestSuite {
 		
 		Assert.assertTrue(obs.getEvents().isEmpty());
 		
-		monitor.fireTransition(t0);
+		try {
+			monitor.fireTransition(t0);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		ArrayList<String> events = obs.getEvents();
 		
@@ -364,7 +399,11 @@ public class MonitorManagerTestSuite {
 		
 		Assert.assertTrue(obs.getEvents().isEmpty());
 		
-		monitor.fireTransition(t0);
+		try {
+			monitor.fireTransition(t0);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		ArrayList<String> events = obs.getEvents();
 		
@@ -380,7 +419,11 @@ public class MonitorManagerTestSuite {
 		
 		Assert.assertTrue(sub.isUnsubscribed());
 		
-		monitor.fireTransition(t0);
+		try {
+			monitor.fireTransition(t0);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		Assert.assertEquals(1, events.size());
 	}
@@ -413,13 +456,21 @@ public class MonitorManagerTestSuite {
 		TransitionEventObserver obs1 = new TransitionEventObserver();
 		monitor.subscribeToTransition(t1, obs1);
 		
-		monitor.fireTransition(t0);
+		try {
+			monitor.fireTransition(t0);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		expectedMarking[0] = false;
 		expectedMarking[1] = true;
 		Assert.assertArrayEquals(expectedMarking, petri.getEnabledTransitions());
 		
-		monitor.fireTransition(t1);
+		try {
+			monitor.fireTransition(t1);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		ArrayList<String> events0 = obs0.getEvents();
 		ArrayList<String> events1 = obs1.getEvents();
@@ -474,10 +525,22 @@ public class MonitorManagerTestSuite {
 		
 		petri.addGuard("test", true);
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t0));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th0.start();
 		
-		Thread th1 = new Thread(() -> monitor.fireTransition(t1));
+		Thread th1 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t1);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th1.start();
 		
 		try {
@@ -525,15 +588,29 @@ public class MonitorManagerTestSuite {
 		Transition t0 = petri.getTransitions()[0];
 		
 		// setting this guard here is just to enable t0
-		monitor.setGuard("test", true);
+		try {
+			monitor.setGuard("test", true);
+		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedTimedPetriNetException e2) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		Assert.assertTrue(petri.isEnabled(t0));
 		
-		monitor.setGuard("test", false);
+		try {
+			monitor.setGuard("test", false);
+		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedTimedPetriNetException e2) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t0, obs);
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t0));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th0.start();
 		
 		try {
@@ -545,7 +622,11 @@ public class MonitorManagerTestSuite {
 		
 		Assert.assertTrue(obs.getEvents().isEmpty());
 		
-		monitor.setGuard("test", true);
+		try {
+			monitor.setGuard("test", true);
+		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedTimedPetriNetException e2) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		try {
 			// let's give th0 some time to try to fire t0
@@ -591,14 +672,24 @@ public class MonitorManagerTestSuite {
 		Transition t2 = petri.getTransitions()[2];
 		
 		// setting this guard here is just to enable t0
-		monitor.setGuard("test", true);
+		try {
+			monitor.setGuard("test", true);
+		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedTimedPetriNetException e2) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		Assert.assertTrue(petri.isEnabled(t0));
 		
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t0, obs);
 		monitor.subscribeToTransition(t2, obs);
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t0));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th0.start();
 		
 		try {
@@ -618,7 +709,11 @@ public class MonitorManagerTestSuite {
 			Assert.fail("Event is not in JSON format");
 		}
 		
-		monitor.setGuard("test", false);
+		try {
+			monitor.setGuard("test", false);
+		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedTimedPetriNetException e2) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		try {
 			// let's give some time for t2 to get fired automatically
@@ -666,7 +761,15 @@ public class MonitorManagerTestSuite {
 		monitor.subscribeToTransition(t1, obs);
 		monitor.subscribeToTransition(t2, obs);
 		
-		new Thread(() -> monitor.fireTransition(t0)).start();
+		Thread worker = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
+		
+		worker.start();
 		
 		try{
 			Thread.sleep(100);
@@ -679,7 +782,14 @@ public class MonitorManagerTestSuite {
 		
 		// initial condition generate and check here finishes here
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t2));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t2);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
+		
 		th0.start();
 		
 		try{
@@ -692,7 +802,13 @@ public class MonitorManagerTestSuite {
 		
 		Assert.assertTrue(events.isEmpty());
 		
-		Thread th1 = new Thread(() -> monitor.fireTransition(t1));
+		Thread th1 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t1);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th1.start();
 		
 		try{
@@ -724,7 +840,13 @@ public class MonitorManagerTestSuite {
 		
 		Transition t1 = petri.getTransitions()[1];
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t1, true));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t1, true);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th0.start();
 		
 		try {
@@ -764,7 +886,13 @@ public class MonitorManagerTestSuite {
 		
 		Assert.assertTrue(events.isEmpty());
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t1, true));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t1, true);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th0.start();
 		
 		try {
@@ -807,7 +935,13 @@ public class MonitorManagerTestSuite {
 		
 		Assert.assertTrue(events.isEmpty());
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t0, true));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0, true);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th0.start();
 		
 		try {
@@ -851,7 +985,11 @@ public class MonitorManagerTestSuite {
 		
 		Assert.assertTrue(events.isEmpty());
 		
-		monitor.fireTransition(t0.getName());
+		try {
+			monitor.fireTransition(t0.getName());
+		} catch (IllegalArgumentException | IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
 		Assert.assertFalse(events.isEmpty());
 		
