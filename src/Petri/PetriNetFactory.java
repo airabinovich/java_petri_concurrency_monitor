@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.javatuples.Quartet;
-import org.javatuples.Quintet;
+import org.javatuples.Sextet;
 import org.javatuples.Triplet;
 
 import Petri.Arc.ArcType;
@@ -48,16 +48,16 @@ import Petri.Arc.ArcType;
 		public PetriNet makePetriNet(petriNetType type) throws CannotCreatePetriNetError{
 			
 			Quartet<Place[], Transition[], Arc[], Integer[]> petriObjects = pnmlInfoToPetriNetObjects();
-			Quintet<Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][]> petriMatrices =
+			Sextet<Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][], Integer[][]> petriMatrices =
 					petriNetObjectsToMatrices(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2());
 			
 			switch(type){
 			case PT:
 				return new PTPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
-						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2(), petriMatrices.getValue3(), petriMatrices.getValue4());
+						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2(), petriMatrices.getValue3(), petriMatrices.getValue4(), petriMatrices.getValue5());
 			case TIMED:
 				return new TimedPetriNet(petriObjects.getValue0(), petriObjects.getValue1(), petriObjects.getValue2(), petriObjects.getValue3(),
-						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2(), petriMatrices.getValue3(), petriMatrices.getValue4());
+						petriMatrices.getValue0(), petriMatrices.getValue1(), petriMatrices.getValue2(), petriMatrices.getValue3(), petriMatrices.getValue4(), petriMatrices.getValue5());
 			default:
 				throw new CannotCreatePetriNetError("Cannot create petri net from unknown type " + type);
 			}
@@ -89,7 +89,7 @@ import Petri.Arc.ArcType;
 		 * or if a transition that has a reset arc as input has another arc as input
 		 * @see Petri.Arc.ArcType
 		 */
-		protected Quintet<Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][]> petriNetObjectsToMatrices(
+		protected Sextet<Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][], Integer[][]> petriNetObjectsToMatrices(
 				Place[] places, Transition[] transitions, Arc[] arcs) throws CannotCreatePetriNetError{
 			final int placesAmount = places.length;
 			final int transitionsAmount = transitions.length;
@@ -98,7 +98,7 @@ import Petri.Arc.ArcType;
 			Integer[][] inc = new Integer[placesAmount][transitionsAmount];
 			Boolean[][] inhibition = new Boolean[placesAmount][transitionsAmount];
 			Boolean[][] resetMatrix = new Boolean[placesAmount][transitionsAmount];
-			
+			Integer[][] readerMatrix = new Integer[placesAmount][transitionsAmount];
 			for(int i = 0; i < placesAmount; i++){
 				for(int j = 0; j < transitionsAmount; j++){
 					// Since Integer default value is null
@@ -108,6 +108,7 @@ import Petri.Arc.ArcType;
 					inc[i][j] = 0;
 					inhibition[i][j] = false;
 					resetMatrix[i][j] = false;
+					readerMatrix[i][j] = 0;
 				}
 			}
 			
@@ -141,6 +142,8 @@ import Petri.Arc.ArcType;
 					resetMatrix[sourceIndex][targetIndex] = true;
 					break;
 				case READ:
+					readerMatrix[sourceIndex][targetIndex] = arcWeight;
+					break;
 				default:
 					throw new CannotCreatePetriNetError("Arc " + type + " not supported");
 				}
@@ -167,7 +170,7 @@ import Petri.Arc.ArcType;
 				}
 			}
 			
-			return new Quintet<Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][]>(pre, pos, inc, inhibition, resetMatrix);
+			return new Sextet<Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][], Integer[][]>(pre, pos, inc, inhibition, resetMatrix, readerMatrix);
 		}
 		
 		/**

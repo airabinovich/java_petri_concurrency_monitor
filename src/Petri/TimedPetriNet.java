@@ -7,13 +7,12 @@ public class TimedPetriNet extends PetriNet{
 	protected boolean[] enabledTransitions;
 	
 	/**
-	 * extends the abstract class PetriNet, and also has a boolean array containing
-	 * the enabled transitions 
-	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][])
+	 * Constructs a TimedPetriNet object, which is a {@link PetriNet} object with added time semantics
+	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][], Integer[][])
 	 */
 	public TimedPetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs, Integer[] _initialMarking,
-			Integer[][] _preI, Integer[][] _posI, Integer[][] _I, Boolean[][] _inhibition, Boolean[][] _resetMatrix) {
-		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, _inhibition, _resetMatrix);
+			Integer[][] _preI, Integer[][] _posI, Integer[][] _I, Boolean[][] _inhibition, Boolean[][] _resetMatrix, Integer[][] _readerMatrix) {
+		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, _inhibition, _resetMatrix, _readerMatrix);
 		enabledTransitions = new boolean[_transitions.length];
 		Arrays.fill(enabledTransitions, false);
 		this.enabledTransitions = computeEnabledTransitions();

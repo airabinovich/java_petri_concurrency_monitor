@@ -21,9 +21,9 @@ public class Arc {
 		 */
 		RESET,
 		/** Reader arc. Connects a place to a transition but not the other way.
-		 * As the standard arc, a source place has no have an amount of token equal
+		 * As the standard arc, a source place needs an amount of token equal
 		 * or greater than the arc's weight to enable the target transition, but
-		 * in this type of arc the transition fire doesn't drain any tokens from the place
+		 * in this type of arc firing the transition doesn't drain any tokens from the place
 		 */
 		READ;
 		
