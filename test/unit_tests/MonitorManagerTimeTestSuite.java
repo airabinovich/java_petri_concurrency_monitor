@@ -37,6 +37,7 @@ public class MonitorManagerTimeTestSuite {
 	private static final String TEST_PETRI_FOLDER = "test/unit_tests/testResources/";
 	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetri.pnml";
 	private static final String PETRI_FOR_INITIALIZATION_TIME = TEST_PETRI_FOLDER + "timedPetriForInitializationTime.pnml";
+	private static final String PETRI_FOR_INITIALIZATION_TIME2 = TEST_PETRI_FOLDER + "timedPetriForInitializationTime2.pnml";
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -473,6 +474,67 @@ public class MonitorManagerTimeTestSuite {
 		} catch (InterruptedException e) {
 			Assert.fail("Interrupted thread: " + e.getMessage());
 		}
+		
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+	}
+	
+	/**
+	 * <li> Given p0 feeds t1 and p2 feeds t1 </li>
+	 * <li> And t0 and t1 are enabled </li>
+	 * <li> And t0 is timed with timespan [a,b], a>0, b>a </li>
+	 * <li> And t1 has no timespan
+	 * <li> And some time passes after initialization </li>
+	 * <li> When thread th0 tries to fire t1 </li>
+	 * <li> Then th0 fires t1 successfully </li>
+	 * <li> And th1 tries to fire t0 </li>
+	 * <li> And th1 fires t0 successfully </li>
+	 */
+	@Test
+	public void MonitorShouldInitializeTimesAfterFiringANonTimedTransition(){
+		
+		setUpMonitor(PETRI_FOR_INITIALIZATION_TIME2);
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		Transition t1 = timedPetriNet.getTransitions()[1];
+		
+		Integer[] expectedMarking = {1, 0, 1};
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+		
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t1);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
+		
+		Thread th1 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
+		
+		th0.start();
+		
+		try {
+			Thread.sleep(10);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		th1.start();
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		expectedMarking[0] = 0;
+		expectedMarking[1] = 2;
+		expectedMarking[2] = 0;
 		
 		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
 	}

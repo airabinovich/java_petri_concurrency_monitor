@@ -12,6 +12,7 @@ public class TimedPetriNet extends PetriNet{
 	 * the enabled transitions
 	 * The enabled transitions are not calculated at initialization time, so
 	 * before firing the first transition, they must be calculated @see {@link TimedPetriNet#startTimes()}
+	 * Other way to start times is firing a non timed transition before a timed transition
 	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][])
 	 */
 	public TimedPetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs, Integer[] _initialMarking,
