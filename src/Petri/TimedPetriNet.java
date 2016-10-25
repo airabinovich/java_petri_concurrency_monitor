@@ -8,16 +8,15 @@ public class TimedPetriNet extends PetriNet{
 	protected boolean[] enabledTransitions;
 	
 	/**
-	 * extends the abstract class PetriNet, and also has a boolean array containing
-	 * the enabled transitions
+	 * Constructs a TimedPetriNet object, which is a {@link PetriNet} object with added time semantics
+	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][], Integer[][])
 	 * The enabled transitions are not calculated at initialization time, so
 	 * before firing the first transition, they must be calculated @see {@link TimedPetriNet#startTimes()}
 	 * Other way to start times is firing a non timed transition before a timed transition
-	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][])
 	 */
 	public TimedPetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs, Integer[] _initialMarking,
-			Integer[][] _preI, Integer[][] _posI, Integer[][] _I, Boolean[][] _inhibition, Boolean[][] _resetMatrix) {
-		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, _inhibition, _resetMatrix);
+			Integer[][] _preI, Integer[][] _posI, Integer[][] _I, Boolean[][] _inhibition, Boolean[][] _resetMatrix, Integer[][] _readerMatrix) {
+		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, _inhibition, _resetMatrix, _readerMatrix);
 		enabledTransitions = new boolean[_transitions.length];
 		Arrays.fill(enabledTransitions, false);
 		this.timedPetriNetInitialized = false;
@@ -38,11 +37,12 @@ public class TimedPetriNet extends PetriNet{
 	 * If net is not initialized when calling this method, NotInitializedTimedPetriNetException will be thrown
 	 * @param transitionIndex The index of the transition to be fired
 	 * @return True if the fire was successful
+	 * @throws IllegalArgumentException If the index is negative or greater than the last transition index.
 	 * @throws NotInitializedTimedPetriNetException if the times are not initialized
 	 * @see TimedPetriNet#startTimes()
 	 * @see PetriNet#fire(int)
 	 */
-	public boolean fire(int transitionIndex){
+	public boolean fire(int transitionIndex) throws IllegalArgumentException{
 		boolean wasFired = super.fire(transitionIndex);
 		//Compute new enabled transitions and set new timestamp 
 		this.enabledTransitions = computeEnabledTransitions();
