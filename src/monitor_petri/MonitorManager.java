@@ -79,7 +79,7 @@ public class MonitorManager {
 	 * </ul>
 	 * For timed transitions, the calling thread sleeps until the transition reaches its time span, only then fires it.
 	 * @param transitionToFire The transition to fire
-	 * @throws NotInitializedTimedPetriNetException 
+	 * @throws NotInitializedTimedPetriNetException when firing a timed transition before initialize its time
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
@@ -106,7 +106,7 @@ public class MonitorManager {
 	 * @param transitionToFire The transition to fire
 	 * @param perenialFire True indicates a perennial fire
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
-	 * @throws NotInitializedTimedPetriNetException 
+	 * @throws NotInitializedTimedPetriNetException when firing a timed transition before initialize its time
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
 	public void fireTransition(final Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError, NotInitializedTimedPetriNetException{
@@ -132,7 +132,7 @@ public class MonitorManager {
 	 * @param transitionName The name of the transition to fire.
 	 * @throws IllegalArgumentException If no transition matches transitionName
 	 * @throws IllegalTransitionFiringError If transitionName matches an automatic transition
-	 * @throws NotInitializedTimedPetriNetException 
+	 * @throws NotInitializedTimedPetriNetException when firing a timed transition before initialize its time
 	 */
 	public void fireTransition(final String transitionName) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedTimedPetriNetException {
 		Optional<Transition> filteredTransition = Arrays.stream(petri.getTransitions())
@@ -207,7 +207,7 @@ public class MonitorManager {
 	 * @param newValue New value to set
 	 * @throws IndexOutOfBoundsException If the guard doesn't exist
 	 * @throws NullPointerException If guardName is empty
-	 * @throws NotInitializedTimedPetriNetException 
+	 * @throws NotInitializedTimedPetriNetException when firing a timed transition before initialize its time
 	 */
 	public boolean setGuard(String guardName, boolean newValue) throws IndexOutOfBoundsException, NullPointerException, NotInitializedTimedPetriNetException{
 		if(guardName == null || guardName.isEmpty()){
@@ -300,7 +300,7 @@ public class MonitorManager {
 	 * @param perennialFire
 	 * @return permits to release to mutex {@link #inQueue}
 	 * @throws InterruptedException if the calling thread is interrupted
-	 * @throws NotInitializedTimedPetriNetException 
+	 * @throws NotInitializedTimedPetriNetException when firing a timed transition before initialize its time
 	 */
 	private int internalFireTransition(Transition transitionToFire, boolean perennialFire) throws InterruptedException, NotInitializedTimedPetriNetException{
 		int permitsToRelease = 1;

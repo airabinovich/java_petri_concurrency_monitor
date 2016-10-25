@@ -46,11 +46,12 @@ public class TimeSpan {
 	
 	/**
 	 * @param time timestamp in miliseconds to figure out whether it's inside the span
+	 * @throws NotInitializedTimedPetriNetException if the time is not initialized
 	 * @return true if time is inside the span
 	 */
 	public boolean inTimeSpan(long time) throws NotInitializedTimedPetriNetException{
 		if(enableTime == -1){
-			throw new NotInitializedTimedPetriNetException("The Petri Net times are not initialized");
+			throw new NotInitializedTimedPetriNetException();
 		}
 		if(time >= enableTime + timeBegin){
 			if(timeEnd == Long.MAX_VALUE){
@@ -65,11 +66,12 @@ public class TimeSpan {
 	
 	/**
 	 * @param time timestamp in miliseconds to figure out whether it's before the span
+	 * @throws NotInitializedTimedPetriNetException if the time is not initialized
 	 * @return true if time is befire the span
 	 */
 	public boolean isBeforeTimeSpan(long time) throws NotInitializedTimedPetriNetException{
 		if(enableTime == -1){
-			throw new NotInitializedTimedPetriNetException("The Petri Net times are not initialized");
+			throw new NotInitializedTimedPetriNetException();
 		}
 		return time < enableTime + timeBegin;
 	}

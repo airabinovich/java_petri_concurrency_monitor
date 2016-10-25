@@ -402,7 +402,7 @@ public class MonitorManagerTimeTestSuite {
 	 * <li> And some time passes after initialization </li>
 	 * <li> And the timespans are initialized </li>
 	 * <li> When thread th0 tries to fire t0 </li>
-	 * <li> Then th0 fires t0 succefully </li>
+	 * <li> Then th0 fires t0 successfully </li>
 	 */
 	@Test
 	public void MonitorShouldRestartTheEnablingTimesAndHasNoRaceTimeCondition(){
@@ -445,12 +445,11 @@ public class MonitorManagerTimeTestSuite {
 	 * <li> Given t0 is enabled </li>
 	 * <li> And t0 is timed with timespan [a,b], a>0, b>a </li>
 	 * <li> And some time passes after initialization </li>
-	 * <li> And the timespans are initialized </li>
 	 * <li> When thread th0 tries to fire t0 </li>
-	 * <li> Then th0 fires t0 succefully </li>
+	 * <li> Then a NotInitializedTimedPetriNetException is thrown </li>
 	 */
 	@Test
-	public void MonitorShouldThrowsAnExceptionWhenThreadTriesToFireBeforeStartPetriNetTimes(){
+	public void MonitorShouldThrownAnExceptionWhenThreadTriesToFireBeforeStartPetriNetTimes(){
 		
 		setUpMonitor(PETRI_FOR_INITIALIZATION_TIME);
 		
@@ -467,7 +466,7 @@ public class MonitorManagerTimeTestSuite {
 			}
 		});
 		
-		th0.start();		
+		th0.start();	
 		
 		try {
 			Thread.sleep(100);

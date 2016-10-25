@@ -4,14 +4,14 @@ import java.util.Arrays;
 
 public class TimedPetriNet extends PetriNet{
 
-	protected boolean timesStarted;
+	protected boolean timedPetriNetInitialized;
 	protected boolean[] enabledTransitions;
 	
 	/**
 	 * extends the abstract class PetriNet, and also has a boolean array containing
 	 * the enabled transitions
 	 * The enabled transitions are not calculated at initialization time, so
-	 * before fire the first transition, there must calculate them @see {@link TimedPetriNet#startTimes()}
+	 * before firing the first transition, they must be calculated @see {@link TimedPetriNet#startTimes()}
 	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][])
 	 */
 	public TimedPetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs, Integer[] _initialMarking,
@@ -19,21 +19,22 @@ public class TimedPetriNet extends PetriNet{
 		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, _inhibition, _resetMatrix);
 		enabledTransitions = new boolean[_transitions.length];
 		Arrays.fill(enabledTransitions, false);
-		this.timesStarted = false;
+		this.timedPetriNetInitialized = false;
 	}
 
 	/**
-	 * Computes the enabled transitions for first time
-	 * Uses the method computeEnabledTransitions and set the times
+	 * Computes the enabled transitions for first time and
+	 * set the times to timed transitions
 	 * @see TimedPetriNet#computeEnabledTransitions() 
 	 */
 	public void startTimes(){
 		this.enabledTransitions = computeEnabledTransitions();
-		this.timesStarted = true;
+		this.timedPetriNetInitialized = true;
 	}
 	
 	/**
 	 * Fires the transition specified by transitionIndex and updates the enabled transitions with their timestamps
+	 * If net is not initialized when calling this method, NotInitializedTimedPetriNetException will be thrown
 	 * @param transitionIndex The index of the transition to be fired
 	 * @return True if the fire was successful
 	 * @throws NotInitializedTimedPetriNetException if the times are not initialized
@@ -87,8 +88,8 @@ public class TimedPetriNet extends PetriNet{
 		return _enabledTransitions;
 	}
 	
-	public boolean isTimesStarted() {
-		return this.timesStarted;
+	public boolean isTimedPetriNetInitialized() {
+		return timedPetriNetInitialized;
 	}
 
 }
