@@ -24,6 +24,7 @@ public class PetriNetTestSuite {
 	private static final String PETRI_WITH_RESET_01 = TEST_PETRI_FOLDER + "petriWithReset01.pnml";
 	private static final String PETRI_WITH_RESET_02 = TEST_PETRI_FOLDER + "petriWithReset02.pnml";
 	private static final String PETRI_WITH_RESET_03 = TEST_PETRI_FOLDER + "petriWithReset03.pnml";
+	private static final String PETRI_WITH_READER_01 = TEST_PETRI_FOLDER + "petriWithReader01.pnml";
 	
 	private static PetriNetFactory factory;
 	private PetriNet petriNet;
@@ -531,6 +532,74 @@ public class PetriNetTestSuite {
 			
 		} catch (Exception e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_RESET_03);
+		}
+	}
+	
+	/**
+	 * <li> Given p0 feeds t2 with a normal arc with weight 1 </li>
+	 * <li> And p2 feeds t2 with a reader arc with weight 1 </li>
+	 * <li> And p0 has 2 tokens </li>
+	 * <li> And p2 has no tokens </li>
+	 * <li> When I fire t2 </li>
+	 * <li> Then the fire returns false </li>
+	 * <li> And no tokens are drained from p0 </li>
+	 */
+	@Test
+	public void FireTransitionWithReaderArcAndNoEnoughTokensShouldReturnFalse(){
+		try{
+			readFileAndMakePetriNet(PETRI_WITH_READER_01);
+			
+			Transition t2 = petriNet.getTransitions()[2];
+			
+			Integer[] expectedMarking = { 2, 0, 0 };
+			
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Assert.assertFalse(petriNet.fire(t2));
+			
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + PETRI_WITH_READER_01);
+		}
+	}
+	
+	/**
+	 * <li> Given p0 feeds t2 with a normal arc with weight 1 </li>
+	 * <li> And p2 feeds t2 with a reader arc with weight 1 </li>
+	 * <li> And t2 feeds p1 </li>
+	 * <li> And p0 has 2 tokens </li>
+	 * <li> And p1 has no tokens </li>
+	 * <li> And p2 has 1 token </li>
+	 * <li> When I fire t2 </li>
+	 * <li> Then the fire returns true </li>
+	 * <li> And one token is drained from p0 </li>
+	 * <li> And one token is put into p1 </li>
+	 * <li> And no tokens are drained from p2 </li>
+	 */
+	@Test
+	public void FireTransitionWithReaderArcShouldDrainTokensFromAllPlacesExceptTheOneWithTheReaderArc(){
+		try{
+			readFileAndMakePetriNet(PETRI_WITH_READER_01);
+			
+			Transition t0 = petriNet.getTransitions()[0];
+			Assert.assertTrue(petriNet.fire(t0));
+			
+			Transition t2 = petriNet.getTransitions()[2];
+			
+			Integer[] expectedMarking = { 2, 0, 1 };
+			
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+			Assert.assertTrue(petriNet.fire(t2));
+			
+			expectedMarking[0] = 1;
+			expectedMarking[1] = 1;
+			
+			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
+			
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + PETRI_WITH_READER_01);
 		}
 	}
 }

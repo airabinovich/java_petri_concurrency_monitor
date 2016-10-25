@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-1BE8-4F8E9-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>timedPetriForInitializationTime2</text>
+  </name>
+ <page id="g-1BE8-4F919-1">
+  <place id="p-1BE8-4F921-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="30" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-1BE8-4F94F-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="220"/>
+   </graphics>
+  </place>
+  <place id="p-1BE8-4F952-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="115" y="50"/>
+   </graphics>
+  </place>
+  <transition id="t-1BE8-4F956-5">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="closed">
+     <cn>20</cn>
+     <cn>25</cn>
+    </interval>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="30" y="130"/>
+   </graphics>
+  </transition>
+  <transition id="t-1BE8-4F95E-6">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="115" y="130"/>
+   </graphics>
+  </transition>
+  <arc id="e-1BE8-4F962-7" source="t-1BE8-4F95E-6" target="p-1BE8-4F94F-3">
+  </arc>
+  <arc id="e-1BE8-4F96B-8" source="p-1BE8-4F952-4" target="t-1BE8-4F95E-6">
+  </arc>
+  <arc id="e-1BE8-4F96D-9" source="p-1BE8-4F921-2" target="t-1BE8-4F956-5">
+  </arc>
+  <arc id="e-1BE8-4F96E-10" source="t-1BE8-4F956-5" target="p-1BE8-4F94F-3">
+  </arc>
+ </page>
+ </net>
+</pnml>

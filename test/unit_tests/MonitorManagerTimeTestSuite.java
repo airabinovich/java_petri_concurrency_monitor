@@ -13,11 +13,14 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import Petri.NotInitializedTimedPetriNetException;
 import Petri.PetriNet;
 import Petri.PetriNetFactory;
+import Petri.TimedPetriNet;
 import Petri.PetriNetFactory.petriNetType;
 import Petri.Transition;
 import monitor_petri.FirstInLinePolicy;
+import monitor_petri.IllegalTransitionFiringError;
 import monitor_petri.MonitorManager;
 import monitor_petri.TransitionsPolicy;
 import test_utils.TransitionEventObserver;
@@ -25,36 +28,64 @@ import test_utils.TransitionEventObserver;
 public class MonitorManagerTimeTestSuite {
 
 	MonitorManager monitor;
-	PetriNet petri;
+	TimedPetriNet timedPetriNet;
 	static ObjectMapper jsonParser;
 	static TransitionsPolicy policy;
 	static PetriNetFactory factory;
 	
 	private static final String ID = "id";
+	private static final String TEST_PETRI_FOLDER = "test/unit_tests/testResources/";
+	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetri.pnml";
+	private static final String PETRI_FOR_INITIALIZATION_TIME = TEST_PETRI_FOLDER + "timedPetriForInitializationTime.pnml";
+	private static final String PETRI_FOR_INITIALIZATION_TIME2 = TEST_PETRI_FOLDER + "timedPetriForInitializationTime2.pnml";
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		factory = new PetriNetFactory("./test/unit_tests/testResources/timedPetri.pnml");
 		policy = new FirstInLinePolicy();
 		jsonParser = new ObjectMapper();
 	}
 
 	@Before
 	public void setUp() throws Exception {
-		petri = factory.makePetriNet(petriNetType.TIMED);
-		monitor = new MonitorManager(petri, policy);
 	}
 
 	@After
 	public void tearDown() throws Exception {
 	}
 	
+	/**
+	 * Creates factory, timed petri and monitor from given PNML
+	 * @param PNML Path to the PNML file
+	 * @param type The petri type to create
+	 */
+	private void setUpMonitor(String PNML){
+		factory = new PetriNetFactory(PNML);
+		timedPetriNet = (TimedPetriNet) factory.makePetriNet(petriNetType.TIMED);
+		monitor = new MonitorManager(timedPetriNet, policy);
+		
+	}
+	
+	/**
+	 * <li> Given t0 fed by p0 with an arc with weight 1 </li>
+	 * <li> And p0 has one token</li>
+	 * <li> And t0 is timed [a,b], a>0, b>a </li>
+	 * <li> When thread worker fires t0 at time ti < a (before timespan) </li>
+	 * <li> Then worker goes to sleep by itself </li>
+	 */
 	@Test
 	public void testAThreadGoesToSleepWhenComeBeforeTimeSpan() {
-		Transition t0 = petri.getTransitions()[0];
+		
+		setUpMonitor(TIMED_PETRI_NET);
+		timedPetriNet.startTimes();
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
 		
 		Thread worker = new Thread(() -> {
-			monitor.fireTransition(t0);
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
 		worker.start();
 		
@@ -67,20 +98,41 @@ public class MonitorManagerTimeTestSuite {
 		assertEquals(true, t0.getTimeSpan().anySleeping());
 	}
 	
+	/**
+	 * <li> Given t0 fed by p0 with an arc with weight 1 </li>
+	 * <li> And p0 has one token</li>
+	 * <li> And t0 is timed [a,b], a>0, b>a </li>
+	 * <li> When thread worker1 tries to fires t0 at time ti < a (before timespan) </li>
+	 * <li> And thread worker2 tries to fires t0 at time tj, where ti < tj < a (before timespan as well) </li>
+	 * <li> Then worker1 goes to sleep by itself </li>
+	 * <li> And worker2 goes to sleep into varCond queue </li>
+	 */
 	@Test
 	public void testAThreadGoesToVardCondQueueWhenAnotherThreadIsSleepingIntoTransition() {
-		Transition t0 = petri.getTransitions()[0];
-		Integer[] initialMarking = petri.getInitialMarking();
+		
+		setUpMonitor(TIMED_PETRI_NET);
+		timedPetriNet.startTimes();
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		Integer[] initialMarking = timedPetriNet.getInitialMarking();
 		
 		long t0BeginTime = t0.getTimeSpan().getTimeBegin();
 		
-		Thread worker = new Thread(() -> {
-			monitor.fireTransition(t0);
+		Thread worker1 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
 		Thread worker2 = new Thread(() -> {
-			monitor.fireTransition(t0);
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
-		worker.start();
+		worker1.start();
 		
 		try {
 			Thread.sleep(t0BeginTime / 10);
@@ -98,17 +150,33 @@ public class MonitorManagerTimeTestSuite {
 			
 		assertEquals(true, t0.getTimeSpan().anySleeping());
 		assertEquals(true, monitor.getQueuesState()[0]);
-		assertArrayEquals(initialMarking, petri.getCurrentMarking());
+		assertArrayEquals(initialMarking, timedPetriNet.getCurrentMarking());
 	}
 	
+	/**
+	 * <li> Given t0 fed by p0 with an arc with weight 1 </li>
+	 * <li> And p0 has one token</li>
+	 * <li> And t0 is timed [a,b], a>0, b>a </li>
+	 * <li> When thread worker tries to fires t0 at time ti < a (before timespan) </li>
+	 * <li> Then worker goes to sleep by itself </li>
+	 * <li> And worker wakes up after the time "a - ti" and fires the transition succefully</li>
+	 */
 	@Test
 	public void testAThreadGoesToSleepWhenComeBeforeTimeSpanAndThenWakeUpAndFireTransition() {
-		Transition t0 = petri.getTransitions()[0];
+		
+		setUpMonitor(TIMED_PETRI_NET);
+		timedPetriNet.startTimes();
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
 
 		long t0BeginTime = t0.getTimeSpan().getTimeBegin();
 		
 		Thread worker = new Thread(() -> {
-			monitor.fireTransition(t0);
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
 		worker.start();
 		
@@ -127,12 +195,12 @@ public class MonitorManagerTimeTestSuite {
 		}
 		Integer[] expectedMarking = {0, 0, 1, 1};
 		
-		assertArrayEquals(expectedMarking, petri.getCurrentMarking());
+		assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
 	}
 
 	/**
 	 * <li> Given t0 and t3 are enabled by the same place p0 </li>
-	 * <li> And t0 is timed [a,b] </li>
+	 * <li> And t0 is timed [a,b], a>0, b>a </li>
 	 * <li> And t0 has not reached its time span </li>
 	 * <li> When th0 tries to fire t0 </li>
 	 * <li> And th0 sleeps on its own waiting for t0's time span</li>
@@ -144,16 +212,23 @@ public class MonitorManagerTimeTestSuite {
 	@Test
 	public void threadShouldSleepInVarcondQueueWhenTransitionGetsDisabledWhileSleepingByItself() {
 		
-		Transition t0 = petri.getTransitions()[0];
-		Transition t3 = petri.getTransitions()[3];
+		setUpMonitor(TIMED_PETRI_NET);
+		timedPetriNet.startTimes();
 		
-		Assert.assertTrue(petri.isEnabled(t0));
-		Assert.assertTrue(petri.isEnabled(t3));
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		Transition t3 = timedPetriNet.getTransitions()[3];
+		
+		Assert.assertTrue(timedPetriNet.isEnabled(t0));
+		Assert.assertTrue(timedPetriNet.isEnabled(t3));
 		
 		Assert.assertFalse(t0.getTimeSpan().anySleeping());
 		
 		Thread th0 = new Thread(() -> {
-			monitor.fireTransition(t0);
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
 		});
 		th0.start();
 		
@@ -164,15 +239,26 @@ public class MonitorManagerTimeTestSuite {
 			Assert.fail("Main thread interrupted. Message: " + e.getMessage());
 		}
 		
-		Assert.assertFalse(t0.getTimeSpan().inTimeSpan(System.currentTimeMillis()));
+		boolean insideTimeSpan = false;
+		try {
+			insideTimeSpan = t0.getTimeSpan().inTimeSpan(System.currentTimeMillis());
+		} catch (NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
+		
+		Assert.assertFalse(insideTimeSpan);
 		Assert.assertTrue(t0.getTimeSpan().anySleeping());
 		
-		Assert.assertTrue(petri.isEnabled(t0));
-		Assert.assertTrue(petri.isEnabled(t3));
+		Assert.assertTrue(timedPetriNet.isEnabled(t0));
+		Assert.assertTrue(timedPetriNet.isEnabled(t3));
 		
-		monitor.fireTransition(t3);
+		try {
+			monitor.fireTransition(t3);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
 		
-		Assert.assertFalse(petri.isEnabled(t0));
+		Assert.assertFalse(timedPetriNet.isEnabled(t0));
 		
 		boolean[] expectedQueuesState = {false, false, false, false};
 		Assert.assertArrayEquals(expectedQueuesState, monitor.getQueuesState());
@@ -192,7 +278,7 @@ public class MonitorManagerTimeTestSuite {
 	
 	/**
 	 * <li> Given t0 gets enabled at time ti </li>
-	 * <li> And t0 is timed [a,b] </li>
+	 * <li> And t0 is timed [a,b], a>0, b>a </li>
 	 * <li> And t0 has not reached its time span </li>
 	 * <li> And obs is subscript to t0's events </li>
 	 * <li> When th0 tries to perennial fire t0 </li>
@@ -204,8 +290,11 @@ public class MonitorManagerTimeTestSuite {
 	@Test
 	public void threadPerennialFiringATransitionBeforeItsTimeSpanShouldSleepOnItsOwnAndThenFire(){
 		
-		Transition t0 = petri.getTransitions()[0];
-		Assert.assertTrue(petri.isEnabled(t0));
+		setUpMonitor(TIMED_PETRI_NET);
+		timedPetriNet.startTimes();
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		Assert.assertTrue(timedPetriNet.isEnabled(t0));
 		
 		long t0BeginTime = t0.getTimeSpan().getTimeBegin();
 		
@@ -214,7 +303,13 @@ public class MonitorManagerTimeTestSuite {
 		
 		ArrayList<String> events = obs.getEvents();
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t0, true));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0, true);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th0.start();
 		
 		try {
@@ -228,7 +323,7 @@ public class MonitorManagerTimeTestSuite {
 		
 		//let's make sure th0 isn't sleeping in t0's queue
 		Assert.assertFalse(monitor.getQueuesState()[0]);
-		
+
 		try {
 			// let's give th0 enough time to wake up and fire t0
 			Thread.sleep(t0BeginTime);
@@ -247,7 +342,7 @@ public class MonitorManagerTimeTestSuite {
 	
 	/**
 	 * <li> Given t0 gets enabled at time ti </li>
-	 * <li> And t0 is timed [a,b] </li>
+	 * <li> And t0 is timed [a,b], a>0, b>a </li>
 	 * <li> And t0 has past its time span </li>
 	 * <li> And obs is subscript to t0's events </li>
 	 * <li> When th0 tries to perennial fire t0 </li>
@@ -258,8 +353,11 @@ public class MonitorManagerTimeTestSuite {
 	@Test
 	public void threadPerennialFiringATransitionAfterItsTimeSpanShouldNotSleepInQueue(){
 		
-		Transition t0 = petri.getTransitions()[0];
-		Assert.assertTrue(petri.isEnabled(t0));
+		setUpMonitor(TIMED_PETRI_NET);
+		timedPetriNet.startTimes();
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		Assert.assertTrue(timedPetriNet.isEnabled(t0));
 		
 		long t0BeginTime = t0.getTimeSpan().getTimeBegin();
 		long t0EndTime = t0.getTimeSpan().getTimeEnd();
@@ -276,7 +374,13 @@ public class MonitorManagerTimeTestSuite {
 			Assert.fail("Main thread interrupted. Message: " + e.getMessage());
 		}
 		
-		Thread th0 = new Thread(() -> monitor.fireTransition(t0, true));
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0, true);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
 		th0.start();
 		
 		try {
@@ -292,5 +396,158 @@ public class MonitorManagerTimeTestSuite {
 		Assert.assertFalse(monitor.getQueuesState()[0]);
 		
 	}
-
+	
+	/**
+	 * <li> Given t0 is enabled </li>
+	 * <li> And t0 is timed with timespan [a,b], a>0, b>a </li>
+	 * <li> And some time passes after initialization </li>
+	 * <li> And the timespans are initialized </li>
+	 * <li> When thread th0 tries to fire t0 </li>
+	 * <li> Then th0 fires t0 successfully </li>
+	 */
+	@Test
+	public void MonitorShouldRestartTheEnablingTimesAndHasNoRaceTimeCondition(){
+		
+		setUpMonitor(PETRI_FOR_INITIALIZATION_TIME);
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		
+		Integer[] expectedMarking = {1, 0};
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+		
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
+		
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		timedPetriNet.startTimes();
+		th0.start();
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		expectedMarking[0] = 0;
+		expectedMarking[1] = 1;	
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+	}
+	
+	/**
+	 * <li> Given t0 is enabled </li>
+	 * <li> And t0 is timed with timespan [a,b], a>0, b>a </li>
+	 * <li> And some time passes after initialization </li>
+	 * <li> When thread th0 tries to fire t0 </li>
+	 * <li> Then a NotInitializedTimedPetriNetException is thrown </li>
+	 */
+	@Test
+	public void MonitorShouldThrowAnExceptionWhenThreadTriesToFireBeforeStartPetriNetTimes(){
+		
+		setUpMonitor(PETRI_FOR_INITIALIZATION_TIME);
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		
+		Integer[] expectedMarking = {1, 0};
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+		
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.assertEquals(NotInitializedTimedPetriNetException.class, e.getClass());
+			}
+		});
+		
+		th0.start();	
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+	}
+	
+	/**
+	 * <li> Given p0 feeds t1 and p2 feeds t1 </li>
+	 * <li> And t0 and t1 are enabled </li>
+	 * <li> And t0 is timed with timespan [a,b], a>0, b>a </li>
+	 * <li> And t1 is not timed </li>
+	 * <li> And some time passes after initialization </li>
+	 * <li> When th2 tries to fire t0 </li>
+	 * <li> Then a NotInitializedTimedPetriNetException is thrown </li>
+	 * <li> And th0 tries to fire t1 </li>
+	 * <li> And th0 fires t1 successfully </li>
+	 * <li> And th1 tries to fire t0 </li>
+	 * <li> And th1 fires t0 successfully </li>
+	 */
+	@Test
+	public void MonitorShouldInitializeTimesAfterFiringANonTimedTransition(){
+		
+		setUpMonitor(PETRI_FOR_INITIALIZATION_TIME2);
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		Transition t1 = timedPetriNet.getTransitions()[1];
+		
+		Integer[] expectedMarking = {1, 0, 1};
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+		
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t1);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
+		
+		Thread th1 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
+		
+		Thread th2 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.assertEquals(NotInitializedTimedPetriNetException.class, e.getClass());
+			}
+		});
+		
+		th2.start();
+		
+		th0.start();
+		
+		try {
+			Thread.sleep(10);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		th1.start();
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		expectedMarking[0] = 0;
+		expectedMarking[1] = 2;
+		expectedMarking[2] = 0;
+		
+		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+	}
 }
