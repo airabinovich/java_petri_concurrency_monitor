@@ -450,7 +450,7 @@ public class MonitorManagerTimeTestSuite {
 	 * <li> Then a NotInitializedTimedPetriNetException is thrown </li>
 	 */
 	@Test
-	public void MonitorShouldThrownAnExceptionWhenThreadTriesToFireBeforeStartPetriNetTimes(){
+	public void MonitorShouldThrowAnExceptionWhenThreadTriesToFireBeforeStartPetriNetTimes(){
 		
 		setUpMonitor(PETRI_FOR_INITIALIZATION_TIME);
 		
@@ -482,10 +482,12 @@ public class MonitorManagerTimeTestSuite {
 	 * <li> Given p0 feeds t1 and p2 feeds t1 </li>
 	 * <li> And t0 and t1 are enabled </li>
 	 * <li> And t0 is timed with timespan [a,b], a>0, b>a </li>
-	 * <li> And t1 has no timespan
+	 * <li> And t1 is not timed </li>
 	 * <li> And some time passes after initialization </li>
-	 * <li> When thread th0 tries to fire t1 </li>
-	 * <li> Then th0 fires t1 successfully </li>
+	 * <li> When th2 tries to fire t0 </li>
+	 * <li> Then a NotInitializedTimedPetriNetException is thrown </li>
+	 * <li> And th0 tries to fire t1 </li>
+	 * <li> And th0 fires t1 successfully </li>
 	 * <li> And th1 tries to fire t0 </li>
 	 * <li> And th1 fires t0 successfully </li>
 	 */
@@ -515,6 +517,16 @@ public class MonitorManagerTimeTestSuite {
 				Assert.fail("Exception thrown in test execution");
 			}
 		});
+		
+		Thread th2 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (Exception e) {
+				Assert.assertEquals(NotInitializedTimedPetriNetException.class, e.getClass());
+			}
+		});
+		
+		th2.start();
 		
 		th0.start();
 		
