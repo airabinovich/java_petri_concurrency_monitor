@@ -14,7 +14,6 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Petri.NotInitializedTimedPetriNetException;
-import Petri.PetriNet;
 import Petri.PetriNetFactory;
 import Petri.TimedPetriNet;
 import Petri.PetriNetFactory.petriNetType;
@@ -36,6 +35,7 @@ public class MonitorManagerTimeTestSuite {
 	private static final String ID = "id";
 	private static final String TEST_PETRI_FOLDER = "test/unit_tests/testResources/";
 	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetri.pnml";
+	private static final String TIMED_PETRI_NET_02 = TEST_PETRI_FOLDER + "timedPetri02.pnml";
 	private static final String PETRI_FOR_INITIALIZATION_TIME = TEST_PETRI_FOLDER + "timedPetriForInitializationTime.pnml";
 	private static final String PETRI_FOR_INITIALIZATION_TIME2 = TEST_PETRI_FOLDER + "timedPetriForInitializationTime2.pnml";
 
@@ -549,5 +549,206 @@ public class MonitorManagerTimeTestSuite {
 		expectedMarking[2] = 0;
 		
 		Assert.assertArrayEquals(expectedMarking, timedPetriNet.getCurrentMarking());
+	}
+	
+	/**
+	* <li> Given t0 is timed [a,b], a > 0, b > a </li>
+	* <li> And t0 is enabled at time ti </li>
+	* <li> And t2 is not timed and always enabled </li>
+	* <li> And observer obs is listening for t0's and t2's events </li>
+	* <li> When thread th0 tries to fire t0 at time tj, ti < tj < (ti+a) </li>
+	* <li> And th0 sleeps on its own waiting for t0's timespan </li>
+	* <li> And 500 threads try to fire t2 before th1 wakes up</li>
+	* <li> Then th0 wakes up before all threads finished their work </li>
+	* <li> And th0 fires t0 right as it wakes up </li>
+	* <li> And in obs's event list, t0's firing is not the last </li>
+	*/
+	@Test
+	public void threadWhoSleptWaitingForTimeSpanShouldHavePriorityOverIncomingThreads(){
+		
+		setUpMonitor(TIMED_PETRI_NET_02);
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		Transition t2 = timedPetriNet.getTransitions()[2];
+		
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
+		
+		ArrayList<Thread> workers = new ArrayList<Thread>();
+		for(int i = 0; i < 500; i++){
+			Thread worker = new Thread(() -> {
+				try {
+					monitor.fireTransition(t2);
+				} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e) {
+					Assert.fail("Exception thrown in test execution");
+				}
+			});
+			workers.add(worker);
+		}
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs);
+		monitor.subscribeToTransition(t2, obs);
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		timedPetriNet.startTimes();
+		
+		th0.start();
+		
+		Assert.assertTrue(events.isEmpty());
+		
+		for(Thread worker : workers){
+			worker.start();
+		}
+		
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		String t0ID = t0.getId();
+		int t0EventIndex = -1;
+		
+		for(int i = 0; i < events.size(); i++){
+			try {
+				String obtainedId = jsonParser.readTree(events.get(i)).get(ID).asText();
+				if(obtainedId.equals(t0ID)){
+					t0EventIndex = i;
+					break;
+				}
+			} catch (IOException e) {
+				Assert.fail("Event is not in JSON format");
+			}
+		}
+		
+		Assert.assertNotEquals(-1, t0EventIndex);
+		Assert.assertTrue(t0EventIndex < events.size() - 1);
+		Assert.assertTrue(events.size() > 1);
+	}
+
+	/**
+	* <li> Given t0 is timed [a,b], a > 0, b > a </li>
+	* <li> And t0 is enabled at time ti </li>
+	* <li> And t0 is fed by p0 </li>
+	* <li> And p0 is fed by t3 </li>
+	* <li> And p0 feeds t1 </li>
+	* <li> And p0 has one token </li>
+	* <li> And observer obs is listening for t0's events </li>
+	* <li> When thread th0 tries to fire t0 at time tj, ti < tj < (ti+a) </li>
+	* <li> And th0 sleeps on its own waiting for t0's timespan </li>
+	* <li> And 10 threads try to fire t0 </li>
+	* <li> And all of them sleep in t0's queue </li>
+	* <li> And I fire t1 before th0 wakes up </li>
+	* <li> And t0 gets disabled </li>
+	* <li> Then th0 wakes up</li>
+	* <li> And th0 goes to sleep in t0's queue </li>
+	* <li> And I fire t3 </li>
+	* <li> And t0 gets enabled </li>
+	* <li> And th0 wakes up and fires t0 </li>
+	* <li> And obs got only one message with t0's ID </li>
+	* <li> And th0's final state is TERMIANTED </li>
+	* <li> And all of the other threads' states are WAITING </li>
+	
+	*/
+	@Test
+	public void threadWhoSleptWaitingForTimeSpanAndTransitionGotDisabledShouldHavePriorityOverIncomingThreads(){
+		
+		setUpMonitor(TIMED_PETRI_NET_02);
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		Transition t1 = timedPetriNet.getTransitions()[1];
+		Transition t3 = timedPetriNet.getTransitions()[3];
+		
+		Thread th0 = new Thread(() -> {
+			try {
+				Thread.currentThread().setName("th0");
+				monitor.fireTransition(t0);
+			} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e) {
+				Assert.fail("Exception thrown in test execution");
+			}
+		});
+		
+		ArrayList<Thread> workers = new ArrayList<Thread>();
+		for(int i = 0; i < 10; i++){
+			Thread worker = new Thread(() -> {
+				try {
+					monitor.fireTransition(t0);
+				} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e) {
+					Assert.fail("Exception thrown in test execution");
+				}
+			});
+			workers.add(worker);
+		}
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0, obs);
+		
+		ArrayList<String> events = obs.getEvents();
+		
+		timedPetriNet.startTimes();
+		
+		th0.start();
+		
+		try {
+			Thread.sleep(10);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		for(Thread worker : workers){
+			worker.start();
+		}
+		
+		try {
+			monitor.fireTransition(t1);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e) {
+			Assert.fail("Exception thrown in test execution");
+		}
+		
+		Assert.assertTrue(events.isEmpty());
+		Assert.assertFalse(timedPetriNet.isEnabled(t0));
+		
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		try {
+			monitor.fireTransition(t3);
+		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e) {
+			Assert.fail("Exception thrown in test execution");
+		}
+		
+		Assert.assertTrue(events.isEmpty());
+		Assert.assertTrue(timedPetriNet.isEnabled(t0));
+		
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		Assert.assertEquals(1, events.size());
+		
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			Assert.assertEquals(t0.getId(), obtainedId);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+		
+		Assert.assertEquals(Thread.State.TERMINATED, th0.getState());
+		
+		for(Thread worker : workers){
+			Assert.assertEquals(Thread.State.WAITING, worker.getState());
+		}
 	}
 }

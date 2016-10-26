@@ -316,9 +316,10 @@ public class MonitorManager {
 				isTimed = true;
 			}
 			if(keepFiring){
+				boolean sleptByItselfForThisTransition = false;
 				while(isTimed && !insideTimeSpan){
 					if(transitionSpan.isBeforeTimeSpan(fireAttemptTime) && !transitionSpan.anySleeping()){
-						// The calling thread came before time span, and there is nobody sleeping in the transition,
+						// The calling thread came before time span, and there is nobody sleeping waiting for this transition,
 						// release the input mutex and sleep here until the time has come.
 						inQueue.unlock();
 						transitionSpan.sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - fireAttemptTime);
@@ -326,18 +327,26 @@ public class MonitorManager {
 						// so take the lock with high priority to avoid waiting for the incoming threads
 						// This way, only as high-prioritized threads as this one may cause waiting
 						inQueue.lock(LockPriority.HIGH);
+						// If at waking time the transition has been disabled,
+						// this thread has to sleep in the condition queue with high priority
+						// to avoid a priority inversion, so set sleptByItselfForThisTransition to true
+						sleptByItselfForThisTransition = true;
 					}
 					else if(!perennialFire) {
 						// The calling thread came late, the time is over. Thus the thread releases the input mutex and goes to sleep
 						inQueue.unlock();
-						// Go to sleep in the condition queue but with high priority.
-						// This is because when this thread is waken, it'll have a limited amount of time to fire its transition
-						// And this way it won't need to wait for other threads who came after it.
-						// It's going to be the first in line due to timestamp and priority ordering
-						condVarQueue[transitionToFire.getIndex()].sleepWithHighPriority();;
-						// when waking up, don't take the mutex for the waking thread didn't release it
+						if(sleptByItselfForThisTransition){
+							// If the flag sleptByItselfForThisTransition is true, it means this thread already slept by itself for this transition
+							// which implies that no thread had tried to fire this transition when it arrived the monitor.
+							// Additionally, this thread also lost the timespan so it must have the highest priority for next enabling time
+							condVarQueue[transitionToFire.getIndex()].sleepWithHighPriority();
+						}
+						else {
+							condVarQueue[transitionToFire.getIndex()].sleep();
+						}
+						// when waking up, don't take the input lock for the waking thread didn't release it
 					}
-					else{
+					else {
 						// a perennial fire should not wait in the queue for the transition to get enabled again
 						return releaseLock;
 					}
@@ -356,7 +365,14 @@ public class MonitorManager {
 					// if the transition wasn't fired sucessfully
 					// release the main mutex and go to sleep
 					inQueue.unlock();
-					condVarQueue[transitionToFire.getIndex()].sleep();
+					if(sleptByItselfForThisTransition){
+						// If the flag sleptByItselfForThisTransition is true, it means the transition is timed and this thread already slept by itself for this transition
+						// which implies that no thread had tried to fire this transition when it arrived the monitor, so this thread must have the highest priority
+						condVarQueue[transitionToFire.getIndex()].sleepWithHighPriority();
+					}
+					else{
+						condVarQueue[transitionToFire.getIndex()].sleep();
+					}
 					// after waking up try to fire inside the timespan again
 					continue;
 				}

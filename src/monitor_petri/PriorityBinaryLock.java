@@ -7,7 +7,7 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * A lock with two priority levels.
- * There is only one permit available, thus the binary.
+ * There is only one permit available, thus the 'binary' in the class' name.
  * Each lock() blocks if necessary until the lock is available, and then takes it.
  * Each unlock() releases the lock, potentially waking a blocking acquirer.
  * 
@@ -108,8 +108,10 @@ public class PriorityBinaryLock {
 	public void unlock() {
 		locked.set(false);
 		// wakes the first thread in priority order if any
-		if(!queue.isEmpty()){
+		try{
 			LockSupport.unpark(queue.peek().getThread());
+		} catch (NullPointerException e){
+			// queue was empty, no problem
 		}
 		// if the queue is empty, no thread tried to acquire the lock
 		// while the current thread had the lock

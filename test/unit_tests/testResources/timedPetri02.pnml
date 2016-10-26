@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-58EA-91B72-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>timedPetri02</text>
+  </name>
+ <page id="g-58EA-91B77-1">
+  <place id="p-58EA-91B78-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="95" y="115"/>
+   </graphics>
+  </place>
+  <place id="p-58EA-91B7D-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="95" y="325"/>
+   </graphics>
+  </place>
+  <place id="p-58EA-91B82-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="220" y="320"/>
+   </graphics>
+  </place>
+  <transition id="t-58EA-91B83-5">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="closed">
+     <cn>50</cn>
+     <cn>100</cn>
+    </interval>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="95" y="215"/>
+   </graphics>
+  </transition>
+  <transition id="t-58EA-91B88-6">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="220" y="115"/>
+   </graphics>
+  </transition>
+  <transition id="t-58EA-91B8B-7">
+  <name>
+   <text>t2</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="220" y="210"/>
+   </graphics>
+  </transition>
+  <transition id="t-58EA-91B8E-8">
+  <name>
+   <text>t3</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="95" y="25"/>
+   </graphics>
+  </transition>
+  <arc id="e-58EA-91B8F-9" source="t-58EA-91B8E-8" target="p-58EA-91B78-2">
+  </arc>
+  <arc id="e-58EA-91B91-10" source="t-58EA-91B8B-7" target="p-58EA-91B82-4">
+  </arc>
+  <arc id="e-58EA-91B91-11" source="t-58EA-91B83-5" target="p-58EA-91B7D-3">
+  </arc>
+  <arc id="e-58EA-91B92-12" source="p-58EA-91B78-2" target="t-58EA-91B83-5">
+  </arc>
+  <arc id="e-58EA-91B93-13" source="p-58EA-91B78-2" target="t-58EA-91B88-6">
+  </arc>
+ </page>
+ </net>
+</pnml>

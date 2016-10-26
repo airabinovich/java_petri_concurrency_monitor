@@ -12,7 +12,9 @@ public class FairQueue implements VarCondQueue{
 	 */
 	public FairQueue(){
 		lock = new PriorityBinaryLock();
-		// take the lock so no thread calling sleep can actually take it and continue
+		// take the lock so no permissions are available
+		// and when a thread calls sleep() (or sleepWithHighPriority())
+		// it can't acquire the lock and continue, and must sleep
 		lock.lock();
 	}
 	
@@ -40,11 +42,11 @@ public class FairQueue implements VarCondQueue{
 		return (int) (lock.getHighPriorityQueueLength() + lock.getLowPriorityQueueLength());
 	}
 	
-	public int getHighPriorityThreadsSLeeping(){
+	public int getHighPriorityThreadsSleeping(){
 		return (int) (lock.getHighPriorityQueueLength());
 	}
 	
-	public int getLowPriorityThreadsSLeeping(){
+	public int getLowPriorityThreadsSleeping(){
 		return (int) (lock.getLowPriorityQueueLength());
 	}
 

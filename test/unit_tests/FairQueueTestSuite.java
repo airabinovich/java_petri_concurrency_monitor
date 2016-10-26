@@ -112,8 +112,8 @@ public class FairQueueTestSuite {
 			Assert.fail("Main thread interrupted during test execution");
 		}
 		
-		Assert.assertEquals(3, queue.getLowPriorityThreadsSLeeping());
-		Assert.assertEquals(2, queue.getHighPriorityThreadsSLeeping());
+		Assert.assertEquals(3, queue.getLowPriorityThreadsSleeping());
+		Assert.assertEquals(2, queue.getHighPriorityThreadsSleeping());
 		
 		queue.wakeUp();
 		
@@ -131,8 +131,8 @@ public class FairQueueTestSuite {
 			Assert.fail("Main thread interrupted during test execution");
 		}
 		
-		Assert.assertEquals(3, queue.getLowPriorityThreadsSLeeping());
-		Assert.assertEquals(0, queue.getHighPriorityThreadsSLeeping());
+		Assert.assertEquals(3, queue.getLowPriorityThreadsSleeping());
+		Assert.assertEquals(0, queue.getHighPriorityThreadsSleeping());
 		
 	}
 

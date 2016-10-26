@@ -38,7 +38,7 @@ public class PriorityBinaryLockTestSuite {
 	}
 
 	/**
-	 * <li> Given lock l0 is gets locked </li>
+	 * <li> Given lock l0 gets locked </li>
 	 * <li> And l0's low priority queue is empty </li>
 	 * <li> When thread th0 tries to lock l0 </li>
 	 * <li> Then th0 sleeps in l0's low priority queue </li>
@@ -76,7 +76,7 @@ public class PriorityBinaryLockTestSuite {
 	}
 	
 	/**
-	 * <li> Given lock l0 is gets locked </li>
+	 * <li> Given lock l0 gets locked </li>
 	 * <li> And l0's low priority queue is empty </li>
 	 * <li> When thread th0 tries to lock l0 with low priority </li>
 	 * <li> Then th0 sleeps in l0's low priority queue </li>
@@ -114,7 +114,7 @@ public class PriorityBinaryLockTestSuite {
 	}
 	
 	/**
-	 * <li> Given lock l0 is gets locked </li>
+	 * <li> Given lock l0 gets locked </li>
 	 * <li> And l0's low priority queue is empty </li>
 	 * <li> When thread th0 tries to lock l0 with high priority </li>
 	 * <li> Then th0 sleeps in l0's high priority queue </li>
@@ -317,7 +317,7 @@ public class PriorityBinaryLockTestSuite {
 	 * <li> And l0's low priority queue is empty </li>
 	 * <li> And l0's high priority queue is empty </li>
 	 * <li> When 50 threads try to take l0 with low priority </li>
-	 * <li> And 50 threads try to take l0 with low priority </li>
+	 * <li> And 50 threads try to take l0 with high priority </li>
 	 * <li> And l0's low priority queue has 50 threads </li>
 	 * <li> And l0's high priority queue has 50 threads </li>
 	 * <li> And l0 is unlocked 50 times </li>
