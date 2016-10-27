@@ -269,8 +269,8 @@ public class PriorityBinaryLockTestSuite {
 	 * <li> Given l0 is locked </li>
 	 * <li> And l0's low priority queue is empty </li>
 	 * <li> And l0's high priority queue is empty </li>
-	 * <li> When thread th0 tries to lock l0 with low priority </li>
-	 * <li> And th0 goes to sleep in low priority queue </li>
+	 * <li> When thread th0 tries to lock l0 with high priority </li>
+	 * <li> And th0 goes to sleep in high priority queue </li>
 	 * <li> And I unlock l0 </li>
 	 * <li> Then th0 wakes up and executes its task </li>
 	 * <li> And l0's low priority queue has no threads sleeping </li>

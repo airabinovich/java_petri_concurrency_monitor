@@ -601,6 +601,14 @@ public class MonitorManagerTimeTestSuite {
 		
 		th0.start();
 		
+		try {
+			Thread.sleep(10);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted thread: " + e.getMessage());
+		}
+		
+		Assert.assertTrue(t0.getTimeSpan().anySleeping());
+		
 		Assert.assertTrue(events.isEmpty());
 		
 		for(Thread worker : workers){
@@ -653,7 +661,7 @@ public class MonitorManagerTimeTestSuite {
 	* <li> And t0 gets enabled </li>
 	* <li> And th0 wakes up and fires t0 </li>
 	* <li> And obs got only one message with t0's ID </li>
-	* <li> And th0's final state is TERMIANTED </li>
+	* <li> And th0's final state is TERMINATED </li>
 	* <li> And all of the other threads' states are WAITING </li>
 	
 	*/
@@ -701,6 +709,8 @@ public class MonitorManagerTimeTestSuite {
 		} catch (InterruptedException e) {
 			Assert.fail("Interrupted thread: " + e.getMessage());
 		}
+		
+		Assert.assertTrue(t0.getTimeSpan().anySleeping());
 		
 		for(Thread worker : workers){
 			worker.start();

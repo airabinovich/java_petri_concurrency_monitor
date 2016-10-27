@@ -88,7 +88,7 @@ public class FairQueueTestSuite {
 	}
 	
 	/**
-	 * <li> Given 3 threads go to sleep </li>
+	 * <li> Given 3 threads go to sleep with low priority </li>
 	 * <li> And 2 threads go to sleep with high priority </li>
 	 * <li> When I wake up 2 threads </li>
 	 * <li> Then no high priority threads are sleeping </li>
