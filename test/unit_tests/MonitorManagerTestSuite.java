@@ -14,7 +14,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import Petri.NotInitializedTimedPetriNetException;
+import Petri.NotInitializedPetriNetException;
 import Petri.PetriNet;
 import Petri.PetriNetFactory;
 import Petri.PetriNetFactory.petriNetType;
@@ -107,7 +107,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.fireTransition(t0);
-		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e1) {
 			Assert.fail("Exeption thrown in test execution");
 		}
 		
@@ -174,7 +174,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.fireTransition(t0);
-		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e1) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -237,7 +237,7 @@ public class MonitorManagerTestSuite {
 			Assert.fail("An IllegalTransitionFiringError should've been thrown before this point");
 		} catch (Error err){
 			Assert.assertEquals("IllegalTransitionFiringError", err.getClass().getSimpleName());
-		} catch (NotInitializedTimedPetriNetException e) {
+		} catch (NotInitializedPetriNetException e) {
 			Assert.fail("Exception thrown in test execution");
 		}
 	}
@@ -265,7 +265,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.fireTransition(t0);
-		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e1) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -357,7 +357,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.fireTransition(t0);
-		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e1) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -401,7 +401,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.fireTransition(t0);
-		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e1) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -421,7 +421,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.fireTransition(t0);
-		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e) {
+		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -458,7 +458,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.fireTransition(t0);
-		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e1) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -468,7 +468,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.fireTransition(t1);
-		} catch (IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e1) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -590,14 +590,14 @@ public class MonitorManagerTestSuite {
 		// setting this guard here is just to enable t0
 		try {
 			monitor.setGuard("test", true);
-		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedTimedPetriNetException e2) {
+		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedPetriNetException e2) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		Assert.assertTrue(petri.isEnabled(t0));
 		
 		try {
 			monitor.setGuard("test", false);
-		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedTimedPetriNetException e2) {
+		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedPetriNetException e2) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -624,7 +624,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.setGuard("test", true);
-		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedTimedPetriNetException e2) {
+		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedPetriNetException e2) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -674,7 +674,7 @@ public class MonitorManagerTestSuite {
 		// setting this guard here is just to enable t0
 		try {
 			monitor.setGuard("test", true);
-		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedTimedPetriNetException e2) {
+		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedPetriNetException e2) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		Assert.assertTrue(petri.isEnabled(t0));
@@ -711,7 +711,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.setGuard("test", false);
-		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedTimedPetriNetException e2) {
+		} catch (IndexOutOfBoundsException | NullPointerException | NotInitializedPetriNetException e2) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -987,7 +987,7 @@ public class MonitorManagerTestSuite {
 		
 		try {
 			monitor.fireTransition(t0.getName());
-		} catch (IllegalArgumentException | IllegalTransitionFiringError | NotInitializedTimedPetriNetException e1) {
+		} catch (IllegalArgumentException | IllegalTransitionFiringError | NotInitializedPetriNetException e1) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		

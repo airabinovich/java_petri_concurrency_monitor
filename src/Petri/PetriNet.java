@@ -23,6 +23,7 @@ public abstract class PetriNet {
 	protected Integer[] initialMarking;
 	protected boolean[] automaticTransitions;
 	protected boolean[] informedTransitions;
+	protected boolean[] enabledTransitions;
 	
 	/** Inhibition arcs pre-incidence matrix */
 	protected Boolean[][] inhibitionMatrix;
@@ -34,6 +35,9 @@ public abstract class PetriNet {
 	protected boolean hasInhibitionArcs;
 	protected boolean hasResetArcs;
 	protected boolean hasReaderArcs;
+	
+	
+	protected boolean initializedPetriNet;
 	
 	/** HashMap for guards. These variables can enable or disable associated transitions */
 	protected HashMap<String, Boolean> guards;
@@ -77,6 +81,12 @@ public abstract class PetriNet {
 		hasResetArcs = isMatrixNonZero(resetMatrix);
 		hasReaderArcs = isMatrixNonZero(readerMatrix);
 	}
+	
+	/**
+	 * Compute all enabled transitions according to each particular net's requirements
+	 * @return An array where true means that transition is enabled
+	 */
+	protected abstract boolean[] computeEnabledTransitions();
 	
 	private void computeAutomaticAndInformed() {
 		this.automaticTransitions = new boolean[transitions.length];
@@ -141,6 +151,9 @@ public abstract class PetriNet {
 			}
 			places[i].setMarking(currentMarking[i]);
 		}
+		
+		enabledTransitions = computeEnabledTransitions();
+		
 		return true;
 	}
 	
@@ -149,11 +162,7 @@ public abstract class PetriNet {
 	 * @return a boolean array that contains if each transition is enabled or not (true or false)
 	 */
 	public boolean[] getEnabledTransitions(){
-		boolean[] _enabledTransitions = new boolean[transitions.length];
-		for(Transition t : transitions){
-			_enabledTransitions[t.getIndex()] = isEnabled(t);
-		}
-		return _enabledTransitions;
+		return enabledTransitions;
 	}
 	
 	public boolean[] getAutomaticTransitions(){
@@ -224,6 +233,12 @@ public abstract class PetriNet {
 	}
 	
 	/**
+	 * @return True if the petri net is initialized
+	 */
+	public boolean isInitialized(){
+		return initializedPetriNet;
+	}
+	/**
 	 * Checks if the transition whose index is passed is enabled.
 	 * Disabling causes:
 	 * <li> Feeding places don't meet arcs weights requirements </li>
@@ -292,7 +307,11 @@ public abstract class PetriNet {
 	 * @return True when succeeded
 	 */
 	public synchronized boolean addGuard(String key, Boolean value) {
-		return guards.put(key, value) != null;
+		boolean success = guards.put(key, value) != null;
+		
+		enabledTransitions = computeEnabledTransitions();
+		
+		return success;
 	}
 	
 	/**
