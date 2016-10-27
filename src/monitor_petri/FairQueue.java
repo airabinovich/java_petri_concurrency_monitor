@@ -1,40 +1,53 @@
 package monitor_petri;
 
-import java.util.concurrent.Semaphore;
+import monitor_petri.PriorityBinaryLock.LockPriority;
 
 public class FairQueue implements VarCondQueue{
 	
-	private Semaphore sem;
+	private PriorityBinaryLock lock;
 	
 	/**
 	 * A fair sleeping queue for threads. 
 	 * A call to {@link #sleep() sleep} sends the calling thread to sleep until any threads calls {@link #wakeUp() wakeUp}
 	 */
 	public FairQueue(){
-		sem = new Semaphore(0,true);
+		lock = new PriorityBinaryLock();
+		// take the lock so no permissions are available
+		// and when a thread calls sleep() (or sleepWithHighPriority())
+		// it can't acquire the lock and continue, and must sleep
+		lock.lock();
 	}
 	
 	public void sleep(){
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} 
+		lock.lock();
+	}
+	
+	public void sleepWithHighPriority() {
+		lock.lock(LockPriority.HIGH);
 	}
 
 	public void wakeUp() {
 		if(!isEmpty()){
-			sem.release();
+			lock.unlock();
 		}
 	}
 
 	
 	public boolean isEmpty() {
-		return !sem.hasQueuedThreads();
+		return !lock.hasQueuedThreads();
 	}
 
 	@Override
 	public int getSize() {
-		return sem.getQueueLength();
+		return (int) (lock.getHighPriorityQueueLength() + lock.getLowPriorityQueueLength());
 	}
+	
+	public int getHighPriorityThreadsSleeping(){
+		return (int) (lock.getHighPriorityQueueLength());
+	}
+	
+	public int getLowPriorityThreadsSleeping(){
+		return (int) (lock.getLowPriorityQueueLength());
+	}
+
 }
