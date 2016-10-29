@@ -480,7 +480,7 @@ public class MonitorManagerTimeTestSuite {
 	 * <li> And t1 is not timed </li>
 	 * <li> And some time passes after initialization </li>
 	 * <li> When th2 tries to fire t0 </li>
-	 * <li> Then a NotInitializedTimedPetriNetException is thrown </li>
+	 * <li> Then NotInitializedPetriNetException is thrown </li>
 	 * <li> And th0 tries to fire t1 </li>
 	 * <li> And a NotInitializedTimedPetriNetException is thrown </li>
 	 */

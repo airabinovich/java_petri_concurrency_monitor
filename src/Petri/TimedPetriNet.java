@@ -31,7 +31,6 @@ public class TimedPetriNet extends PetriNet{
 	
 	/**
 	 * Fires the transition specified by transitionIndex and updates the enabled transitions with their timestamps
-	 * If net is not initialized when calling this method, NotInitializedTimedPetriNetException will be thrown
 	 * @param transitionIndex The index of the transition to be fired
 	 * @return True if the fire was successful
 	 * @throws IllegalArgumentException If the index is negative or greater than the last transition index.
