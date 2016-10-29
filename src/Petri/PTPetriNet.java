@@ -9,9 +9,6 @@ public class PTPetriNet extends PetriNet{
 	public PTPetriNet(Place[] _places, Transition[] _transitions, Arc[] _arcs, Integer[] _initialMarking,
 			Integer[][] _preI, Integer[][] _posI, Integer[][] _I, Boolean[][] _inhibition, Boolean[][] _resetMatrix, Integer[][] _readerMatrix) {
 		super(_places, _transitions, _arcs, _initialMarking, _preI, _posI, _I, _inhibition, _resetMatrix, _readerMatrix);
-		
-		enabledTransitions = computeEnabledTransitions();
-		initializedPetriNet = true;
 	}
 	
 	/**

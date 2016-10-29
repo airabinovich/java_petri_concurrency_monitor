@@ -76,7 +76,7 @@ public class MonitorManagerTimeTestSuite {
 	public void testAThreadGoesToSleepWhenComeBeforeTimeSpan() {
 		
 		setUpMonitor(TIMED_PETRI_NET);
-		timedPetriNet.startTimes();
+		timedPetriNet.initializePetriNet();
 		
 		Transition t0 = timedPetriNet.getTransitions()[0];
 		
@@ -111,7 +111,7 @@ public class MonitorManagerTimeTestSuite {
 	public void testAThreadGoesToVardCondQueueWhenAnotherThreadIsSleepingIntoTransition() {
 		
 		setUpMonitor(TIMED_PETRI_NET);
-		timedPetriNet.startTimes();
+		timedPetriNet.initializePetriNet();
 		
 		Transition t0 = timedPetriNet.getTransitions()[0];
 		Integer[] initialMarking = timedPetriNet.getInitialMarking();
@@ -165,7 +165,7 @@ public class MonitorManagerTimeTestSuite {
 	public void testAThreadGoesToSleepWhenComeBeforeTimeSpanAndThenWakeUpAndFireTransition() {
 		
 		setUpMonitor(TIMED_PETRI_NET);
-		timedPetriNet.startTimes();
+		timedPetriNet.initializePetriNet();
 		
 		Transition t0 = timedPetriNet.getTransitions()[0];
 
@@ -213,7 +213,7 @@ public class MonitorManagerTimeTestSuite {
 	public void threadShouldSleepInVarcondQueueWhenTransitionGetsDisabledWhileSleepingByItself() {
 		
 		setUpMonitor(TIMED_PETRI_NET);
-		timedPetriNet.startTimes();
+		timedPetriNet.initializePetriNet();
 		
 		Transition t0 = timedPetriNet.getTransitions()[0];
 		Transition t3 = timedPetriNet.getTransitions()[3];
@@ -286,7 +286,7 @@ public class MonitorManagerTimeTestSuite {
 	public void threadPerennialFiringATransitionBeforeItsTimeSpanShouldSleepOnItsOwnAndThenFire(){
 		
 		setUpMonitor(TIMED_PETRI_NET);
-		timedPetriNet.startTimes();
+		timedPetriNet.initializePetriNet();
 		
 		Transition t0 = timedPetriNet.getTransitions()[0];
 		Assert.assertTrue(timedPetriNet.isEnabled(t0));
@@ -349,7 +349,7 @@ public class MonitorManagerTimeTestSuite {
 	public void threadPerennialFiringATransitionAfterItsTimeSpanShouldNotSleepInQueue(){
 		
 		setUpMonitor(TIMED_PETRI_NET);
-		timedPetriNet.startTimes();
+		timedPetriNet.initializePetriNet();
 		
 		Transition t0 = timedPetriNet.getTransitions()[0];
 		Assert.assertTrue(timedPetriNet.isEnabled(t0));
@@ -423,7 +423,7 @@ public class MonitorManagerTimeTestSuite {
 		} catch (InterruptedException e) {
 			Assert.fail("Interrupted thread: " + e.getMessage());
 		}
-		timedPetriNet.startTimes();
+		timedPetriNet.initializePetriNet();
 		th0.start();
 		
 		try {
@@ -570,7 +570,7 @@ public class MonitorManagerTimeTestSuite {
 		
 		ArrayList<String> events = obs.getEvents();
 		
-		timedPetriNet.startTimes();
+		timedPetriNet.initializePetriNet();
 		
 		th0.start();
 		
@@ -673,7 +673,7 @@ public class MonitorManagerTimeTestSuite {
 		
 		ArrayList<String> events = obs.getEvents();
 		
-		timedPetriNet.startTimes();
+		timedPetriNet.initializePetriNet();
 		
 		th0.start();
 		

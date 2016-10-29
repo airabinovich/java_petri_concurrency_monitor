@@ -7,7 +7,7 @@ public class TimedPetriNet extends PetriNet{
 	/**
 	 * Constructs a TimedPetriNet object, which is a {@link PetriNet} object with added time semantics
 	 * The enabled transitions are not calculated at initialization time, so
-	 * before firing the first transition, they must be calculated {@link TimedPetriNet#startTimes()}.
+	 * before firing the first transition, they must be calculated {@link TimedPetriNet#initializePetriNet()}.
 	 * Other way to start times is firing a non timed transition before a timed transition
 	 * @see PetriNet#PetriNet(Place[], Transition[], Arc[], Integer[], Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][], Integer[][])
 	 */
@@ -20,23 +20,14 @@ public class TimedPetriNet extends PetriNet{
 	}
 
 	/**
-	 * Computes the enabled transitions for first time and
-	 * set the times to timed transitions
-	 * @see TimedPetriNet#computeEnabledTransitions() 
-	 */
-	public void startTimes(){
-		this.enabledTransitions = computeEnabledTransitions();
-		this.initializedPetriNet = true;
-	}
-	
-	/**
 	 * Fires the transition specified by transitionIndex and updates the enabled transitions with their timestamps
 	 * @param transitionIndex The index of the transition to be fired
 	 * @return True if the fire was successful
 	 * @throws IllegalArgumentException If the index is negative or greater than the last transition index.
+	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
 	 * @see PetriNet#fire(int)
 	 */
-	public boolean fire(int transitionIndex) throws IllegalArgumentException{
+	public boolean fire(int transitionIndex) throws IllegalArgumentException, NotInitializedPetriNetException{
 		return super.fire(transitionIndex);
 		//Compute new enabled transitions and set new timestamp (done in super.fire)
 	}
@@ -46,10 +37,11 @@ public class TimedPetriNet extends PetriNet{
 	 * @param t The transition to be fired
 	 * @return True if the fire was successful
 	 * @throws IllegalArgumentException If t is null or if it doesn't match any transition index.
-	 * @see TimedPetriNet#startTimes()
+	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
+	 * @see TimedPetriNet#initializePetriNet()
 	 * @see PetriNet#fire(Transition)
 	 */
-	public boolean fire(final Transition t) throws IllegalArgumentException{
+	public boolean fire(final Transition t) throws IllegalArgumentException, NotInitializedPetriNetException{
 		if(t == null){
 			throw new IllegalArgumentException("Tried to fire null transition");
 		}

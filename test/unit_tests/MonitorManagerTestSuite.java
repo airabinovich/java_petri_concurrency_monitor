@@ -63,7 +63,7 @@ public class MonitorManagerTestSuite {
 	}
 	
 	/**
-	 * Creates factory, petri and monitor from given PNML
+	 * Creates factory, petri and monitor from given PNML, and initialized the petri net
 	 * @param PNML Path to the PNML file
 	 * @param type The petri type to create
 	 */
@@ -71,6 +71,7 @@ public class MonitorManagerTestSuite {
 		factory = new PetriNetFactory(PNML);
 		petri = factory.makePetriNet(type);
 		monitor = new MonitorManager(petri, policy);
+		petri.initializePetriNet();
 	}
 	
 	/**

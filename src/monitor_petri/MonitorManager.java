@@ -305,8 +305,9 @@ public class MonitorManager {
 	 * @param transitionToFire
 	 * @param perennialFire
 	 * @return Whether to release the mutex {@link #inQueue}
+	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
 	 */
-	private boolean internalFireTransition(Transition transitionToFire, boolean perennialFire){
+	private boolean internalFireTransition(Transition transitionToFire, boolean perennialFire) throws  NotInitializedPetriNetException{
 		boolean releaseLock = true;
 		boolean keepFiring = true;
 		boolean insideTimeSpan = false;
