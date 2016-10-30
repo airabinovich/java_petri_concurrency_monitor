@@ -46,13 +46,9 @@ public class TimeSpan {
 	
 	/**
 	 * @param time timestamp in miliseconds to figure out whether it's inside the span
-	 * @throws NotInitializedTimedPetriNetException if the time is not initialized
 	 * @return true if time is inside the span
 	 */
-	public boolean inTimeSpan(long time) throws NotInitializedTimedPetriNetException{
-		if(enableTime == -1){
-			throw new NotInitializedTimedPetriNetException();
-		}
+	public boolean inTimeSpan(long time){
 		if(time >= enableTime + timeBegin){
 			if(timeEnd == Long.MAX_VALUE){
 				return true;
@@ -66,13 +62,9 @@ public class TimeSpan {
 	
 	/**
 	 * @param time timestamp in miliseconds to figure out whether it's before the span
-	 * @throws NotInitializedTimedPetriNetException if the time is not initialized
 	 * @return true if time is befire the span
 	 */
-	public boolean isBeforeTimeSpan(long time) throws NotInitializedTimedPetriNetException{
-		if(enableTime == -1){
-			throw new NotInitializedTimedPetriNetException();
-		}
+	public boolean isBeforeTimeSpan(long time){
 		return time < enableTime + timeBegin;
 	}
 	
@@ -82,7 +74,7 @@ public class TimeSpan {
 	 * @param timeE set time in miliseconds used to generate the span end time
 	 * @throws IllegalArgumentException
 	 */
-	public void setTimeSpan(int timeB, int timeE) throws IllegalArgumentException{
+	public void setTimeSpan(int timeB, int timeE){
 		if(timeB >= 0 && timeE >= 0 && (timeB < timeE)){
 			this.timeBegin = timeB;
 			this.timeEnd = timeE;

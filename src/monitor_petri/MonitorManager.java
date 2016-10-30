@@ -8,7 +8,7 @@ import java.util.Optional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import Petri.NotInitializedTimedPetriNetException;
+import Petri.NotInitializedPetriNetException;
 import Petri.PetriNet;
 import Petri.TimeSpan;
 import Petri.Transition;
@@ -79,11 +79,11 @@ public class MonitorManager {
 	 * </ul>
 	 * For timed transitions, the calling thread sleeps until the transition reaches its time span, only then fires it.
 	 * @param transitionToFire The transition to fire
-	 * @throws NotInitializedTimedPetriNetException when firing a timed transition before initialize its time
+	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
-	public void fireTransition(final Transition transitionToFire) throws IllegalTransitionFiringError, NotInitializedTimedPetriNetException{
+	public void fireTransition(final Transition transitionToFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException{
 		fireTransition(transitionToFire, false);
 	}
 
@@ -106,13 +106,16 @@ public class MonitorManager {
 	 * @param transitionToFire The transition to fire
 	 * @param perenialFire True indicates a perennial fire
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
-	 * @throws NotInitializedTimedPetriNetException when firing a timed transition before initialize its time
+	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
-	public void fireTransition(final Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError, NotInitializedTimedPetriNetException{
+	public void fireTransition(final Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException{
 		// An attempt to fire an automatic transition is a severe error and the application should stop automatically
 		if(transitionToFire.getLabel().isAutomatic()){
 			throw new IllegalTransitionFiringError("An automatic transition has tried to be fired manually");
+		}
+		if(!petri.isInitialized()){
+			throw new NotInitializedPetriNetException();
 		}
 		boolean releaseLock = true;
 		try {
@@ -132,9 +135,9 @@ public class MonitorManager {
 	 * @param transitionName The name of the transition to fire.
 	 * @throws IllegalArgumentException If no transition matches transitionName
 	 * @throws IllegalTransitionFiringError If transitionName matches an automatic transition
-	 * @throws NotInitializedTimedPetriNetException when firing a timed transition before initialize its time
+	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
 	 */
-	public void fireTransition(final String transitionName) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedTimedPetriNetException {
+	public void fireTransition(final String transitionName) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException {
 		Optional<Transition> filteredTransition = Arrays.stream(petri.getTransitions())
 				.filter((Transition t) -> t.getName().equals(transitionName))
 				// I can get only the first here because I made sure the name is unique in the parsing
@@ -207,11 +210,14 @@ public class MonitorManager {
 	 * @param newValue New value to set
 	 * @throws IndexOutOfBoundsException If the guard doesn't exist
 	 * @throws NullPointerException If guardName is empty
-	 * @throws NotInitializedTimedPetriNetException when firing a timed transition before initialize its time
+	 * @throws NotInitializedPetriNetException when firing a transition before initializing the petri net
 	 */
-	public boolean setGuard(String guardName, boolean newValue) throws IndexOutOfBoundsException, NullPointerException, NotInitializedTimedPetriNetException{
+	public boolean setGuard(String guardName, boolean newValue) throws IndexOutOfBoundsException, NullPointerException, NotInitializedPetriNetException{
 		if(guardName == null || guardName.isEmpty()){
 			throw new NullPointerException("Empty guard name not allowed");
+		}
+		if(!petri.isInitialized()){
+			throw new NotInitializedPetriNetException();
 		}
 		boolean couldSet = false;
 		boolean releaseLock = true;
@@ -299,16 +305,16 @@ public class MonitorManager {
 	 * @param transitionToFire
 	 * @param perennialFire
 	 * @return Whether to release the mutex {@link #inQueue}
-	 * @throws NotInitializedTimedPetriNetException when firing a timed transition before initialize its time
+	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
 	 */
-	private boolean internalFireTransition(Transition transitionToFire, boolean perennialFire) throws NotInitializedTimedPetriNetException{
+	private boolean internalFireTransition(Transition transitionToFire, boolean perennialFire) throws  NotInitializedPetriNetException{
 		boolean releaseLock = true;
 		boolean keepFiring = true;
 		boolean insideTimeSpan = false;
 		boolean isTimed = false;
 		
 		while(keepFiring){
-			keepFiring = petri.isEnabled(transitionToFire);
+			keepFiring = petri.getEnabledTransitions()[transitionToFire.getIndex()];
 			long fireAttemptTime = System.currentTimeMillis();
 			TimeSpan transitionSpan = transitionToFire.getTimeSpan();
 			if(transitionSpan != null){

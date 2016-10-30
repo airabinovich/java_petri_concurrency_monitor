@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import Petri.NotInitializedPetriNetException;
 import Petri.PNMLreader;
 import Petri.PetriNet;
 import Petri.PetriNetFactory;
@@ -63,14 +64,19 @@ public class PetriNetTestSuite {
 	public void testFireTransitionShouldReturnFalseIfTransitionIsNotEnabled() {
 		try{
 			readFileAndMakePetriNet(READER_WRITER);
+			
+			petriNet.initializePetriNet();
+			
 			// When I fire t2 (not enabled) should return false
 			Transition[] transitions = petriNet.getTransitions();
 			Transition t2 = transitions[2];
 			
 			Assert.assertFalse(petriNet.isEnabled(t2));
 			Assert.assertFalse(petriNet.fire(t2));
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + READER_WRITER);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -81,14 +87,19 @@ public class PetriNetTestSuite {
 	public void testFireTransitionShouldReturnTrueIfTransitionIsEnabled() {
 		try{
 			readFileAndMakePetriNet(READER_WRITER);
+			
+			petriNet.initializePetriNet();
+			
 			// When I fire t0 (enabled) should return true
 			Transition[] transitions = petriNet.getTransitions();
 			Transition t0 = transitions[0];
 			
 			Assert.assertTrue(petriNet.isEnabled(t0));
 			Assert.assertTrue(petriNet.fire(t0));
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + READER_WRITER);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 
@@ -99,6 +110,8 @@ public class PetriNetTestSuite {
 	public void testFireTransitionShouldChangeMarkingWhenSucceeded() {
 		try{
 			readFileAndMakePetriNet(READER_WRITER);
+			
+			petriNet.initializePetriNet();
 			// When I fire t0 a token is taken from p0
 			// And 5 tokens are taken from p4
 			// And a token is put into p1
@@ -118,8 +131,10 @@ public class PetriNetTestSuite {
 			Assert.assertEquals(previousMarking[p0.getIndex()] - 1, newMarking[p0.getIndex()].intValue());
 			Assert.assertEquals(previousMarking[p4.getIndex()] - 5, newMarking[p4.getIndex()].intValue());
 			Assert.assertEquals(previousMarking[p1.getIndex()] + 1, newMarking[p1.getIndex()].intValue());
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + READER_WRITER);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -130,6 +145,8 @@ public class PetriNetTestSuite {
 	public void testFireTransitionShouldUpdateEnabledTransitions() {
 		try{
 			readFileAndMakePetriNet(READER_WRITER);
+			
+			petriNet.initializePetriNet();
 			// When I fire t0 (enabled) then t0 is disabled
 			// And t1 is disabled
 			// And t2 is enabled
@@ -145,8 +162,10 @@ public class PetriNetTestSuite {
 			Assert.assertFalse(petriNet.isEnabled(t0));
 			Assert.assertFalse(petriNet.isEnabled(t1));
 			Assert.assertTrue(petriNet.isEnabled(t2));
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + READER_WRITER);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 
@@ -203,6 +222,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_GUARD_01);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t1 = petriNet.getTransitions()[1];
 			
 			Integer[] expectedMarking = {Integer.valueOf(2), Integer.valueOf(0), Integer.valueOf(0)};
@@ -214,8 +235,10 @@ public class PetriNetTestSuite {
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_GUARD_01);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -238,6 +261,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_GUARD_01);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t0 = petriNet.getTransitions()[0];
 			
 			Integer[] expectedMarking = {Integer.valueOf(2), Integer.valueOf(0), Integer.valueOf(0)};
@@ -251,8 +276,10 @@ public class PetriNetTestSuite {
 			expectedMarking[1] = 1;
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_GUARD_01);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -275,6 +302,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_GUARD_01);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t0 = petriNet.getTransitions()[0];
 			
 			Integer[] expectedMarking = {Integer.valueOf(2), Integer.valueOf(0), Integer.valueOf(0)};
@@ -286,8 +315,10 @@ public class PetriNetTestSuite {
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_GUARD_01);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -310,6 +341,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_GUARD_01);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t1 = petriNet.getTransitions()[1];
 			
 			Integer[] expectedMarking = {Integer.valueOf(2), Integer.valueOf(0), Integer.valueOf(0)};
@@ -323,8 +356,10 @@ public class PetriNetTestSuite {
 			expectedMarking[2] = 1;
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_GUARD_01);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 
@@ -343,6 +378,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_INHIBITOR_01);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t0 = petriNet.getTransitions()[0];
 			Transition t2 = petriNet.getTransitions()[2];
 			
@@ -358,8 +395,10 @@ public class PetriNetTestSuite {
 			
 			Assert.assertFalse(petriNet.isEnabled(t2));
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_INHIBITOR_01);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -379,6 +418,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_INHIBITOR_01);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t0 = petriNet.getTransitions()[0];
 			Transition t2 = petriNet.getTransitions()[2];
 			
@@ -394,8 +435,10 @@ public class PetriNetTestSuite {
 			
 			Assert.assertFalse(petriNet.fire(t2));
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_INHIBITOR_01);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -414,6 +457,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_INHIBITOR_01);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t2 = petriNet.getTransitions()[2];
 			
 			Integer[] expectedMarking = {Integer.valueOf(2) , Integer.valueOf(0), Integer.valueOf(0)};
@@ -428,8 +473,10 @@ public class PetriNetTestSuite {
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_INHIBITOR_01);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -449,6 +496,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_RESET_01);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t3 = petriNet.getTransitions()[3];
 			
 			Integer[] expectedMarking = {Integer.valueOf(1) , Integer.valueOf(1), Integer.valueOf(1), Integer.valueOf(4), Integer.valueOf(0)};
@@ -464,8 +513,10 @@ public class PetriNetTestSuite {
 			Assert.assertEquals(expectedMarking[3].intValue(), petriNet.getPlaces()[3].getMarking());
 			Assert.assertEquals(expectedMarking[4].intValue(), petriNet.getPlaces()[4].getMarking());
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_RESET_01);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -483,6 +534,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_RESET_02);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t3 = petriNet.getTransitions()[3];
 			
 			Integer[] expectedMarking = {Integer.valueOf(1) , Integer.valueOf(1), Integer.valueOf(1), Integer.valueOf(0), Integer.valueOf(0)};
@@ -494,8 +547,10 @@ public class PetriNetTestSuite {
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_RESET_02);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -515,6 +570,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_RESET_03);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t0 = petriNet.getTransitions()[0];
 			
 			Integer[] expectedMarking = {Integer.valueOf(4) , Integer.valueOf(0), Integer.valueOf(0), Integer.valueOf(0)};
@@ -530,8 +587,10 @@ public class PetriNetTestSuite {
 			expectedMarking[3] = 1;
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_RESET_03);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -549,6 +608,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_READER_01);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t2 = petriNet.getTransitions()[2];
 			
 			Integer[] expectedMarking = { 2, 0, 0 };
@@ -559,8 +620,10 @@ public class PetriNetTestSuite {
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_READER_01);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 	
@@ -582,6 +645,8 @@ public class PetriNetTestSuite {
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_READER_01);
 			
+			petriNet.initializePetriNet();
+			
 			Transition t0 = petriNet.getTransitions()[0];
 			Assert.assertTrue(petriNet.fire(t0));
 			
@@ -598,8 +663,10 @@ public class PetriNetTestSuite {
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-		} catch (Exception e){
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_READER_01);
+		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
 		}
 	}
 }

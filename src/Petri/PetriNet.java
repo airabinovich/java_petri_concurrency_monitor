@@ -23,6 +23,7 @@ public abstract class PetriNet {
 	protected Integer[] initialMarking;
 	protected boolean[] automaticTransitions;
 	protected boolean[] informedTransitions;
+	protected boolean[] enabledTransitions;
 	
 	/** Inhibition arcs pre-incidence matrix */
 	protected Boolean[][] inhibitionMatrix;
@@ -34,6 +35,9 @@ public abstract class PetriNet {
 	protected boolean hasInhibitionArcs;
 	protected boolean hasResetArcs;
 	protected boolean hasReaderArcs;
+	
+	
+	protected boolean initializedPetriNet;
 	
 	/** HashMap for guards. These variables can enable or disable associated transitions */
 	protected HashMap<String, Boolean> guards;
@@ -78,6 +82,22 @@ public abstract class PetriNet {
 		hasReaderArcs = isMatrixNonZero(readerMatrix);
 	}
 	
+	/**
+	 * Compute all enabled transitions according to each particular net's requirements
+	 * @return An array where true means that transition is enabled
+	 */
+	protected abstract boolean[] computeEnabledTransitions();
+	
+	/**
+	 * Initialize the petri net and computes enabled transitions for the first time.
+	 * This method must be called before being ready to fire a transition.
+	 * @see PetriNet#computeEnabledTransitions()
+	 */
+	public void initializePetriNet(){
+		enabledTransitions = computeEnabledTransitions();
+		initializedPetriNet = true;
+	}
+	
 	private void computeAutomaticAndInformed() {
 		this.automaticTransitions = new boolean[transitions.length];
 		this.informedTransitions = new boolean[transitions.length];
@@ -105,8 +125,9 @@ public abstract class PetriNet {
 	 * @param t Transition to be fired.
 	 * @return true if t was fired.
 	 * @throws IllegalArgumentException If t is null or if it doesn't match any transition index
+	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
 	 */
-	public boolean fire(final Transition t) throws IllegalArgumentException{
+	public boolean fire(final Transition t) throws IllegalArgumentException, NotInitializedPetriNetException{
 		if(t == null){
 			throw new IllegalArgumentException("Null Transition passed as argument");
 		}
@@ -119,8 +140,9 @@ public abstract class PetriNet {
 	 * @param transitionIndex Transition's index to be fired.
 	 * @return true if transitionIndex was fired. For a perennial fire, returns true in any case.
 	 * @throws IllegalArgumentException If transitionIndex is negative or greater than the last transition index.
+	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
 	 */
-	public synchronized boolean fire(int transitionIndex) throws IllegalArgumentException{
+	public synchronized boolean fire(int transitionIndex) throws IllegalArgumentException, NotInitializedPetriNetException{
 		// m_(i+1) = m_i + I*d
 		// when d is a vector where every element is 0 but the nth which is 1
 		// it's equivalent to pick nth column from Incidence matrix (I) 
@@ -128,6 +150,9 @@ public abstract class PetriNet {
 		// and if there is a reset arc, all tokens from its source place are taken.
 		if(transitionIndex < 0 || transitionIndex > transitions.length){
 			throw new IllegalArgumentException("Invalid transition index: " + transitionIndex);
+		}
+		if(!initializedPetriNet){
+			throw new NotInitializedPetriNetException();
 		}
 		if(!isEnabled(transitionIndex)){
 			return false;
@@ -141,6 +166,9 @@ public abstract class PetriNet {
 			}
 			places[i].setMarking(currentMarking[i]);
 		}
+		
+		enabledTransitions = computeEnabledTransitions();
+		
 		return true;
 	}
 	
@@ -149,11 +177,7 @@ public abstract class PetriNet {
 	 * @return a boolean array that contains if each transition is enabled or not (true or false)
 	 */
 	public boolean[] getEnabledTransitions(){
-		boolean[] _enabledTransitions = new boolean[transitions.length];
-		for(Transition t : transitions){
-			_enabledTransitions[t.getIndex()] = isEnabled(t);
-		}
-		return _enabledTransitions;
+		return enabledTransitions;
 	}
 	
 	public boolean[] getAutomaticTransitions(){
@@ -224,6 +248,12 @@ public abstract class PetriNet {
 	}
 	
 	/**
+	 * @return True if the petri net is initialized
+	 */
+	public boolean isInitialized(){
+		return initializedPetriNet;
+	}
+	/**
 	 * Checks if the transition whose index is passed is enabled.
 	 * Disabling causes:
 	 * <li> Feeding places don't meet arcs weights requirements </li>
@@ -292,7 +322,11 @@ public abstract class PetriNet {
 	 * @return True when succeeded
 	 */
 	public synchronized boolean addGuard(String key, Boolean value) {
-		return guards.put(key, value) != null;
+		boolean success = guards.put(key, value) != null;
+		
+		enabledTransitions = computeEnabledTransitions();
+		
+		return success;
 	}
 	
 	/**
