@@ -8,8 +8,6 @@ public class TimeSpan {
 	private long timeEnd;
 	/** Timestamp when the transition was enabled */
 	private long enableTime;
-	/** This is true when a thread is sleeping in sleep method */
-	private boolean sleeping;
 	
 	/**
 	 * @param timeB Increment to add to enabling time to set begin time
@@ -82,27 +80,5 @@ public class TimeSpan {
 		else{
 			throw new IllegalArgumentException("The interval time must not have a negative value");
 		}
-	}
-	
-	/**
-	 * Locks the calling thread for the given time
-	 * @param time time to lock the calling thread
-	 */
-	public void sleep(long time){
-		this.sleeping = true;
-		try {
-			Thread.sleep(time);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		this.sleeping = false;
-	}
-	
-	/**
-	 * 
-	 * @return true if a thread is locked in {@link #sleep(long time)} method
-	 */
-	public boolean anySleeping(){
-		return sleeping;
 	}
 }

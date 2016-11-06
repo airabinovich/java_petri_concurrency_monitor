@@ -83,7 +83,7 @@ public class PetriMonitorTimeTestSuite {
 			e.printStackTrace();
 		}
 		
-		assertEquals(true, t0.getTimeSpan().anySleeping());
+		assertEquals(true, monitor.isAnyThreadSleepingForTransition(t0.getIndex()));
 	}
 	
 	/**
@@ -136,7 +136,7 @@ public class PetriMonitorTimeTestSuite {
 			e.printStackTrace();
 		}
 			
-		assertEquals(true, t0.getTimeSpan().anySleeping());
+		assertEquals(true, monitor.isAnyThreadSleepingForTransition(t0.getIndex()));
 		assertEquals(true, monitor.getQueuesState()[0]);
 		assertArrayEquals(initialMarking, timedPetriNet.getCurrentMarking());
 	}
@@ -174,7 +174,7 @@ public class PetriMonitorTimeTestSuite {
 			e.printStackTrace();
 		}
 		
-		assertEquals(true, t0.getTimeSpan().anySleeping());
+		assertEquals(true, monitor.isAnyThreadSleepingForTransition(t0.getIndex()));
 		
 		try {
 			Thread.sleep(t0BeginTime);
@@ -209,7 +209,7 @@ public class PetriMonitorTimeTestSuite {
 		Assert.assertTrue(timedPetriNet.isEnabled(t0));
 		Assert.assertTrue(timedPetriNet.isEnabled(t3));
 		
-		Assert.assertFalse(t0.getTimeSpan().anySleeping());
+		Assert.assertFalse(monitor.isAnyThreadSleepingForTransition(t0.getIndex()));
 		
 		Thread th0 = new Thread(() -> {
 			try {
@@ -230,7 +230,7 @@ public class PetriMonitorTimeTestSuite {
 		boolean insideTimeSpan = t0.getTimeSpan().inTimeSpan(System.currentTimeMillis());
 		
 		Assert.assertFalse(insideTimeSpan);
-		Assert.assertTrue(t0.getTimeSpan().anySleeping());
+		Assert.assertTrue(monitor.isAnyThreadSleepingForTransition(t0.getIndex()));
 		
 		Assert.assertTrue(timedPetriNet.isEnabled(t0));
 		Assert.assertTrue(timedPetriNet.isEnabled(t3));
@@ -306,6 +306,8 @@ public class PetriMonitorTimeTestSuite {
 		
 		//let's make sure th0 isn't sleeping in t0's queue
 		Assert.assertFalse(monitor.getQueuesState()[0]);
+		
+		Assert.assertTrue(monitor.isAnyThreadSleepingForTransition(t0.getIndex()));
 
 		try {
 			// let's give th0 enough time to wake up and fire t0
@@ -568,7 +570,7 @@ public class PetriMonitorTimeTestSuite {
 			Assert.fail("Interrupted thread: " + e.getMessage());
 		}
 		
-		Assert.assertTrue(t0.getTimeSpan().anySleeping());
+		Assert.assertTrue(monitor.isAnyThreadSleepingForTransition(t0.getIndex()));
 		
 		Assert.assertTrue(events.isEmpty());
 		
@@ -671,7 +673,7 @@ public class PetriMonitorTimeTestSuite {
 			Assert.fail("Interrupted thread: " + e.getMessage());
 		}
 		
-		Assert.assertTrue(t0.getTimeSpan().anySleeping());
+		Assert.assertTrue(monitor.isAnyThreadSleepingForTransition(t0.getIndex()));
 		
 		for(Thread worker : workers){
 			worker.start();
