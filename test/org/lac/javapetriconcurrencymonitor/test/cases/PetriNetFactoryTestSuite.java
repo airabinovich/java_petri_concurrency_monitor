@@ -93,7 +93,7 @@ public class PetriNetFactoryTestSuite {
 	}
 	
 	@Test
-	public void petriNetFactoryShouldReturnSamePetriObjectsGottenFromPNMLreader(){
+	public void petriNetFactoryShouldReturnSamePetriComponentsGottenFromPNMLreader(){
 		try{
 			PetriNet petriNet = new PetriNetFactory(PetriNetFactoryTestSuite.parser).makePetriNet(petriNetType.PLACE_TRANSITION);
 			

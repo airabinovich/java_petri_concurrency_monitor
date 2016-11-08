@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 import org.javatuples.Triplet;
 import org.junit.Test;
-import org.unc.lac.javapetriconcurrencymonitor.errors.DuplicatedIDError;
+import org.unc.lac.javapetriconcurrencymonitor.errors.DuplicatedIdError;
 import org.unc.lac.javapetriconcurrencymonitor.errors.DuplicatedNameError;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.BadPnmlFormatException;
 import org.unc.lac.javapetriconcurrencymonitor.parser.PnmlParser;
@@ -154,7 +154,7 @@ public class PnmlParserTestSuite {
 	}
 	
 	@Test
-	public void ParseFileAndGetPetriObjectsShouldThrowExceptionWhenFileIsNotPNML() {
+	public void ParseFileAndGetPetriComponentsShouldThrowExceptionWhenFileIsNotPNML() {
 		try {
 			PnmlParser reader = new PnmlParser(READER_WRITER_NON_PNML);
 			assertEquals(null, reader.parseFileAndGetPetriComponents());
@@ -286,7 +286,7 @@ public class PnmlParserTestSuite {
 	 * <li> Given the PNML file contains 4 places with custom names "input 01", "input 02", "product 01" and "product 02" </li>
 	 * <li> And the file contains 4 transitions with custom names "build 02 from input 01", "build 01", "build 02 from input 02" and "input arrives"  </li>
 	 * <li> When I parse the file </li>
-	 * <li> And I get the petri objects </li>
+	 * <li> And I get the petri components </li>
 	 * <li> Then all transition names must be in the transitions array </li>
 	 * <li> And no extra name has to be in the transition array </li>
 	 * <li> Then all transition names must be in the places array </li>
@@ -340,7 +340,7 @@ public class PnmlParserTestSuite {
 	/**
 	 * <li> Given file contains 4 places and 4 transitions </li>
 	 * <li> When I parse the file </li>
-	 * <li> And I get the petri objects </li>
+	 * <li> And I get the petri components </li>
 	 * <li> Then places indexes have to go from 0 to 3 </li>
 	 * <li> And transitions indexes have to go from 0 to 3 </li>
 	 */
@@ -412,7 +412,7 @@ public class PnmlParserTestSuite {
 	/**
 	 * <li> Given p0 and p1 have the same ID </li>
 	 * <li> When I parse the file </li>
-	 * <li> Then DuplicatedIDError should be thrown </li>
+	 * <li> Then DuplicatedIdError should be thrown </li>
 	 */
 	@Test
 	public void testParserShouldThrowErrorWhenPlaceIdsAreDuplicated(){
@@ -423,7 +423,7 @@ public class PnmlParserTestSuite {
 			
 			fail("An error should've been thrown before this point");
 		} catch (Error e){
-			assertEquals(DuplicatedIDError.class, e.getClass());
+			assertEquals(DuplicatedIdError.class, e.getClass());
 		} catch (Exception e) {
 			fail("Exception thrown during test: " + e.getMessage());
 		}
@@ -432,7 +432,7 @@ public class PnmlParserTestSuite {
 	/**
 	 * <li> Given t0 and t1 have the same ID </li>
 	 * <li> When I parse the file </li>
-	 * <li> Then DuplicatedIDError should be thrown </li>
+	 * <li> Then DuplicatedIdError should be thrown </li>
 	 */
 	@Test
 	public void testParserShouldThrowErrorWhenTransitionIdsAreDuplicated(){
@@ -443,7 +443,7 @@ public class PnmlParserTestSuite {
 			
 			fail("An error should've been thrown before this point");
 		} catch (Error e){
-			assertEquals(DuplicatedIDError.class, e.getClass());
+			assertEquals(DuplicatedIdError.class, e.getClass());
 		} catch (Exception e) {
 			fail("Exception thrown during test: " + e.getMessage());
 		}
