@@ -5,7 +5,7 @@ import javax.xml.parsers.DocumentBuilder;
 
 import org.javatuples.Pair;
 import org.javatuples.Triplet;
-import org.unc.lac.javapetriconcurrencymonitor.errors.DuplicatedIDError;
+import org.unc.lac.javapetriconcurrencymonitor.errors.DuplicatedIdError;
 import org.unc.lac.javapetriconcurrencymonitor.errors.DuplicatedNameError;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.BadPnmlFormatException;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc;
@@ -76,13 +76,13 @@ public class PnmlParser{
 	}
 	
 	/**
-	 * parses PNML file and returns all petri objects embedded
+	 * parses PNML file and returns all petri components embedded
 	 * @return a Triplet containing places, transitions and arcs inside the PNML
 	 * @throws BadPnmlFormatException
 	 * @throws DuplicatedNameError If two or more places or transitions share names (empty names are not a problem)
-	 * @throws DuplicatedIDError If two or more places or transitions share ids
+	 * @throws DuplicatedIdError If two or more places or transitions share ids
 	 */
-	public Triplet<Place[], Transition[], Arc[]> parseFileAndGetPetriComponents() throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIDError {
+	public Triplet<Place[], Transition[], Arc[]> parseFileAndGetPetriComponents() throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIdError {
 		try {
 			placesIndex = 0;
 			transitionsIndex = 0;
@@ -131,9 +131,9 @@ public class PnmlParser{
 	 * @return a Triplet containing all places, transitions and arcs inside netElements
 	 * @throws BadPnmlFormatException 
 	 * @throws DuplicatedNameError If two or more places or transitions share names (empty names are not a problem)
-	 * @throws DuplicatedIDError If two or more places or transitions share ids
+	 * @throws DuplicatedIdError If two or more places or transitions share ids
 	 */
-	private Triplet<Place[], Transition[], Arc[]> getPetriComponentsFromNodeList(NodeList netElements) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIDError{
+	private Triplet<Place[], Transition[], Arc[]> getPetriComponentsFromNodeList(NodeList netElements) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIdError{
 		ArrayList<Place> places = new ArrayList<Place>();
 		ArrayList<Transition> transitions = new ArrayList<Transition>();
 		ArrayList<Arc> arcs = new ArrayList<Arc>();
@@ -185,10 +185,10 @@ public class PnmlParser{
 	 * @return A place object containing the info parsed
 	 * @throws BadPnmlFormatException If initial marking is not numerical
 	 * @throws DuplicatedNameError If the new place has the same name as any created before
-	 * @throws DuplicatedIDError If the new place has the same id as any created before
+	 * @throws DuplicatedIdError If the new place has the same id as any created before
 	 * @see {@link org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place}
 	 */
-	private Place getPlace(String id, Node placeNode, NodeList nl, final ArrayList<Place> places) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIDError{
+	private Place getPlace(String id, Node placeNode, NodeList nl, final ArrayList<Place> places) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIdError{
 		Integer m_inicial = 0;
 		Integer placeIndex = this.placesIndex++;
 		String placeName = "";
@@ -212,7 +212,7 @@ public class PnmlParser{
 				throw new DuplicatedNameError("Name " + placeName + " is repeated for places");
 			}
 			if(p.getId().equals(id)){
-				throw new DuplicatedIDError("ID " + id + " is repeated for places");
+				throw new DuplicatedIdError("ID " + id + " is repeated for places");
 			}
 		}
 		
@@ -232,10 +232,10 @@ public class PnmlParser{
 	 * @return A transition object containing the info parsed
 	 * @throws BadPnmlFormatException
 	 * @throws DuplicatedNameError If the new transition has the same name as any created before
-	 * @throws DuplicatedIDError If the new transition has the same id as any created before 
+	 * @throws DuplicatedIdError If the new transition has the same id as any created before 
 	 * @see {@link org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition}
 	 */
-	private Transition getTransition(String id, Node transitionNode, NodeList nl, ArrayList<Transition> transitions) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIDError{
+	private Transition getTransition(String id, Node transitionNode, NodeList nl, ArrayList<Transition> transitions) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIdError{
 		
 		TimeSpan timeSpan = null;
 		Label label = null;
@@ -287,7 +287,7 @@ public class PnmlParser{
 				throw new DuplicatedNameError("Name " + transitionName + " is repeated for transitions");
 			}
 			if(t.getId().equals(id)){
-				throw new DuplicatedIDError("Id " + id + " is repeated for transitions");
+				throw new DuplicatedIdError("Id " + id + " is repeated for transitions");
 			}
 		}
 		

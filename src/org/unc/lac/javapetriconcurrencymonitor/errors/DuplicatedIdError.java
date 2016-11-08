@@ -1,26 +1,26 @@
 package org.unc.lac.javapetriconcurrencymonitor.errors;
 
-public class DuplicatedIDError extends Error {
+public class DuplicatedIdError extends Error {
 
 	private static final long serialVersionUID = -597629369661776041L;
 
-	public DuplicatedIDError() {
+	public DuplicatedIdError() {
 		super("Duplicated id not allowed for places nor transitions");
 	}
 
-	public DuplicatedIDError(String message) {
+	public DuplicatedIdError(String message) {
 		super(message);
 	}
 
-	public DuplicatedIDError(Throwable cause) {
+	public DuplicatedIdError(Throwable cause) {
 		super(cause);
 	}
 
-	public DuplicatedIDError(String message, Throwable cause) {
+	public DuplicatedIdError(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public DuplicatedIDError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+	public DuplicatedIdError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
 
