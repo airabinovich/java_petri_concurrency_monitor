@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.unc.lac.javapetriconcurrencymonitor.errors.IllegalTransitionFiringError;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
@@ -39,6 +40,9 @@ public class PetriMonitor {
 	 * @see #subscribeToTransition(Transition, Observer)*/
 	private PublishSubject<String> informedTransitionsObservable;
 	
+	/** Contains true in the nth position if a thread is waiting for the nth transition's time span to occur **/
+	private AtomicBoolean[] anyThreadSleepingforTransition;
+	
 	/** An ObjectMapper used to build and parse JSON info sent as events */
 	private ObjectMapper jsonMapper;
 	
@@ -67,6 +71,9 @@ public class PetriMonitor {
 		}
 		
 		jsonMapper = new ObjectMapper();
+		
+		anyThreadSleepingforTransition = new AtomicBoolean[transitionsAmount];
+		Arrays.fill(anyThreadSleepingforTransition, new AtomicBoolean());
 	}
 
 	/**
@@ -332,6 +339,8 @@ public class PetriMonitor {
 		boolean insideTimeSpan = false;
 		boolean isTimed = false;
 		
+		int transitionIndex = transitionToFire.getIndex();
+		
 		while(keepFiring){
 			keepFiring = petri.getEnabledTransitions()[transitionToFire.getIndex()];
 			long fireAttemptTime = System.currentTimeMillis();
@@ -343,11 +352,29 @@ public class PetriMonitor {
 			if(keepFiring){
 				boolean sleptByItselfForThisTransition = false;
 				while(isTimed && !insideTimeSpan){
-					if(transitionSpan.isBeforeTimeSpan(fireAttemptTime) && !transitionSpan.anySleeping()){
+					if(transitionSpan.isBeforeTimeSpan(fireAttemptTime) && anyThreadSleepingforTransition[transitionIndex].compareAndSet(false, true)){
 						// The calling thread came before time span, and there is nobody sleeping waiting for this transition,
 						// release the input mutex and sleep here until the time has come.
 						inQueue.unlock();
-						transitionSpan.sleep(transitionSpan.getEnableTime() + transitionSpan.getTimeBegin() - fireAttemptTime);
+						
+						long enablingTime = transitionSpan.getEnableTime() + transitionSpan.getTimeBegin();
+						while(transitionSpan.isBeforeTimeSpan(fireAttemptTime)){
+							try {
+								// sleep until the time span occurs
+								Thread.sleep(enablingTime - fireAttemptTime);
+								// if the thread is not interrupted, just exit the loop after sleeping
+								break;
+							} catch (InterruptedException e) {
+								// recalculate the current time only if the thread was interrupted and sleep again if necessary
+								fireAttemptTime = System.currentTimeMillis();
+							} catch (IllegalArgumentException e){
+								// The sleeping time was negative. This shouldn't happen but if so, catch the exception and don't try to sleep again
+								break;
+							}
+						}
+						
+						anyThreadSleepingforTransition[transitionIndex].set(false);
+						
 						// when this thread wakes up, its time to fire has come and may be short
 						// so take the lock with high priority to avoid waiting for the incoming threads
 						// This way, only as high-prioritized threads as this one may cause waiting
@@ -439,5 +466,14 @@ public class PetriMonitor {
 			}
 		}
 		return releaseLock;
+	}
+	
+	/**
+	 * Check if a thread is sleeping (on its own, outside any queues) for the given transition.
+	 * @param transitionIndex The index of the transition to check is a thread is sleeping for.
+	 * @return True if a thread is sleeping for the given transition.
+	 */
+	public boolean isAnyThreadSleepingForTransition(int transitionIndex){
+		return anyThreadSleepingforTransition[transitionIndex].get();
 	}
 }
