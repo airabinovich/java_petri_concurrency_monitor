@@ -10,6 +10,9 @@ public class Transition extends PetriNode{
 	private String guardName;
 	private boolean guardEnablingValue;
 	
+	/** This is true for a timed transition only **/
+	private boolean timed;
+	
 	/**
 	 * Constructor for transitions with time and guard
 	 * @param _id The transition id
@@ -29,6 +32,8 @@ public class Transition extends PetriNode{
 		}
 		this.guardName = _guard.getValue0() == null ? "" : _guard.getValue0();
 		this.guardEnablingValue = _guard.getValue1() == null ? false : _guard.getValue1();
+		
+		this.timed = interval != null;
 	}
 	
 	/**
@@ -102,5 +107,51 @@ public class Transition extends PetriNode{
 	 */
 	public boolean hasGuard() {
 		return !guardName.isEmpty();
+	}
+	
+	/**
+	 * @return True if the transition is timed.
+	 */
+	public boolean isTimed() {
+		return timed;
+	}
+	
+	/**
+	 * Tests whether timestamp is inside the this transition's span for timed transitions.
+	 * For non-timed transitions this method always returns true;
+	 * @param timestamp the time in the format given by {@link System#currentTimeMillis()}
+	 * @return true is timestamp is inside the span
+	 */
+	public boolean insideTimeSpan(long timestamp){
+		if(isTimed()){
+			return interval.inTimeSpan(timestamp);
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Tests whether timestamp is before the this transition's span for timed transitions.
+	 * For non-timed transitions this method always returns false;
+	 * @param timestamp the time in the format given by {@link System#currentTimeMillis()}
+	 * @return true is timestamp is before the span
+	 */
+	public boolean isBeforeTimeSpan(long timestamp){
+		if(isTimed()){
+			return interval.isBeforeTimeSpan(timestamp);
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * @return The enabling timestamp. For non-timed transitions this method returns zero.
+	 */
+	public long getEnablingTime(){
+		if(isTimed()){
+			return interval.getEnablingTime() + interval.getTimespanBeginning();
+		}
+		
+		return 0;
 	}
 }

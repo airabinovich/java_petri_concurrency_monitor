@@ -7,6 +7,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringAfterTimespanException;
+import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringBeforeTimespanException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.parser.PnmlParser;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet;
@@ -25,6 +27,8 @@ public class PetriNetTestSuite {
 	private static final String PETRI_WITH_RESET_02 = TEST_PETRI_FOLDER + "petriWithReset02.pnml";
 	private static final String PETRI_WITH_RESET_03 = TEST_PETRI_FOLDER + "petriWithReset03.pnml";
 	private static final String PETRI_WITH_READER_01 = TEST_PETRI_FOLDER + "petriWithReader01.pnml";
+	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetri.pnml";
+	private static final String TIMED_PETRI_NET_02 = TEST_PETRI_FOLDER + "timedPetri02.pnml";
 	
 	private static PetriNetFactory factory;
 	private PetriNet petriNet;
@@ -52,9 +56,13 @@ public class PetriNetTestSuite {
 	}
 
 	private void readFileAndMakePetriNet(String PNMLFile) throws FileNotFoundException, SecurityException, NullPointerException{
+		readFileAndMakePetriNet(PNMLFile, petriNetType.PLACE_TRANSITION);
+	}
+	
+	private void readFileAndMakePetriNet(String PNMLFile, petriNetType type) throws FileNotFoundException, SecurityException, NullPointerException{
 		PnmlParser reader = new PnmlParser(PNMLFile);
 		factory = new PetriNetFactory(reader);
-		petriNet = factory.makePetriNet(petriNetType.PLACE_TRANSITION);
+		petriNet = factory.makePetriNet(type);
 	}
 	/**
 	 * Test method for {@link org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet#fire(org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition)}.
@@ -71,7 +79,11 @@ public class PetriNetTestSuite {
 			Transition t2 = transitions[2];
 			
 			Assert.assertFalse(petriNet.isEnabled(t2));
-			Assert.assertFalse(petriNet.fire(t2));
+			try {
+				Assert.assertFalse(petriNet.fire(t2));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + READER_WRITER);
 		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
@@ -94,7 +106,11 @@ public class PetriNetTestSuite {
 			Transition t0 = transitions[0];
 			
 			Assert.assertTrue(petriNet.isEnabled(t0));
-			Assert.assertTrue(petriNet.fire(t0));
+			try {
+				Assert.assertTrue(petriNet.fire(t0));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + READER_WRITER);
 		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
@@ -123,7 +139,11 @@ public class PetriNetTestSuite {
 			Place p1 = places[1];
 			Place p4 = places[4];
 			
-			petriNet.fire(t0);
+			try {
+				petriNet.fire(t0);
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			Integer[] newMarking = petriNet.getCurrentMarking();
 			
@@ -156,7 +176,11 @@ public class PetriNetTestSuite {
 			
 			Assert.assertTrue(petriNet.isEnabled(t0));
 			
-			petriNet.fire(t0);
+			try {
+				petriNet.fire(t0);
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			Assert.assertFalse(petriNet.isEnabled(t0));
 			Assert.assertFalse(petriNet.isEnabled(t1));
@@ -230,7 +254,11 @@ public class PetriNetTestSuite {
 			
 			petriNet.addGuard("test", true);
 			
-			Assert.assertFalse(petriNet.fire(t1));
+			try {
+				Assert.assertFalse(petriNet.fire(t1));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
@@ -269,7 +297,11 @@ public class PetriNetTestSuite {
 			
 			petriNet.addGuard("test", true);
 			
-			Assert.assertTrue(petriNet.fire(t0));
+			try {
+				Assert.assertTrue(petriNet.fire(t0));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			expectedMarking[0] = 1;
 			expectedMarking[1] = 1;
@@ -310,7 +342,11 @@ public class PetriNetTestSuite {
 			
 			petriNet.addGuard("test", false);
 			
-			Assert.assertFalse(petriNet.fire(t0));
+			try {
+				Assert.assertFalse(petriNet.fire(t0));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
@@ -349,7 +385,11 @@ public class PetriNetTestSuite {
 			
 			petriNet.addGuard("test", false);
 			
-			Assert.assertTrue(petriNet.fire(t1));
+			try {
+				Assert.assertTrue(petriNet.fire(t1));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			expectedMarking[0] = 1;
 			expectedMarking[2] = 1;
@@ -387,7 +427,11 @@ public class PetriNetTestSuite {
 			
 			Assert.assertTrue(petriNet.isEnabled(t2));
 			
-			petriNet.fire(t0);
+			try {
+				petriNet.fire(t0);
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			expectedMarking[2] = 1;
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
@@ -427,12 +471,20 @@ public class PetriNetTestSuite {
 			
 			Assert.assertTrue(petriNet.isEnabled(t2));
 			
-			petriNet.fire(t0);
+			try {
+				petriNet.fire(t0);
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			expectedMarking[2] = 1;
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-			Assert.assertFalse(petriNet.fire(t2));
+			try {
+				Assert.assertFalse(petriNet.fire(t2));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_INHIBITOR_01);
@@ -465,7 +517,11 @@ public class PetriNetTestSuite {
 			
 			Assert.assertTrue(petriNet.isEnabled(t2));
 			
-			Assert.assertTrue(petriNet.fire(t2));
+			try {
+				Assert.assertTrue(petriNet.fire(t2));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			expectedMarking[0] = 1;
 			expectedMarking[1] = 1;
@@ -504,7 +560,11 @@ public class PetriNetTestSuite {
 			
 			Assert.assertTrue(petriNet.isEnabled(t3));
 			
-			Assert.assertTrue(petriNet.fire(t3));
+			try {
+				Assert.assertTrue(petriNet.fire(t3));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			expectedMarking[3] = 0;
 			expectedMarking[4] = 1;
@@ -542,7 +602,11 @@ public class PetriNetTestSuite {
 			
 			Assert.assertFalse(petriNet.isEnabled(t3));
 			
-			Assert.assertFalse(petriNet.fire(t3));
+			try {
+				Assert.assertFalse(petriNet.fire(t3));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
@@ -578,7 +642,11 @@ public class PetriNetTestSuite {
 			
 			Assert.assertTrue(petriNet.isEnabled(t0));
 			
-			Assert.assertTrue(petriNet.fire(t0));
+			try {
+				Assert.assertTrue(petriNet.fire(t0));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			expectedMarking[0] = 0;
 			expectedMarking[1] = 1;
@@ -615,7 +683,11 @@ public class PetriNetTestSuite {
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-			Assert.assertFalse(petriNet.fire(t2));
+			try {
+				Assert.assertFalse(petriNet.fire(t2));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
@@ -647,7 +719,11 @@ public class PetriNetTestSuite {
 			petriNet.initializePetriNet();
 			
 			Transition t0 = petriNet.getTransitions()[0];
-			Assert.assertTrue(petriNet.fire(t0));
+			try {
+				Assert.assertTrue(petriNet.fire(t0));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			Transition t2 = petriNet.getTransitions()[2];
 			
@@ -655,7 +731,11 @@ public class PetriNetTestSuite {
 			
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
-			Assert.assertTrue(petriNet.fire(t2));
+			try {
+				Assert.assertTrue(petriNet.fire(t2));
+			} catch (FiringBeforeTimespanException | FiringAfterTimespanException e) {
+				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
+			}
 			
 			expectedMarking[0] = 1;
 			expectedMarking[1] = 1;
@@ -665,6 +745,71 @@ public class PetriNetTestSuite {
 		} catch (FileNotFoundException | SecurityException | NullPointerException e){
 			Assert.fail("Could not open or parse file " + PETRI_WITH_READER_01);
 		} catch (IllegalArgumentException | NotInitializedPetriNetException e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	/**
+	 * <li> Given t0 is timed [500, 2000] </li>
+	 * <li> When I fire t0 before 500ms since initialization </li>
+	 * <li> Then {@link FiringBeforeTimespanException} is thrown </li>
+	 */
+	@Test
+	public void testFireTimedTransitionBeforeTimespanShouldThrowException(){
+		try{
+			readFileAndMakePetriNet(TIMED_PETRI_NET, petriNetType.TIMED);
+			
+			petriNet.initializePetriNet();
+			long firingTime = System.currentTimeMillis();
+			
+			Transition t0 = petriNet.getTransitions()[0];
+			try {
+				petriNet.fire(t0, firingTime);
+				Assert.fail("Exception should've been thrown before this point");
+			} catch (Exception e) {
+				Assert.assertEquals(FiringBeforeTimespanException.class, e.getClass());
+			}
+			
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
+			Assert.fail("Could not open or parse file " + PETRI_WITH_READER_01);
+		} catch (IllegalArgumentException e) {
+			Assert.fail(e.getMessage());
+		}
+		
+		Assert.assertTrue(true);
+	}
+	
+	/**
+	 * <li> Given t0 is timed [50, 100] </li>
+	 * <li> When I fire t0 after 100ms since initialization </li>
+	 * <li> Then {@link FiringAfterTimespanException} is thrown </li>
+	 */
+	@Test
+	public void testFireTimedTransitionAfterTimespanShouldThrowException(){
+		try{
+			readFileAndMakePetriNet(TIMED_PETRI_NET_02, petriNetType.TIMED);
+			
+			petriNet.initializePetriNet();
+			
+			try {
+				Thread.sleep(101);
+			} catch (InterruptedException e1) {
+				Assert.fail("Main thread interrupted during test execution");
+			}
+			
+			long firingTime = System.currentTimeMillis();
+			
+			Transition t0 = petriNet.getTransitions()[0];
+			try {
+				petriNet.fire(t0, firingTime);
+				Assert.fail("Exception should've been thrown before this point");
+			} catch (Exception e) {
+				Assert.assertEquals(FiringAfterTimespanException.class, e.getClass());
+			}
+			
+		} catch (FileNotFoundException | SecurityException | NullPointerException e){
+			Assert.fail("Could not open or parse file " + PETRI_WITH_READER_01);
+		} catch (IllegalArgumentException e) {
 			Assert.fail(e.getMessage());
 		}
 	}

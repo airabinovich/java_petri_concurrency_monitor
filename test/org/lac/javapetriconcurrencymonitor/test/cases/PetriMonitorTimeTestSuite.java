@@ -104,7 +104,7 @@ public class PetriMonitorTimeTestSuite {
 		Transition t0 = timedPetriNet.getTransitions()[0];
 		Integer[] initialMarking = timedPetriNet.getInitialMarking();
 		
-		long t0BeginTime = t0.getTimeSpan().getTimeBegin();
+		long t0BeginTime = t0.getTimeSpan().getTimespanBeginning();
 		
 		Thread worker1 = new Thread(() -> {
 			try {
@@ -157,7 +157,7 @@ public class PetriMonitorTimeTestSuite {
 		
 		Transition t0 = timedPetriNet.getTransitions()[0];
 
-		long t0BeginTime = t0.getTimeSpan().getTimeBegin();
+		long t0BeginTime = t0.getTimeSpan().getTimespanBeginning();
 		
 		Thread worker = new Thread(() -> {
 			try {
@@ -279,7 +279,7 @@ public class PetriMonitorTimeTestSuite {
 		Transition t0 = timedPetriNet.getTransitions()[0];
 		Assert.assertTrue(timedPetriNet.isEnabled(t0));
 		
-		long t0BeginTime = t0.getTimeSpan().getTimeBegin();
+		long t0BeginTime = t0.getTimeSpan().getTimespanBeginning();
 		
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t0, obs);
@@ -344,8 +344,8 @@ public class PetriMonitorTimeTestSuite {
 		Transition t0 = timedPetriNet.getTransitions()[0];
 		Assert.assertTrue(timedPetriNet.isEnabled(t0));
 		
-		long t0BeginTime = t0.getTimeSpan().getTimeBegin();
-		long t0EndTime = t0.getTimeSpan().getTimeEnd();
+		long t0BeginTime = t0.getTimeSpan().getTimespanBeginning();
+		long t0EndTime = t0.getTimeSpan().getTimespanEnding();
 		
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t0, obs);
