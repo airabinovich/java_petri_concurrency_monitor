@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-18CC-F3CD6-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>petriWithResetAndOtherWrongArcs02</text>
+  </name>
+ <page id="g-18CC-F3CED-1">
+  <place id="p-18CC-F3CF0-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>4</text>
+   </initialMarking>
+   <graphics>
+    <position x="115" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-18CC-F3D05-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="250" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-18CC-F3D09-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="245"/>
+   </graphics>
+  </place>
+  <place id="p-18CC-F3D0E-5">
+  <name>
+   <text>p3</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="115" y="245"/>
+   </graphics>
+  </place>
+  <place id="p-18CC-F3D19-6">
+  <name>
+   <text>p4</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="195" y="245"/>
+   </graphics>
+  </place>
+  <transition id="t-18CC-F3D1C-7">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="115" y="145"/>
+   </graphics>
+  </transition>
+  <arc id="e-18CC-F3D23-8" source="t-18CC-F3D1C-7" target="p-18CC-F3D19-6">
+  </arc>
+  <arc id="e-18CC-F3D27-9" source="t-18CC-F3D1C-7" target="p-18CC-F3D0E-5">
+  </arc>
+  <arc id="e-18CC-F3D28-10" source="p-18CC-F3D05-3" target="t-18CC-F3D1C-7">
+  </arc>
+  <arc id="e-18CC-F3D2A-11" source="p-18CC-F3CF0-2" target="t-18CC-F3D1C-7">
+   <type value="reset"/>
+  </arc>
+  <arc id="e-18CC-F3D2D-12" source="t-18CC-F3D1C-7" target="p-18CC-F3D09-4">
+  </arc>
+ </page>
+ </net>
+</pnml>

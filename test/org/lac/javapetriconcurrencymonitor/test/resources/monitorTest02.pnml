@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-183F-87ED1-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>monitorTest02</text>
+  </name>
+ <page id="g-183F-87EE1-1">
+  <place id="p-183F-87EE4-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="145" y="50"/>
+   </graphics>
+  </place>
+  <transition id="t-183F-87EF2-3">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="25" y="50"/>
+   </graphics>
+  </transition>
+  <arc id="e-183F-87F00-4" source="p-183F-87EE4-2" target="t-183F-87EF2-3">
+  </arc>
+  <arc id="e-183F-87F04-5" source="t-183F-87EF2-3" target="p-183F-87EE4-2">
+   <graphics>
+    <position x="37" y="70" />
+    <position x="112" y="78" />
+   </graphics>  </arc>
+ </page>
+ </net>
+</pnml>

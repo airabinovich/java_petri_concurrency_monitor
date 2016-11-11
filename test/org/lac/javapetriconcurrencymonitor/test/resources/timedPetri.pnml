@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-3206-1527D-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>timedPetri</text>
+  </name>
+ <page id="g-3206-15282-1">
+  <place id="p-3206-15284-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="125" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-3206-15289-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="235"/>
+   </graphics>
+  </place>
+  <place id="p-3206-1528B-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="220" y="235"/>
+   </graphics>
+  </place>
+  <place id="p-3206-1528D-5">
+  <name>
+   <text>p3</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="125" y="415"/>
+   </graphics>
+  </place>
+  <transition id="t-3206-1528E-6">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="open">
+     <cn>500</cn>
+     <cn>2000</cn>
+    </interval>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="125" y="150"/>
+   </graphics>
+  </transition>
+  <transition id="t-3206-15293-7">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;A,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="30" y="320"/>
+   </graphics>
+  </transition>
+  <transition id="t-3206-15296-8">
+  <name>
+   <text>t2</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="220" y="320"/>
+   </graphics>
+  </transition>
+  <transition id="t-3206-15298-9">
+  <name>
+   <text>t3</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="225" y="50"/>
+   </graphics>
+  </transition>
+  <arc id="e-3206-1529B-10" source="t-3206-15296-8" target="p-3206-1528D-5">
+  </arc>
+  <arc id="e-3206-1529C-11" source="t-3206-15293-7" target="p-3206-1528D-5">
+  </arc>
+  <arc id="e-3206-1529D-12" source="p-3206-1528B-4" target="t-3206-15296-8">
+  </arc>
+  <arc id="e-3206-1529E-13" source="p-3206-15289-3" target="t-3206-15293-7">
+  </arc>
+  <arc id="e-3206-1529E-14" source="t-3206-1528E-6" target="p-3206-1528B-4">
+  </arc>
+  <arc id="e-3206-1529F-15" source="t-3206-1528E-6" target="p-3206-15289-3">
+  </arc>
+  <arc id="e-3206-152A0-16" source="p-3206-15284-2" target="t-3206-1528E-6">
+  </arc>
+  <arc id="e-3206-152A1-17" source="p-3206-15284-2" target="t-3206-15298-9">
+  </arc>
+ </page>
+ </net>
+</pnml>

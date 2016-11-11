@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-1F08-6BB88-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>petriWithReset01</text>
+  </name>
+ <page id="g-1F08-6BBC0-1">
+  <place id="p-1F08-6BBC6-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="30" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-1F08-6BBE6-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="175" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-1F08-6BBE9-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="320" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-1F08-6BBED-5">
+  <name>
+   <text>p3</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>4</text>
+   </initialMarking>
+   <graphics>
+    <position x="175" y="240"/>
+   </graphics>
+  </place>
+  <place id="p-1F08-6BBEF-6">
+  <name>
+   <text>p4</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="175" y="435"/>
+   </graphics>
+  </place>
+  <transition id="t-1F08-6BBF1-7">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="150"/>
+   </graphics>
+  </transition>
+  <transition id="t-1F08-6BBF5-8">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="175" y="150"/>
+   </graphics>
+  </transition>
+  <transition id="t-1F08-6BBF7-9">
+  <name>
+   <text>t2</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="320" y="150"/>
+   </graphics>
+  </transition>
+  <transition id="t-1F08-6BBFA-10">
+  <name>
+   <text>t3</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="175" y="335"/>
+   </graphics>
+  </transition>
+  <arc id="e-1F08-6BBFC-11" source="p-1F08-6BBED-5" target="t-1F08-6BBFA-10">
+   <type value="reset"/>
+  </arc>
+  <arc id="e-1F08-6BC06-12" source="t-1F08-6BBFA-10" target="p-1F08-6BBEF-6">
+  </arc>
+  <arc id="e-1F08-6BC08-13" source="t-1F08-6BBF7-9" target="p-1F08-6BBED-5">
+  </arc>
+  <arc id="e-1F08-6BC09-14" source="t-1F08-6BBF5-8" target="p-1F08-6BBED-5">
+  </arc>
+  <arc id="e-1F08-6BC0A-15" source="t-1F08-6BBF1-7" target="p-1F08-6BBED-5">
+  </arc>
+  <arc id="e-1F08-6BC0B-16" source="p-1F08-6BBE9-4" target="t-1F08-6BBF7-9">
+  </arc>
+  <arc id="e-1F08-6BC0C-17" source="p-1F08-6BBE6-3" target="t-1F08-6BBF5-8">
+  </arc>
+  <arc id="e-1F08-6BC0D-18" source="p-1F08-6BBC6-2" target="t-1F08-6BBF1-7">
+  </arc>
+ </page>
+ </net>
+</pnml>

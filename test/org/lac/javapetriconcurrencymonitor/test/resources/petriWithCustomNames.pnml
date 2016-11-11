@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-245E-4FDF2-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>petriWithCustomNames</text>
+  </name>
+ <page id="g-245E-4FDF8-1">
+  <transition id="t-245E-4FDF9-2">
+  <name>
+   <text>build 01</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="300" y="285"/>
+   </graphics>
+  </transition>
+  <transition id="t-245E-4FE02-3">
+  <name>
+   <text>build 02 from input 01</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I,(machine01)&gt;</text>
+    <graphics>
+     <offset x="-10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="190" y="285"/>
+   </graphics>
+  </transition>
+  <transition id="t-245E-4FE0A-4">
+  <name>
+   <text>build 02 from input 02</text>
+    <graphics>
+     <offset x="10" y="10" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I,(~machine01)&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="455" y="285"/>
+   </graphics>
+  </transition>
+  <place id="p-245E-4FE10-5">
+  <name>
+   <text>input 01</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="190" y="175"/>
+   </graphics>
+  </place>
+  <place id="p-245E-4FE14-6">
+  <name>
+   <text>input 02</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="455" y="170"/>
+   </graphics>
+  </place>
+  <transition id="t-245E-4FE17-7">
+  <name>
+   <text>input arrives</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;A,I&gt;</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+   </label>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="closed">
+     <cn>10</cn>
+     <cn>20</cn>
+    </interval>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="320" y="50"/>
+   </graphics>
+  </transition>
+  <place id="p-245E-4FE1E-8">
+  <name>
+   <text>product 01</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="300" y="375"/>
+   </graphics>
+  </place>
+  <place id="p-245E-4FE20-9">
+  <name>
+   <text>product 02</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="345" y="490"/>
+   </graphics>
+  </place>
+  <arc id="e-245E-4FE24-10" source="t-245E-4FE17-7" target="p-245E-4FE14-6">
+  </arc>
+  <arc id="e-245E-4FE26-11" source="t-245E-4FE17-7" target="p-245E-4FE10-5">
+  </arc>
+  <arc id="e-245E-4FE27-12" source="t-245E-4FDF9-2" target="p-245E-4FE1E-8">
+  </arc>
+  <arc id="e-245E-4FE28-13" source="p-245E-4FE10-5" target="t-245E-4FDF9-2">
+  </arc>
+  <arc id="e-245E-4FE28-14" source="t-245E-4FE0A-4" target="p-245E-4FE20-9">
+  </arc>
+  <arc id="e-245E-4FE2A-15" source="p-245E-4FE14-6" target="t-245E-4FE0A-4">
+  </arc>
+  <arc id="e-245E-4FE2D-16" source="t-245E-4FE02-3" target="p-245E-4FE20-9">
+  </arc>
+  <arc id="e-245E-4FE2E-17" source="p-245E-4FE10-5" target="t-245E-4FE02-3">
+  </arc>
+ </page>
+ </net>
+</pnml>

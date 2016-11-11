@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-3DC-D86EA-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>test</text>
+  </name>
+ <page id="g-3DC-D8700-1">
+  <place id="p-3DC-D8705-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="125" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-3DC-D8728-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="235"/>
+   </graphics>
+  </place>
+  <place id="p-3DC-D872C-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="220" y="235"/>
+   </graphics>
+  </place>
+  <place id="p-3DC-D872F-5">
+  <name>
+   <text>p3</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="125" y="415"/>
+   </graphics>
+  </place>
+  <transition id="t-3DC-D8730-6">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="125" y="150"/>
+   </graphics>
+  </transition>
+  <transition id="t-3DC-D8735-7">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;A,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="30" y="320"/>
+   </graphics>
+  </transition>
+  <transition id="t-3DC-D8739-8">
+  <name>
+   <text>t2</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+  <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="220" y="320"/>
+   </graphics>
+  </transition>
+  <arc id="e-3DC-D873B-9" source="p-3DC-D8705-2" target="t-3DC-D8730-6">
+  </arc>
+  <arc id="e-3DC-D8741-10" source="t-3DC-D8730-6" target="p-3DC-D8728-3">
+  </arc>
+  <arc id="e-3DC-D8742-11" source="t-3DC-D8730-6" target="p-3DC-D872C-4">
+  </arc>
+  <arc id="e-3DC-D8744-12" source="p-3DC-D8728-3" target="t-3DC-D8735-7">
+  </arc>
+  <arc id="e-3DC-D8745-13" source="p-3DC-D872C-4" target="t-3DC-D8739-8">
+  </arc>
+  <arc id="e-3DC-D8746-14" source="t-3DC-D8735-7" target="p-3DC-D872F-5">
+  </arc>
+  <arc id="e-3DC-D8747-15" source="t-3DC-D8739-8" target="p-3DC-D872F-5">
+  </arc>
+ </page>
+ </net>
+</pnml>

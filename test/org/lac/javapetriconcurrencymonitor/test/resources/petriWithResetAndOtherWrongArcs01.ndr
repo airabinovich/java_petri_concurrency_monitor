@@ -1,0 +1,13 @@
+t 30.0 150.0 t0 0 w n
+p 30.0 235.0 p1 4 n
+t 30.0 330.0 t1 0 w n
+p 30.0 430.0 p2 0 n
+p 30.0 50.0 p0 1 n
+e p0 0.8701044694 91.96738552 t1 0.1121926408 87.96590248 ?-1 n
+e p0 t0 1 n
+e t0 p1 1 n
+e t1 p2 1 n
+e p1 t1 !1 n
+h petriWithResetAndOtherWrongArcs01
+
+

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-D38-A63A5-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>MonitorTest03</text>
+  </name>
+ <page id="g-D38-A63B2-1">
+  <place id="p-D38-A63B5-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="30" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-D38-A63C4-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="30" y="200"/>
+   </graphics>
+  </place>
+  <transition id="t-D38-A63CC-4">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="30" y="120"/>
+   </graphics>
+  </transition>
+  <transition id="t-D38-A63D8-5">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="30" y="285"/>
+   </graphics>
+  </transition>
+  <arc id="e-D38-A63E2-6" source="t-D38-A63D8-5" target="p-D38-A63B5-2">
+   <graphics>
+    <position x="68" y="234" />
+    <position x="62" y="84" />
+   </graphics>  </arc>
+  <arc id="e-D38-A6411-7" source="p-D38-A63C4-3" target="t-D38-A63D8-5">
+  </arc>
+  <arc id="e-D38-A6414-8" source="t-D38-A63CC-4" target="p-D38-A63C4-3">
+  </arc>
+  <arc id="e-D38-A6416-9" source="p-D38-A63B5-2" target="t-D38-A63CC-4">
+  </arc>
+ </page>
+ </net>
+</pnml>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-1786-9214A-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>mutualExclusion</text>
+  </name>
+ <page id="g-1786-9215A-1">
+  <place id="p-1786-9215D-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="125" y="55"/>
+   </graphics>
+  </place>
+  <place id="p-1786-9216D-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="370" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-1786-92173-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="125" y="225"/>
+   </graphics>
+  </place>
+  <place id="p-1786-9217B-5">
+  <name>
+   <text>p3</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="375" y="220"/>
+   </graphics>
+  </place>
+  <place id="p-1786-92180-6">
+  <name>
+   <text>p4</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="255" y="135"/>
+   </graphics>
+  </place>
+  <transition id="t-1786-92185-7">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="125" y="135"/>
+   </graphics>
+  </transition>
+  <transition id="t-1786-92193-8">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="370" y="130"/>
+   </graphics>
+  </transition>
+  <transition id="t-1786-9219B-9">
+  <name>
+   <text>t2</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="120" y="310"/>
+   </graphics>
+  </transition>
+  <transition id="t-1786-921A4-10">
+  <name>
+   <text>t3</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </label>
+   <graphics>
+    <position x="375" y="310"/>
+   </graphics>
+  </transition>
+  <arc id="e-1786-921AB-11" source="p-1786-9215D-2" target="t-1786-92185-7">
+  </arc>
+  <arc id="e-1786-921B0-12" source="p-1786-92180-6" target="t-1786-92185-7">
+  </arc>
+  <arc id="e-1786-921B2-13" source="t-1786-9219B-9" target="p-1786-92180-6">
+  </arc>
+  <arc id="e-1786-921B8-14" source="t-1786-921A4-10" target="p-1786-9216D-3">
+   <graphics>
+    <position x="450" y="261" />
+    <position x="436" y="65" />
+   </graphics>  </arc>
+  <arc id="e-1786-921E9-15" source="t-1786-92185-7" target="p-1786-92173-4">
+  </arc>
+  <arc id="e-1786-921EB-16" source="p-1786-92173-4" target="t-1786-9219B-9">
+  </arc>
+  <arc id="e-1786-921EE-17" source="t-1786-9219B-9" target="p-1786-9215D-2">
+   <graphics>
+    <position x="34" y="264" />
+    <position x="51" y="73" />
+   </graphics>  </arc>
+  <arc id="e-1786-921F4-18" source="p-1786-9216D-3" target="t-1786-92193-8">
+  </arc>
+  <arc id="e-1786-921F6-19" source="t-1786-92193-8" target="p-1786-9217B-5">
+  </arc>
+  <arc id="e-1786-921F9-20" source="p-1786-9217B-5" target="t-1786-921A4-10">
+  </arc>
+  <arc id="e-1786-921FB-21" source="p-1786-92180-6" target="t-1786-92193-8">
+  </arc>
+  <arc id="e-1786-921FD-22" source="t-1786-921A4-10" target="p-1786-92180-6">
+  </arc>
+ </page>
+ </net>
+</pnml>
