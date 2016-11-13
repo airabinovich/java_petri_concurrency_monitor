@@ -117,7 +117,7 @@ public class Transition extends PetriNode{
 	}
 	
 	/**
-	 * Tests whether timestamp is inside the this transition's span for timed transitions.
+	 * Tests whether timestamp is inside this transition's span for timed transitions.
 	 * For non-timed transitions this method always returns true;
 	 * @param timestamp the time in the format given by {@link System#currentTimeMillis()}
 	 * @return true is timestamp is inside the span
@@ -131,7 +131,7 @@ public class Transition extends PetriNode{
 	}
 	
 	/**
-	 * Tests whether timestamp is before the this transition's span for timed transitions.
+	 * Tests whether timestamp is before this transition's span for timed transitions.
 	 * For non-timed transitions this method always returns false;
 	 * @param timestamp the time in the format given by {@link System#currentTimeMillis()}
 	 * @return true is timestamp is before the span

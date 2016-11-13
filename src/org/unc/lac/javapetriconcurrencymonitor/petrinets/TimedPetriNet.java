@@ -59,7 +59,7 @@ public class TimedPetriNet extends PetriNet{
 	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 * @throws IllegalArgumentException If the given transition is null or its index doesn't match any existing transition
 	 * @see TimedPetriNet#initializePetriNet()
-	 * @see PetriNet#fire(Transition, long)
+	 * @see PetriNet#fire(Transition)
 	 */
 	public boolean fire(final Transition t) throws IllegalArgumentException, PetriNetException{
 		if(t == null){

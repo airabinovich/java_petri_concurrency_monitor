@@ -130,7 +130,6 @@ public abstract class PetriNet {
 	/**
 	 * Fires the transition whose index is given as argument if it's enabled and updates current marking.
 	 * @param transitionIndex Transition's index to be fired.
-	 * @param fireTime The timestamp of the firing moment in the format given by {@link System#currentTimeMillis()}
 	 * @return true if t was fired.
 	 * @throws IllegalArgumentException If transitionIndex is negative or greater than the last transition index.
 	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
