@@ -10,6 +10,7 @@ import org.unc.lac.javapetriconcurrencymonitor.errors.IllegalTransitionFiringErr
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringAfterTimespanException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringBeforeTimespanException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
+import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.policies.TransitionsPolicy;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
@@ -343,10 +344,9 @@ public class PetriMonitor {
 
 		while(keepFiring){
 			keepFiring = petri.getEnabledTransitions()[transitionToFire.getIndex()];
-			long fireAttemptTime = System.currentTimeMillis();
 			if(keepFiring){				
 				try{
-					if(petri.fire(transitionToFire, fireAttemptTime)){
+					if(petri.fire(transitionToFire)){
 						//the transition was fired successfully. If it's informed let's send an event
 						try{
 							sendEventAfterFiring(transitionToFire);
@@ -394,6 +394,8 @@ public class PetriMonitor {
 						inQueue.unlock();
 						
 						long enablingTime = transitionToFire.getEnablingTime();
+						long fireAttemptTime = System.currentTimeMillis();
+						
 						while(transitionToFire.isBeforeTimeSpan(fireAttemptTime)){
 							try {
 								// sleep until the time span occurs
@@ -434,6 +436,13 @@ public class PetriMonitor {
 					}
 					// The calling thread came late, the time is over. Thus the thread releases the input mutex and goes to sleep
 					sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
+				} catch (IllegalArgumentException e) {
+					throw new IllegalTransitionFiringError(e);
+				} catch (PetriNetException e) {
+					if(e instanceof NotInitializedPetriNetException){
+						throw (NotInitializedPetriNetException)e;
+					}
+					// other instances of PetriNetException are handled in other catch clauses
 				}
 			}
 			// if this is a perennial fire and the transition is not enabled, don't send the thread to sleep

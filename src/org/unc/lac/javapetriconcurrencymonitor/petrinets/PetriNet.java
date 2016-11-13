@@ -4,9 +4,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringAfterTimespanException;
-import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringBeforeTimespanException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
+import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Label;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place;
@@ -131,32 +130,16 @@ public abstract class PetriNet {
 	/**
 	 * Fires the transition whose index is given as argument if it's enabled and updates current marking.
 	 * @param transitionIndex Transition's index to be fired.
-	 * @return true if t was fired.
-	 * @throws IllegalArgumentException If transitionIndex is negative or greater than the last transition index.
-	 * @throws IllegalArgumentException If t is null or if it doesn't match any transition index
-	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
-	 * @throws FiringBeforeTimespanException If firingTime is before the transition's timespan. For non-timed transition this exception won't be thrown. 
-	 * @throws FiringAfterTimespanException If firingTime is after the transition's timespan. For non-timed transition this exception won't be thrown. 
-	 */
-	public boolean fire(int transitionIndex) throws IllegalArgumentException, NotInitializedPetriNetException, FiringBeforeTimespanException, FiringAfterTimespanException{
-		return fire(transitionIndex, 0);
-	}
-	
-	/**
-	 * Fires the transition whose index is given as argument if it's enabled and updates current marking.
-	 * @param transitionIndex Transition's index to be fired.
 	 * @param fireTime The timestamp of the firing moment in the format given by {@link System#currentTimeMillis()}
 	 * @return true if t was fired.
 	 * @throws IllegalArgumentException If transitionIndex is negative or greater than the last transition index.
-	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
-	 * @throws FiringBeforeTimespanException If firingTime is before the transition's timespan. For non-timed transition this exception won't be thrown. 
-	 * @throws FiringAfterTimespanException If firingTime is after the transition's timespan. For non-timed transition this exception won't be thrown. 
+	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 */
-	public boolean fire(int transitionIndex, long fireTime) throws IllegalArgumentException, NotInitializedPetriNetException, FiringBeforeTimespanException, FiringAfterTimespanException{
+	public boolean fire(int transitionIndex) throws IllegalArgumentException, PetriNetException{
 		if(transitionIndex < 0 || transitionIndex > transitions.length){
 			throw new IllegalArgumentException("Invalid transition index: " + transitionIndex);
 		}
-		return fire(transitions[transitionIndex], fireTime);
+		return fire(transitions[transitionIndex]);
 	}
 
 	/**
@@ -165,24 +148,9 @@ public abstract class PetriNet {
 	 * @return true if transition was fired.
 	 * @throws IllegalArgumentException If transition is null or if it doesn't match any transition index
 	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
-	 * @throws FiringBeforeTimespanException If firingTime is before the transition's timespan. For non-timed transition this exception won't be thrown. 
-	 * @throws FiringAfterTimespanException If firingTime is after the transition's timespan. For non-timed transition this exception won't be thrown.
+	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 */
-	public synchronized boolean fire(final Transition transition) throws IllegalArgumentException, NotInitializedPetriNetException, FiringBeforeTimespanException, FiringAfterTimespanException{
-		return fire(transition, 0);
-	}
-
-	/**
-	 * Fires the transition given as argument if it's enabled and updates current marking.
-	 * @param transition Transition to be fired.
-	 * @param fireTime The timestamp of the firing moment in the format given by {@link System#currentTimeMillis()
-	 * @return true if transition was fired.
-	 * @throws IllegalArgumentException If transition is null or if it doesn't match any transition index
-	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
-	 * @throws FiringBeforeTimespanException If firingTime is before the transition's timespan. For non-timed transition this exception won't be thrown. 
-	 * @throws FiringAfterTimespanException If firingTime is after the transition's timespan. For non-timed transition this exception won't be thrown.
-	 */
-	public synchronized boolean fire(final Transition transition, long fireTime) throws IllegalArgumentException, NotInitializedPetriNetException, FiringBeforeTimespanException, FiringAfterTimespanException{
+	public synchronized boolean fire(final Transition transition) throws IllegalArgumentException, NotInitializedPetriNetException, PetriNetException {
 		// m_(i+1) = m_i + I*d
 		// when d is a vector where every element is 0 but the nth which is 1
 		// it's equivalent to pick nth column from Incidence matrix (I) 
@@ -194,25 +162,15 @@ public abstract class PetriNet {
 		if(!initializedPetriNet){
 			throw new NotInitializedPetriNetException();
 		}
-		if(!isEnabled(transition)){
-			return false;
-		}
-		
-		// time checks
-		
-		if(transition.isTimed()){
-			if(transition.isBeforeTimeSpan(fireTime)){
-				throw new FiringBeforeTimespanException();
-			}
-			else if(!transition.insideTimeSpan(fireTime)){
-				throw new FiringAfterTimespanException();
-			}
-		}
 		
 		int transitionIndex = transition.getIndex();
 		
 		if(transitionIndex < 0 || transitionIndex > transitions.length){
 			throw new IllegalArgumentException("Index " + transitionIndex + " doesn't match any transition's index in this petri net");
+		}
+		
+		if(!isEnabled(transition)){
+			return false;
 		}
 		
 		for(int i = 0; i < currentMarking.length; i++){

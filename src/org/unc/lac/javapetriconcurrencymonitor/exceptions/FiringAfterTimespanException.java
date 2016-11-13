@@ -3,7 +3,7 @@ package org.unc.lac.javapetriconcurrencymonitor.exceptions;
 /**
  * Exception used to signal an attempt to fire a timed transition after its timespan has occurred.
  */
-public class FiringAfterTimespanException extends Exception {
+public class FiringAfterTimespanException extends PetriNetException {
 
 	private static final long serialVersionUID = -5507033074544187737L;
 

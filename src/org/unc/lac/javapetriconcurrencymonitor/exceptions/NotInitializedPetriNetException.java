@@ -1,8 +1,8 @@
 package org.unc.lac.javapetriconcurrencymonitor.exceptions;
 
-public class NotInitializedPetriNetException extends Exception {
+public class NotInitializedPetriNetException extends PetriNetException {
 
-	private static final long serialVersionUID = -7078076102280257966L;
+	private static final long serialVersionUID = 6167723360385185346L;
 
 	public NotInitializedPetriNetException(){
 		super("The Petri Net is not initialized");

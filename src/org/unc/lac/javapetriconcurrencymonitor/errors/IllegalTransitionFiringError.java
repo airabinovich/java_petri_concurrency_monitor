@@ -8,10 +8,7 @@ package org.unc.lac.javapetriconcurrencymonitor.errors;
  */
 public class IllegalTransitionFiringError extends Error {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4560536609740420888L;
+	private static final long serialVersionUID = 6952473878345082588L;
 
 	private final static String defaultMessage= "An illegal transition firing has tried to occur";
 	
@@ -25,5 +22,18 @@ public class IllegalTransitionFiringError extends Error {
 	public IllegalTransitionFiringError(String message) {
 		super(message);
 	}
+	
+	public IllegalTransitionFiringError(Throwable cause) {
+		super(cause);
+	}
+
+	public IllegalTransitionFiringError(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public IllegalTransitionFiringError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
+
 
 }
