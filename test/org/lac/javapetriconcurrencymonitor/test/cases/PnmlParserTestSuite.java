@@ -175,12 +175,12 @@ public class PnmlParserTestSuite {
 			
 			double[] expectedTimes = {1+min, 4-min, 1, 5, 2, max-min};
 			
-			assertEquals(expectedTimes[0], transitions[0].getTimeSpan().getTimeBegin(), 0);
-			assertEquals(expectedTimes[1], transitions[0].getTimeSpan().getTimeEnd(), 0);
-			assertEquals(expectedTimes[2], transitions[1].getTimeSpan().getTimeBegin(), 0);
-			assertEquals(expectedTimes[3], transitions[1].getTimeSpan().getTimeEnd(), 0);
-			assertEquals(expectedTimes[4], transitions[2].getTimeSpan().getTimeBegin(), 0);
-			assertEquals(expectedTimes[5], transitions[2].getTimeSpan().getTimeEnd(), 0);
+			assertEquals(expectedTimes[0], transitions[0].getTimeSpan().getTimespanBeginning(), 0);
+			assertEquals(expectedTimes[1], transitions[0].getTimeSpan().getTimespanEnding(), 0);
+			assertEquals(expectedTimes[2], transitions[1].getTimeSpan().getTimespanBeginning(), 0);
+			assertEquals(expectedTimes[3], transitions[1].getTimeSpan().getTimespanEnding(), 0);
+			assertEquals(expectedTimes[4], transitions[2].getTimeSpan().getTimespanBeginning(), 0);
+			assertEquals(expectedTimes[5], transitions[2].getTimeSpan().getTimespanEnding(), 0);
 			
 		} catch (FileNotFoundException | SecurityException e) {
 			fail("Could not open file " + READER_WRITER);

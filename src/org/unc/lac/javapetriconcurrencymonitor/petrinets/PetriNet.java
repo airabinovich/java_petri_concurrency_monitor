@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
+import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Label;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place;
@@ -127,42 +128,50 @@ public abstract class PetriNet {
 	}
 
 	/**
-	 * Fires the transition t if it's enabled and updates current marking.
-	 * @param t Transition to be fired.
+	 * Fires the transition whose index is given as argument if it's enabled and updates current marking.
+	 * @param transitionIndex Transition's index to be fired.
 	 * @return true if t was fired.
-	 * @throws IllegalArgumentException If t is null or if it doesn't match any transition index
-	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
+	 * @throws IllegalArgumentException If transitionIndex is negative or greater than the last transition index.
+	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 */
-	public boolean fire(final Transition t) throws IllegalArgumentException, NotInitializedPetriNetException{
-		if(t == null){
-			throw new IllegalArgumentException("Null Transition passed as argument");
+	public boolean fire(int transitionIndex) throws IllegalArgumentException, PetriNetException{
+		if(transitionIndex < 0 || transitionIndex > transitions.length){
+			throw new IllegalArgumentException("Invalid transition index: " + transitionIndex);
 		}
-		return fire(t.getIndex());
+		return fire(transitions[transitionIndex]);
 	}
 
-	
 	/**
-	 * Fires the transition whose index is transitionIndex if it's enabled and updates current marking.
-	 * @param transitionIndex Transition's index to be fired.
-	 * @return true if transitionIndex was fired. For a perennial fire, returns true in any case.
-	 * @throws IllegalArgumentException If transitionIndex is negative or greater than the last transition index.
+	 * Fires the transition given as argument if it's enabled and updates current marking.
+	 * @param transition Transition to be fired.
+	 * @return true if transition was fired.
+	 * @throws IllegalArgumentException If transition is null or if it doesn't match any transition index
 	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
+	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 */
-	public synchronized boolean fire(int transitionIndex) throws IllegalArgumentException, NotInitializedPetriNetException{
+	public synchronized boolean fire(final Transition transition) throws IllegalArgumentException, NotInitializedPetriNetException, PetriNetException {
 		// m_(i+1) = m_i + I*d
 		// when d is a vector where every element is 0 but the nth which is 1
 		// it's equivalent to pick nth column from Incidence matrix (I) 
 		// and add it to the current marking (m_i)
 		// and if there is a reset arc, all tokens from its source place are taken.
-		if(transitionIndex < 0 || transitionIndex > transitions.length){
-			throw new IllegalArgumentException("Invalid transition index: " + transitionIndex);
+		if(transition == null){
+			throw new IllegalArgumentException("Null Transition passed as argument");
 		}
 		if(!initializedPetriNet){
 			throw new NotInitializedPetriNetException();
 		}
-		if(!isEnabled(transitionIndex)){
+		
+		int transitionIndex = transition.getIndex();
+		
+		if(transitionIndex < 0 || transitionIndex > transitions.length){
+			throw new IllegalArgumentException("Index " + transitionIndex + " doesn't match any transition's index in this petri net");
+		}
+		
+		if(!isEnabled(transition)){
 			return false;
-		}		
+		}
+		
 		for(int i = 0; i < currentMarking.length; i++){
 			if(resetMatrix[i][transitionIndex]){
 				currentMarking[i] = 0;
