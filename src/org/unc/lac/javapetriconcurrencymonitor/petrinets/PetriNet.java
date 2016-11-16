@@ -3,6 +3,7 @@ package org.unc.lac.javapetriconcurrencymonitor.petrinets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
@@ -212,6 +213,21 @@ public abstract class PetriNet {
 			retPlaces[i] = new Place(this.places[i]); 
 		}
 		return places;
+	}
+	
+	/**
+	 * @param placeName The name of the place to find.
+	 * @throws IllegalArgumentException If no place matches placeName
+	 * @return The place whose name is placeName
+	 */
+	public Place getPlace(final String placeName){
+		Optional<Place> filteredPlace = Arrays.stream(getPlaces())
+				.filter((Place p) -> p.getName().equals(placeName))
+				.findFirst();
+		if(!filteredPlace.isPresent()){
+			throw new IllegalArgumentException("No place matches the name " + placeName);
+		}
+		return filteredPlace.get();
 	}
 	
 	/**
