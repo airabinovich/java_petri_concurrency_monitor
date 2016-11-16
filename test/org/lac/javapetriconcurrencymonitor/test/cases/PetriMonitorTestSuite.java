@@ -992,4 +992,74 @@ public class PetriMonitorTestSuite {
 			Assert.fail("Event is not in JSON format");
 		}
 	}
+	
+	/**
+	 * Given t0 is Informed and Fired
+	 * And t0 is enabled
+	 * When observer obs registers to t0 events using t0's name
+	 * And I fire t0
+	 * Then I get an event from t0
+	 */
+	@Test
+	public void testSubscribeToTransitionEventsByNameShouldRecieveEvents(){
+		setUpMonitor(MONITOR_TEST_02_PETRI);
+		
+		Transition t0 = petri.getTransitions()[0];
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		monitor.subscribeToTransition(t0.getName(), obs);
+		
+		ArrayList<String> events = obs.getEvents();
+		Assert.assertTrue(events.isEmpty());
+		
+		try {
+			monitor.fireTransition(t0);
+		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e1) {
+			Assert.fail("Exception thrown in test execution");
+		}
+		
+		Assert.assertEquals(1, events.size());
+		
+		try {
+			String obtainedId = jsonParser.readTree(events.get(0)).get(ID).asText();
+			String obtainedName = jsonParser.readTree(events.get(0)).get(NAME).asText();
+			Assert.assertEquals(t0.getId(), obtainedId);
+			Assert.assertEquals(t0.getName(), obtainedName);
+		} catch (IOException e) {
+			Assert.fail("Event is not in JSON format");
+		}
+	}
+	
+	/**
+	 * Given no transition is called "fake_transition"
+	 * When observer obs subscribes to transition "fake_transition"
+	 * Then IllegalArgumentException is thrown
+	 */
+	@Test
+	public void testSubscribeToTransitionEventsWithNonExistingNameShouldThrowException(){
+		setUpMonitor(MONITOR_TEST_02_PETRI);
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		try{
+			monitor.subscribeToTransition("fake_name", obs);
+		} catch(Exception e){
+			Assert.assertEquals(IllegalArgumentException.class, e.getClass());
+		}
+	}
+	
+	/**
+	 * When observer obs subscribes to transition with null name
+	 * Then IllegalArgumentException is thrown
+	 */
+	@Test
+	public void testSubscribeToTransitionEventsWithNullNameShouldThrowException(){
+setUpMonitor(MONITOR_TEST_02_PETRI);
+		
+		TransitionEventObserver obs = new TransitionEventObserver();
+		try{
+			monitor.subscribeToTransition((String)null, obs);
+		} catch(Exception e){
+			Assert.assertEquals(IllegalArgumentException.class, e.getClass());
+		}
+	}
 }

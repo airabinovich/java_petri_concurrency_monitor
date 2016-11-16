@@ -207,10 +207,33 @@ public class PetriMonitor {
 	}
 	
 	/**
+	 * Subscribe the given observer to the transition matching the given name's events if it's informed
+	 * @param _transitionName the name of the transition to subscribe to
+	 * @param _observer the observer to subscribe
+	 * @throws IllegalArgumentException if the given transition is not informed, the name is null or the name doesn't match any transition
+	 * @return a Subscription object used to unsubscribe
+	 */
+	public Subscription subscribeToTransition(final String _transitionName, final Observer<String> _observer) throws IllegalArgumentException{
+		if(_transitionName == null){
+			throw new IllegalArgumentException("Null string given as transition name");
+		}
+		
+		Optional<Transition> transition = Arrays.stream(petri.getTransitions())
+				.filter((Transition t) -> t.getName().equals(_transitionName))
+				.findFirst();
+		
+		if(!transition.isPresent()){
+			throw new IllegalArgumentException("There is no transition matching name " + _transitionName);
+		}
+		
+		return subscribeToTransition(transition.get(), _observer);
+	}
+	
+	/**
 	 * Subscribe the given observer to the given transition events if it's informed
 	 * @param _transition the transition to subscribe to
 	 * @param _observer the observer to subscribe
-	 * @throws IllegalArgumentException if the given transition is not informed
+	 * @throws IllegalArgumentException if the given transition is not informed or the transition or observer is null
 	 * @return a Subscription object used to unsubscribe
 	 */
 	public Subscription subscribeToTransition(final Transition _transition, final Observer<String> _observer) throws IllegalArgumentException{
