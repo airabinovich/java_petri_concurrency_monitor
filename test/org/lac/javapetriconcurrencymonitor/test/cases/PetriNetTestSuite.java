@@ -17,8 +17,6 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.factory.PetriNetFactory;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.factory.PetriNetFactory.petriNetType;
 
-import com.fasterxml.jackson.core.sym.Name;
-
 public class PetriNetTestSuite {
 
 	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
@@ -831,6 +829,25 @@ public class PetriNetTestSuite {
 			Assert.assertEquals(5, p4_aux.getMarking());
 		} catch (Exception e){
 			Assert.fail("Could not open or parse file " + READER_WRITER);
+		}
+	}
+	
+	/**
+	 * <li> Given petriNet has no place named  "ghost"</li>
+	 * <li> When I try to get ghost by name </li>
+	 * <li> Then A IllegalArgumentException is thrown </li>
+	 */
+	@Test
+	public void testIfAIllegalArgumentExceptionIsThrownGettingAPlaceThatDoesntExist(){
+		try{
+			readFileAndMakePetriNet(READER_WRITER);
+			
+			petriNet.initializePetriNet();
+			Place p4_aux = new Place(petriNet.getPlace("ghost"));
+			Assert.fail("The exception should be thrown before");
+			Assert.assertNotEquals(5, p4_aux.getMarking());
+		} catch (Exception e) {
+			Assert.assertEquals(IllegalArgumentException.class, e.getClass());
 		}
 	}
 }
