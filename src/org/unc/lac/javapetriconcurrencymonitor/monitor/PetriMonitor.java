@@ -210,7 +210,7 @@ public class PetriMonitor {
 	 * Subscribe the given observer to the transition matching the given name's events if it's informed
 	 * @param _transitionName the name of the transition to subscribe to
 	 * @param _observer the observer to subscribe
-	 * @throws IllegalArgumentException if the given transition is not informed, the name is null or the name doesn't match any transition
+	 * @throws IllegalArgumentException if the given transition is not informed, the name or observer is null or the name doesn't match any transition
 	 * @return a Subscription object used to unsubscribe
 	 */
 	public Subscription subscribeToTransition(final String _transitionName, final Observer<String> _observer) throws IllegalArgumentException{
