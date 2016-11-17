@@ -835,7 +835,7 @@ public class PetriNetTestSuite {
 	/**
 	 * <li> Given petriNet has no place named  "ghost"</li>
 	 * <li> When I try to get ghost by name </li>
-	 * <li> Then A IllegalArgumentException is thrown </li>
+	 * <li> Then IllegalArgumentException is thrown </li>
 	 */
 	@Test
 	public void testIfAIllegalArgumentExceptionIsThrownGettingAPlaceThatDoesntExist(){
@@ -843,9 +843,9 @@ public class PetriNetTestSuite {
 			readFileAndMakePetriNet(READER_WRITER);
 			
 			petriNet.initializePetriNet();
-			Place p4_aux = new Place(petriNet.getPlace("ghost"));
+			@SuppressWarnings("unused")
+			Place ghost = new Place(petriNet.getPlace("ghost"));
 			Assert.fail("The exception should be thrown before");
-			Assert.assertNotEquals(5, p4_aux.getMarking());
 		} catch (Exception e) {
 			Assert.assertEquals(IllegalArgumentException.class, e.getClass());
 		}
