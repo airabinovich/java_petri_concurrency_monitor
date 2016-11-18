@@ -1041,7 +1041,7 @@ public class PetriMonitorTestSuite {
 		
 		TransitionEventObserver obs = new TransitionEventObserver();
 		try{
-			monitor.subscribeToTransition("fake_name", obs);
+			monitor.subscribeToTransition("fake_transition", obs);
 			Assert.fail("An exception should've been thrown before this point");
 		} catch(Exception e){
 			Assert.assertEquals(IllegalArgumentException.class, e.getClass());

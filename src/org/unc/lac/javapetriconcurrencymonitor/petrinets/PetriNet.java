@@ -3,6 +3,7 @@ package org.unc.lac.javapetriconcurrencymonitor.petrinets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
@@ -219,6 +220,24 @@ public abstract class PetriNet {
 	 */
 	public Transition[] getTransitions() {
 		return transitions;
+	}
+	
+	/**
+	 * Looks for a transition whose name matches transitionName and returns it.
+	 * If it doesn't exist, {@link IllegalArgumentException} is thrown
+	 * @param transitionName The name of the transition to look for
+	 * @return The tansition found
+	 * @throws IllegalArgumentException if transitionName doesn't match any transition
+	 */
+	public Transition getTransition(final String transitionName) throws IllegalArgumentException{
+		Optional<Transition> filteredTransition = Arrays.stream(transitions)
+				.filter((Transition t) -> t.getName().equals(transitionName))
+				// I can get only the first here because I made sure the name is unique in the parsing
+				.findFirst();
+		if(!filteredTransition.isPresent()){
+			throw new IllegalArgumentException("No transition matches the name " + transitionName);
+		}
+		return filteredTransition.get();
 	}
 
 	/**

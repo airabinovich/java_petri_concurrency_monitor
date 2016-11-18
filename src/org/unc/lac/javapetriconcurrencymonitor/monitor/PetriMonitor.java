@@ -3,7 +3,6 @@ package org.unc.lac.javapetriconcurrencymonitor.monitor;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.unc.lac.javapetriconcurrencymonitor.errors.IllegalTransitionFiringError;
@@ -167,15 +166,7 @@ public class PetriMonitor {
 	 * @see PetriMonitor#fireTransition(Transition)
 	 */
 	public void fireTransition(final String transitionName, boolean perennialFire) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException {
-		Optional<Transition> filteredTransition = Arrays.stream(petri.getTransitions())
-				.filter((Transition t) -> t.getName().equals(transitionName))
-				// I can get only the first here because I made sure the name is unique in the parsing
-				.findFirst();
-		if(!filteredTransition.isPresent()){
-			throw new IllegalArgumentException("No transition matches the name " + transitionName);
-		}
-		
-		fireTransition(filteredTransition.get(), perennialFire);
+		fireTransition(petri.getTransition(transitionName), perennialFire);
 	}
 	
 	/**
@@ -214,19 +205,7 @@ public class PetriMonitor {
 	 * @return a Subscription object used to unsubscribe
 	 */
 	public Subscription subscribeToTransition(final String _transitionName, final Observer<String> _observer) throws IllegalArgumentException{
-		if(_transitionName == null){
-			throw new IllegalArgumentException("Null string given as transition name");
-		}
-		
-		Optional<Transition> transition = Arrays.stream(petri.getTransitions())
-				.filter((Transition t) -> t.getName().equals(_transitionName))
-				.findFirst();
-		
-		if(!transition.isPresent()){
-			throw new IllegalArgumentException("There is no transition matching name " + _transitionName);
-		}
-		
-		return subscribeToTransition(transition.get(), _observer);
+		return subscribeToTransition(petri.getTransition(_transitionName), _observer);
 	}
 	
 	/**
