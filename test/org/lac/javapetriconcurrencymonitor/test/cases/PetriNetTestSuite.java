@@ -810,4 +810,44 @@ public class PetriNetTestSuite {
 			Assert.fail(e.getMessage());
 		}
 	}
+	
+	/**
+	 * <li> Given p4 has 5 tokens </li>
+	 * <li> When I try to get p4 by name </li>
+	 * <li> And ask its tokens amount </li>
+	 * <li> Then A copy of p4 is returned into p4_aux </li>
+	 * <li> And p4_aux has 5 tokens </li>
+	 */
+	@Test
+	public void testIfAPlaceCouldBeGetByName(){
+		try{
+			readFileAndMakePetriNet(READER_WRITER);
+			
+			petriNet.initializePetriNet();
+			
+			Place p4_aux = petriNet.getPlace("p4");
+			Assert.assertEquals(5, p4_aux.getMarking());
+		} catch (Exception e){
+			Assert.fail("Could not open or parse file " + READER_WRITER);
+		}
+	}
+	
+	/**
+	 * <li> Given petriNet has no place named  "ghost"</li>
+	 * <li> When I try to get ghost by name </li>
+	 * <li> Then IllegalArgumentException is thrown </li>
+	 */
+	@Test
+	public void testIfAIllegalArgumentExceptionIsThrownGettingAPlaceThatDoesntExist(){
+		try{
+			readFileAndMakePetriNet(READER_WRITER);
+			
+			petriNet.initializePetriNet();
+			@SuppressWarnings("unused")
+			Place ghost = new Place(petriNet.getPlace("ghost"));
+			Assert.fail("The exception should be thrown before");
+		} catch (Exception e) {
+			Assert.assertEquals(IllegalArgumentException.class, e.getClass());
+		}
+	}
 }

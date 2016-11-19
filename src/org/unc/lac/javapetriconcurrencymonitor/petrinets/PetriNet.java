@@ -216,6 +216,21 @@ public abstract class PetriNet {
 	}
 	
 	/**
+	 * @param placeName The name of the place to find.
+	 * @throws IllegalArgumentException If no place matches placeName
+	 * @return A copy of the place whose name is placeName
+	 */
+	public Place getPlace(final String placeName) throws IllegalArgumentException{
+		Optional<Place> filteredPlace = Arrays.stream(getPlaces())
+				.filter((Place p) -> p.getName().equals(placeName))
+				.findFirst();
+		if(!filteredPlace.isPresent()){
+			throw new IllegalArgumentException("No place matches the name " + placeName);
+		}
+		return new Place(filteredPlace.get());
+	}
+	
+	/**
 	 * @return the transitions
 	 */
 	public Transition[] getTransitions() {
