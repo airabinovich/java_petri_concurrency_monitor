@@ -3,7 +3,6 @@ package org.unc.lac.javapetriconcurrencymonitor.monitor;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.unc.lac.javapetriconcurrencymonitor.errors.IllegalTransitionFiringError;
@@ -167,15 +166,7 @@ public class PetriMonitor {
 	 * @see PetriMonitor#fireTransition(Transition)
 	 */
 	public void fireTransition(final String transitionName, boolean perennialFire) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException {
-		Optional<Transition> filteredTransition = Arrays.stream(petri.getTransitions())
-				.filter((Transition t) -> t.getName().equals(transitionName))
-				// I can get only the first here because I made sure the name is unique in the parsing
-				.findFirst();
-		if(!filteredTransition.isPresent()){
-			throw new IllegalArgumentException("No transition matches the name " + transitionName);
-		}
-		
-		fireTransition(filteredTransition.get(), perennialFire);
+		fireTransition(petri.getTransition(transitionName), perennialFire);
 	}
 	
 	/**
@@ -207,10 +198,21 @@ public class PetriMonitor {
 	}
 	
 	/**
+	 * Subscribe the given observer to the transition matching the given name's events if it's informed
+	 * @param _transitionName the name of the transition to subscribe to
+	 * @param _observer the observer to subscribe
+	 * @throws IllegalArgumentException if the given transition is not informed, the name or observer is null or the name doesn't match any transition
+	 * @return a Subscription object used to unsubscribe
+	 */
+	public Subscription subscribeToTransition(final String _transitionName, final Observer<String> _observer) throws IllegalArgumentException{
+		return subscribeToTransition(petri.getTransition(_transitionName), _observer);
+	}
+	
+	/**
 	 * Subscribe the given observer to the given transition events if it's informed
 	 * @param _transition the transition to subscribe to
 	 * @param _observer the observer to subscribe
-	 * @throws IllegalArgumentException if the given transition is not informed
+	 * @throws IllegalArgumentException if the given transition is not informed or the transition or observer is null
 	 * @return a Subscription object used to unsubscribe
 	 */
 	public Subscription subscribeToTransition(final Transition _transition, final Observer<String> _observer) throws IllegalArgumentException{

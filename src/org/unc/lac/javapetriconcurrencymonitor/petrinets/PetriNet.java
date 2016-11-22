@@ -9,6 +9,7 @@ import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNet
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Label;
+import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.PetriNode;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
 
@@ -221,13 +222,7 @@ public abstract class PetriNet {
 	 * @return A copy of the place whose name is placeName
 	 */
 	public Place getPlace(final String placeName) throws IllegalArgumentException{
-		Optional<Place> filteredPlace = Arrays.stream(getPlaces())
-				.filter((Place p) -> p.getName().equals(placeName))
-				.findFirst();
-		if(!filteredPlace.isPresent()){
-			throw new IllegalArgumentException("No place matches the name " + placeName);
-		}
-		return new Place(filteredPlace.get());
+		return getPetriNode(placeName, Place.class);
 	}
 	
 	/**
@@ -235,6 +230,51 @@ public abstract class PetriNet {
 	 */
 	public Transition[] getTransitions() {
 		return transitions;
+	}
+	
+	/**
+	 * Looks for a transition whose name matches transitionName and returns it.
+	 * If it doesn't exist, {@link IllegalArgumentException} is thrown
+	 * @param transitionName The name of the transition to look for
+	 * @return The tansition found
+	 * @throws IllegalArgumentException if transitionName doesn't match any transition
+	 */
+	public Transition getTransition(final String transitionName) throws IllegalArgumentException{
+		return getPetriNode(transitionName, Transition.class);
+	}
+	
+	/**
+	 * Looks for a {@link Place} or {@link Transition} that matches petriNodeName name.
+	 * The second parameter is the class required for the call query. This can be either {@link Transition}.class or {@link Place}.class.
+	 * @param petriNodeName The name of the Place or Transition to look for.
+	 * @param _class The class to use as return type. i.e. {@link Transition} or {@link Place}.
+	 * @return A place or transition matching the given name.
+	 * @throws IllegalArgumentException If the given name is null, the given class is not {@link Transition} nor {@link Place} or if there isn't a match for the name.
+	 */
+	@SuppressWarnings("unchecked")
+	private <E extends PetriNode> E getPetriNode(String petriNodeName, Class<E> _class) throws IllegalArgumentException{
+		E[] arrayToFilter = null;
+		if(petriNodeName == null){
+			throw new IllegalArgumentException("Null name not supported");
+		}
+		
+		if(_class == Transition.class){
+			arrayToFilter = (E[]) transitions;
+		}
+		else if (_class == Place.class){
+			arrayToFilter = (E[]) places;
+		}
+		else {
+			throw new IllegalArgumentException("Method not supported for class " + _class.getName());
+		}
+		
+		Optional<E> filteredPetriNode = Arrays.stream(arrayToFilter)
+				.filter((E element) -> element.getName().equals(petriNodeName))
+				.findFirst();
+		
+		// if there is a matching argument return it, else throw an exception
+		return filteredPetriNode.orElseThrow(() -> new IllegalArgumentException("No " + _class.getSimpleName().toLowerCase() + " matches the name " + petriNodeName));
+		
 	}
 
 	/**
