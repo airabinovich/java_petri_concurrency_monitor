@@ -74,7 +74,11 @@ public class PetriMonitor {
 		jsonMapper = new ObjectMapper();
 		
 		anyThreadSleepingforTransition = new AtomicBoolean[transitionsAmount];
-		Arrays.fill(anyThreadSleepingforTransition, new AtomicBoolean());
+		
+		for(int i = 0; i < transitionsAmount; i++){
+			anyThreadSleepingforTransition[i] = new AtomicBoolean(false);
+		}
+//		Arrays.fill(anyThreadSleepingforTransition, new AtomicBoolean());
 	}
 
 	/**
