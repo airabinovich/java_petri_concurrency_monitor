@@ -33,6 +33,7 @@ public class PetriMonitorTimeTestSuite {
 	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
 	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetri.pnml";
 	private static final String TIMED_PETRI_NET_02 = TEST_PETRI_FOLDER + "timedPetri02.pnml";
+	private static final String TIMED_PETRI_NET_04 = TEST_PETRI_FOLDER + "timedPetri04.pnml";
 	private static final String PETRI_FOR_INITIALIZATION_TIME = TEST_PETRI_FOLDER + "timedPetriForInitializationTime.pnml";
 	private static final String PETRI_FOR_INITIALIZATION_TIME2 = TEST_PETRI_FOLDER + "timedPetriForInitializationTime2.pnml";
 
@@ -723,5 +724,63 @@ public class PetriMonitorTimeTestSuite {
 		for(Thread worker : workers){
 			Assert.assertEquals(Thread.State.WAITING, worker.getState());
 		}
+	}
+	
+	/**
+	 * <li> Given transition t0 is timed [a1, b1] </li>
+	 * <li> And transition t1 is timed [a2, b2] </li>
+	 * <li> And t0 and t1 are enabled at start time </li>
+	 * <li> And the petri net is initialized at time ti </li>
+	 * <li> When thread th0 tries to fire t0 at time tj < (ti + a1) </li>
+	 * <li> And th0 sleeps by itself for t0 </li>
+	 * <li> And thread th1 tries to fire t1 at time tk < (ti + a2) </li>
+	 * <li> Then th1 sleeps by itself for th1 </li>
+	 * <li> And t0's queue is empty </li>
+	 * <li> And t1's queue is empty </li>
+	 */
+	@Test
+	public void testOneThreadSleepingForATransitionDoesntInterfereWithAnotherThreadSleepingForAnotherTransition() {
+		setUpMonitor(TIMED_PETRI_NET_04);
+		
+		Transition t0 = timedPetriNet.getTransitions()[0];
+		Transition t1 = timedPetriNet.getTransitions()[1];
+		
+		Thread th0 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t0);
+			} catch (NotInitializedPetriNetException | IllegalTransitionFiringError e) {
+				Assert.fail("Interrupted thread during test run. " + e.getMessage());
+			}
+		});
+		
+		Thread th1 = new Thread(() -> {
+			try {
+				monitor.fireTransition(t1);
+			} catch (NotInitializedPetriNetException | IllegalTransitionFiringError e) {
+				Assert.fail("Interrupted thread during test run. " + e.getMessage());
+			}
+		});
+		
+		timedPetriNet.initializePetriNet();
+		
+		th0.start();
+		th1.start();
+
+		try {
+			Thread.sleep(50);
+		} catch (InterruptedException e) {
+			Assert.fail("Interrupted main thread: " + e.getMessage());
+		}
+		
+		Assert.assertEquals(Thread.State.TIMED_WAITING, th0.getState());
+		Assert.assertEquals(Thread.State.TIMED_WAITING, th1.getState());
+		
+		Assert.assertTrue(monitor.isAnyThreadSleepingForTransition(t0.getIndex()));
+		Assert.assertTrue(monitor.isAnyThreadSleepingForTransition(t1.getIndex()));
+		
+		boolean[] queuesState = monitor.getQueuesState();
+		
+		Assert.assertFalse(queuesState[t0.getIndex()]);
+		Assert.assertFalse(queuesState[t1.getIndex()]);
 	}
 }

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+ <net id="n-26C3-B183B-0" type ="http://www.laas.fr/tina/tpn">
+  <name>
+   <text>timedPetri04</text>
+  </name>
+ <page id="g-26C3-B184A-1">
+  <place id="p-26C3-B184C-2">
+  <name>
+   <text>p0</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="85" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-26C3-B185B-3">
+  <name>
+   <text>p1</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+   <graphics>
+    <position x="175" y="50"/>
+   </graphics>
+  </place>
+  <place id="p-26C3-B1862-4">
+  <name>
+   <text>p2</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="85" y="260"/>
+   </graphics>
+  </place>
+  <place id="p-26C3-B186F-5">
+  <name>
+   <text>p3</text>
+    <graphics>
+     <offset x="0" y="-10" />
+    </graphics>
+  </name>
+   <graphics>
+    <position x="175" y="260"/>
+   </graphics>
+  </place>
+  <transition id="t-26C3-B1873-6">
+  <name>
+   <text>t0</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="closed-open">
+     <cn>200</cn>
+     <ci>infty</ci>
+    </interval>
+    <graphics>
+     <offset x="-10" y="0" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="85" y="150"/>
+   </graphics>
+  </transition>
+  <transition id="t-26C3-B1885-7">
+  <name>
+   <text>t1</text>
+    <graphics>
+     <offset x="0" y="0" />
+    </graphics>
+  </name>
+   <label>
+    <text>&lt;D,I&gt;</text>
+    <graphics>
+     <offset x="10" y="-10" />
+    </graphics>
+   </label>
+   <delay>
+    <interval xmlns="http://www.w3.org/1998/Math/MathML" closure="closed-open">
+     <cn>200</cn>
+     <ci>infty</ci>
+    </interval>
+    <graphics>
+     <offset x="10" y="0" />
+    </graphics>
+   </delay>
+   <graphics>
+    <position x="175" y="150"/>
+   </graphics>
+  </transition>
+  <arc id="e-26C3-B1890-8" source="t-26C3-B1885-7" target="p-26C3-B186F-5">
+  </arc>
+  <arc id="e-26C3-B1894-9" source="t-26C3-B1873-6" target="p-26C3-B1862-4">
+  </arc>
+  <arc id="e-26C3-B1896-10" source="p-26C3-B185B-3" target="t-26C3-B1885-7">
+  </arc>
+  <arc id="e-26C3-B1899-11" source="p-26C3-B184C-2" target="t-26C3-B1873-6">
+  </arc>
+ </page>
+ </net>
+</pnml>

@@ -1,7 +1,6 @@
 package org.unc.lac.javapetriconcurrencymonitor.monitor;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -74,7 +73,10 @@ public class PetriMonitor {
 		jsonMapper = new ObjectMapper();
 		
 		anyThreadSleepingforTransition = new AtomicBoolean[transitionsAmount];
-		Arrays.fill(anyThreadSleepingforTransition, new AtomicBoolean());
+		
+		for(int i = 0; i < transitionsAmount; i++){
+			anyThreadSleepingforTransition[i] = new AtomicBoolean(false);
+		}
 	}
 
 	/**
