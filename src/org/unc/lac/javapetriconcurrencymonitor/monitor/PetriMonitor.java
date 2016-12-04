@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.unc.lac.javapetriconcurrencymonitor.errors.IllegalTransitionFiringError;
-import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringAfterTimespanException;
-import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringBeforeTimespanException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.policies.TransitionsPolicy;
@@ -350,7 +348,8 @@ public class PetriMonitor {
 			keepFiring = petri.getEnabledTransitions()[transitionToFire.getIndex()];
 			if(keepFiring){				
 				try{
-					if(petri.fire(transitionToFire)){
+					switch(petri.fire(transitionToFire)) {
+					case SUCCESS:
 						//the transition was fired successfully. If it's informed let's send an event
 						try{
 							sendEventAfterFiring(transitionToFire);
@@ -378,68 +377,55 @@ public class PetriMonitor {
 							keepFiring = false;
 							releaseLock = true;
 						}
-					}
-					else if(!perennialFire){
-						// if the transition wasn't fired sucessfully
-						// go to sleep in the transition queue
-						sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
-						// after waking up try to fire inside the timespan again
-					}
-					else {
-						// the firing failed but since it's a perennial fire
-						// the calling thread doesn't have to sleep
-						// so return whether to release the mutex
-						return releaseLock;
-					}
-				} catch(FiringBeforeTimespanException e){
-					if(anyThreadSleepingforTransition[transitionIndex].compareAndSet(false, true)){
-						// The calling thread came before time span, and there is nobody sleeping waiting for this transition,
-						// release the input mutex and sleep here until the time has come.
-						inQueue.unlock();
-						
-						long enablingTime = transitionToFire.getEnablingTime();
-						long fireAttemptTime = System.currentTimeMillis();
-						
-						while(transitionToFire.isBeforeTimeSpan(fireAttemptTime)){
-							try {
-								// sleep until the time span occurs
-								Thread.sleep(enablingTime - fireAttemptTime);
-								// if the thread is not interrupted, just exit the loop after sleeping
-								break;
-							} catch (InterruptedException ex) {
-								// recalculate the current time only if the thread was interrupted and sleep again if necessary
-								fireAttemptTime = System.currentTimeMillis();
-							} catch (IllegalArgumentException ex){
-								// The sleeping time was negative. This shouldn't happen but if so, catch the exception and don't try to sleep again
-								break;
-							}
+						break;
+					case NOT_ENABLED:
+						if(!perennialFire){
+							// if the transition wasn't fired sucessfully
+							// go to sleep in the transition queue
+							sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
+							// after waking up try to fire inside the timespan again
 						}
-						
-						anyThreadSleepingforTransition[transitionIndex].set(false);
-						
-						// when this thread wakes up, its time to fire has come and may be short
-						// so take the lock with high priority to avoid waiting for the incoming threads
-						// This way, only as high-prioritized threads as this one may cause waiting
-						inQueue.lock(LockPriority.HIGH);
-						// If at waking time the transition has been disabled,
-						// this thread has to sleep in the condition queue with high priority
-						// to avoid a priority inversion, so set sleptByItselfForThisTransition to true
-						sleptByItselfForThisTransition = true;
-					} else if (!perennialFire){
-						// if any thread was already sleeping on its own for this transition, sleep in the queue
-						sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
-					} else {
-						// a perennial fire should not wait in the queue for the transition to get enabled again
-						return releaseLock;
-					}
+						else {
+							// the firing failed but since it's a perennial fire
+							// the calling thread doesn't have to sleep
+							// so return whether to release the mutex
+							return releaseLock;
+						}
+						break;
+					case TIMED_BEFORE_TIMESPAN:
+						if(anyThreadSleepingforTransition[transitionIndex].compareAndSet(false, true)){
+							// The calling thread came before time span, and there is nobody sleeping waiting for this transition,
+							// release the input mutex and sleep here until the time has come.
+							inQueue.unlock();
+							
+							handleFiringBeforeTimespan(transitionToFire);
+							
+							// when this thread wakes up, its time to fire has come and may be short
+							// so take the lock with high priority to avoid waiting for the incoming threads
+							// This way, only as high-prioritized threads as this one may cause waiting
+							inQueue.lock(LockPriority.HIGH);
+							// If at waking time the transition has been disabled,
+							// this thread has to sleep in the condition queue with high priority
+							// to avoid a priority inversion, so set sleptByItselfForThisTransition to true
+							sleptByItselfForThisTransition = true;
+						} else if (!perennialFire){
+							// if any thread was already sleeping on its own for this transition, sleep in the queue
+							sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
+						} else {
+							// a perennial fire should not wait in the queue for the transition to get enabled again
+							return releaseLock;
+						}
+						break;
 					
-				} catch(FiringAfterTimespanException e){
-					if(perennialFire){
-						// a perennial fire should not wait in the queue for the transition to get enabled again
-						return releaseLock;
+					case TIMED_AFTER_TIMESPAN:
+						if(perennialFire){
+							// a perennial fire should not wait in the queue for the transition to get enabled again
+							return releaseLock;
+						}
+						// The calling thread came late, the time is over. Thus the thread releases the input mutex and goes to sleep
+						sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
+						break;
 					}
-					// The calling thread came late, the time is over. Thus the thread releases the input mutex and goes to sleep
-					sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
 				} catch (IllegalArgumentException e) {
 					throw new IllegalTransitionFiringError(e);
 				} catch (PetriNetException e) {
@@ -472,6 +458,35 @@ public class PetriMonitor {
 			condVarQueue[transitionToFire.getIndex()].sleep();
 		}
 		// when waking up, don't take the input lock for the waking thread didn't release it
+	}
+	
+	/**
+	 * This method should be called only when a thread fired a timed transition before its timespan.
+	 * Before calling this method release the input mutex and take it immediately after.
+	 * The calling thread will sleep by itself until the given transition's timespan is reached.
+	 * @param transitionToFire
+	 */
+	private void handleFiringBeforeTimespan(Transition transitionToFire){
+		long enablingTime = transitionToFire.getEnablingTime();
+		long fireAttemptTime = System.currentTimeMillis();
+		
+		while(transitionToFire.isBeforeTimeSpan(fireAttemptTime)){
+			try {
+				// sleep until the time span occurs
+				Thread.sleep(enablingTime - fireAttemptTime);
+				// if the thread is not interrupted, just exit the loop after sleeping
+				break;
+			} catch (InterruptedException ex) {
+				// recalculate the current time only if the thread was interrupted and sleep again if necessary
+				fireAttemptTime = System.currentTimeMillis();
+			} catch (IllegalArgumentException ex){
+				// The sleeping time was negative. This shouldn't happen but if so, catch the exception and don't try to sleep again
+				break;
+			}
+		}
+		
+		anyThreadSleepingforTransition[transitionToFire.getIndex()].set(false);
+		
 	}
 	
 	/**

@@ -136,7 +136,7 @@ public abstract class PetriNet {
 	 * @throws IllegalArgumentException If transitionIndex is negative or greater than the last transition index.
 	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 */
-	public boolean fire(int transitionIndex) throws IllegalArgumentException, PetriNetException{
+	public PetriNetFireOutcome fire(int transitionIndex) throws IllegalArgumentException, PetriNetException{
 		if(transitionIndex < 0 || transitionIndex > transitions.length){
 			throw new IllegalArgumentException("Invalid transition index: " + transitionIndex);
 		}
@@ -151,7 +151,7 @@ public abstract class PetriNet {
 	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
 	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 */
-	public synchronized boolean fire(final Transition transition) throws IllegalArgumentException, NotInitializedPetriNetException, PetriNetException {
+	public synchronized PetriNetFireOutcome fire(final Transition transition) throws IllegalArgumentException, NotInitializedPetriNetException, PetriNetException {
 		// m_(i+1) = m_i + I*d
 		// when d is a vector where every element is 0 but the nth which is 1
 		// it's equivalent to pick nth column from Incidence matrix (I) 
@@ -171,7 +171,7 @@ public abstract class PetriNet {
 		}
 		
 		if(!isEnabled(transition)){
-			return false;
+			return PetriNetFireOutcome.NOT_ENABLED;
 		}
 		
 		for(int i = 0; i < currentMarking.length; i++){
@@ -186,7 +186,7 @@ public abstract class PetriNet {
 		
 		enabledTransitions = computeEnabledTransitions();
 		
-		return true;
+		return PetriNetFireOutcome.SUCCESS;
 	}
 	
 	/**

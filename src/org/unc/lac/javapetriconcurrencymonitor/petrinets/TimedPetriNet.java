@@ -2,8 +2,6 @@ package org.unc.lac.javapetriconcurrencymonitor.petrinets;
 
 import java.util.Arrays;
 
-import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringAfterTimespanException;
-import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringBeforeTimespanException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc;
@@ -40,7 +38,7 @@ public class TimedPetriNet extends PetriNet{
 	 * @see TimedPetriNet#initializePetriNet()
 	 * @see PetriNet#fire(int)
 	 */
-	public boolean fire(int transitionIndex) throws IllegalArgumentException, PetriNetException{
+	public PetriNetFireOutcome fire(int transitionIndex) throws IllegalArgumentException, PetriNetException{
 		try{
 			return fire(transitions[transitionIndex]);
 		} catch (IndexOutOfBoundsException e){
@@ -61,16 +59,16 @@ public class TimedPetriNet extends PetriNet{
 	 * @see TimedPetriNet#initializePetriNet()
 	 * @see PetriNet#fire(Transition)
 	 */
-	public boolean fire(final Transition t) throws IllegalArgumentException, PetriNetException{
+	public PetriNetFireOutcome fire(final Transition t) throws IllegalArgumentException, PetriNetException{
 		if(t == null){
 			throw new IllegalArgumentException("Tried to fire null transition");
 		}
 		long fireTime = System.currentTimeMillis();
 		if(t.isBeforeTimeSpan(fireTime)){
-			throw new FiringBeforeTimespanException();
+			return PetriNetFireOutcome.TIMED_BEFORE_TIMESPAN;
 		}
 		else if (!t.insideTimeSpan(fireTime)){
-			throw new FiringAfterTimespanException();
+			return PetriNetFireOutcome.TIMED_AFTER_TIMESPAN;
 		}
 		return super.fire(t);
 	}
