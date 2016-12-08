@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.lac.javapetriconcurrencymonitor.test.utils.TransitionEventObserver;
 import org.unc.lac.javapetriconcurrencymonitor.errors.IllegalTransitionFiringError;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
+import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.PetriMonitor;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.policies.FirstInLinePolicy;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.policies.TransitionsPolicy;
@@ -238,7 +239,7 @@ public class PetriMonitorTimeTestSuite {
 		
 		try {
 			monitor.fireTransition(t3);
-		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e1) {
+		} catch (IllegalTransitionFiringError | PetriNetException e1) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -538,7 +539,7 @@ public class PetriMonitorTimeTestSuite {
 		Thread th0 = new Thread(() -> {
 			try {
 				monitor.fireTransition(t0);
-			} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e) {
+			} catch (IllegalTransitionFiringError | PetriNetException e) {
 				Assert.fail("Exception thrown in test execution");
 			}
 		});
@@ -548,7 +549,7 @@ public class PetriMonitorTimeTestSuite {
 			Thread worker = new Thread(() -> {
 				try {
 					monitor.fireTransition(t2);
-				} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e) {
+				} catch (IllegalTransitionFiringError | PetriNetException e) {
 					Assert.fail("Exception thrown in test execution");
 				}
 			});
@@ -642,7 +643,7 @@ public class PetriMonitorTimeTestSuite {
 			try {
 				Thread.currentThread().setName("th0");
 				monitor.fireTransition(t0);
-			} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e) {
+			} catch (IllegalTransitionFiringError | PetriNetException e) {
 				Assert.fail("Exception thrown in test execution");
 			}
 		});
@@ -652,7 +653,7 @@ public class PetriMonitorTimeTestSuite {
 			Thread worker = new Thread(() -> {
 				try {
 					monitor.fireTransition(t0);
-				} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e) {
+				} catch (IllegalTransitionFiringError | PetriNetException e) {
 					Assert.fail("Exception thrown in test execution");
 				}
 			});
@@ -682,7 +683,7 @@ public class PetriMonitorTimeTestSuite {
 		
 		try {
 			monitor.fireTransition(t1);
-		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e) {
+		} catch (IllegalTransitionFiringError | PetriNetException e) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -697,7 +698,7 @@ public class PetriMonitorTimeTestSuite {
 		
 		try {
 			monitor.fireTransition(t3);
-		} catch (IllegalTransitionFiringError | NotInitializedPetriNetException e) {
+		} catch (IllegalTransitionFiringError | PetriNetException e) {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
@@ -748,7 +749,7 @@ public class PetriMonitorTimeTestSuite {
 		Thread th0 = new Thread(() -> {
 			try {
 				monitor.fireTransition(t0);
-			} catch (NotInitializedPetriNetException | IllegalTransitionFiringError e) {
+			} catch (PetriNetException | IllegalTransitionFiringError e) {
 				Assert.fail("Interrupted thread during test run. " + e.getMessage());
 			}
 		});
@@ -756,7 +757,7 @@ public class PetriMonitorTimeTestSuite {
 		Thread th1 = new Thread(() -> {
 			try {
 				monitor.fireTransition(t1);
-			} catch (NotInitializedPetriNetException | IllegalTransitionFiringError e) {
+			} catch (PetriNetException | IllegalTransitionFiringError e) {
 				Assert.fail("Interrupted thread during test run. " + e.getMessage());
 			}
 		});

@@ -666,11 +666,11 @@ public class PetriNetTestSuite {
 	 * <li> And p0 has 2 tokens </li>
 	 * <li> And p2 has no tokens </li>
 	 * <li> When I fire t2 </li>
-	 * <li> Then the fire returns false </li>
+	 * <li> Then the fire returns {@link PetriNetFireOutcome#NOT_ENABLED} </li>
 	 * <li> And no tokens are drained from p0 </li>
 	 */
 	@Test
-	public void FireTransitionWithReaderArcAndNoEnoughTokensShouldReturnFalse(){
+	public void FireTransitionWithReaderArcAndNoEnoughTokensShouldReturnNotEnabled(){
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_READER_01);
 			
@@ -705,7 +705,7 @@ public class PetriNetTestSuite {
 	 * <li> And p1 has no tokens </li>
 	 * <li> And p2 has 1 token </li>
 	 * <li> When I fire t2 </li>
-	 * <li> Then the fire returns true </li>
+	 * <li> Then the fire returns {@link PetriNetFireOutcome#SUCCESS} </li>
 	 * <li> And one token is drained from p0 </li>
 	 * <li> And one token is put into p1 </li>
 	 * <li> And no tokens are drained from p2 </li>

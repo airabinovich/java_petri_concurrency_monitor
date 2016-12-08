@@ -96,9 +96,10 @@ public class PetriMonitor {
 	 * @param transitionToFire The transition to fire
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
-	public void fireTransition(final Transition transitionToFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException{
+	public void fireTransition(final Transition transitionToFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException{
 		fireTransition(transitionToFire, false);
 	}
 
@@ -123,9 +124,10 @@ public class PetriMonitor {
 	 * @param perenialFire True indicates a perennial fire
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
-	public void fireTransition(final Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException{
+	public void fireTransition(final Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException{
 		// An attempt to fire an automatic transition is a severe error and the application should stop automatically
 		if(transitionToFire.getLabel().isAutomatic()){
 			throw new IllegalTransitionFiringError("An automatic transition has tried to be fired manually");
@@ -151,9 +153,10 @@ public class PetriMonitor {
 	 * @throws IllegalArgumentException If no transition matches transitionName
 	 * @throws IllegalTransitionFiringError If transitionName matches an automatic transition
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 * @see PetriMonitor#fireTransition(Transition)
 	 */
-	public void fireTransition(final String transitionName) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException {
+	public void fireTransition(final String transitionName) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException {
 		fireTransition(transitionName, false);
 	}
 	
@@ -163,9 +166,10 @@ public class PetriMonitor {
 	 * @throws IllegalArgumentException If no transition matches transitionName
 	 * @throws IllegalTransitionFiringError If transitionName matches an automatic transition
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 * @see PetriMonitor#fireTransition(Transition)
 	 */
-	public void fireTransition(final String transitionName, boolean perennialFire) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException {
+	public void fireTransition(final String transitionName, boolean perennialFire) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException {
 		fireTransition(petri.getTransition(transitionName), perennialFire);
 	}
 	
@@ -242,8 +246,9 @@ public class PetriMonitor {
 	 * @throws IndexOutOfBoundsException If the guard doesn't exist
 	 * @throws NullPointerException If guardName is empty
 	 * @throws NotInitializedPetriNetException when firing a transition before initializing the petri net
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 */
-	public boolean setGuard(String guardName, boolean newValue) throws IndexOutOfBoundsException, NullPointerException, NotInitializedPetriNetException{
+	public boolean setGuard(String guardName, boolean newValue) throws IndexOutOfBoundsException, NullPointerException, NotInitializedPetriNetException, PetriNetException{
 		if(guardName == null || guardName.isEmpty()){
 			throw new NullPointerException("Empty guard name not allowed");
 		}
@@ -332,12 +337,13 @@ public class PetriMonitor {
 	 * It is intended for using internally, when a {@link #inQueue} mutex was already taken.
 	 * This method doesn't check for automatic transitions
 	 * A perennial fire doesn't send a thread to sleep.
-	 * @param transitionToFire
-	 * @param perennialFire
+	 * @param transitionToFire the transition to fire.
+	 * @param perennialFire True if the fire is perennial
 	 * @return Whether to release the mutex {@link #inQueue}
-	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
+	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method.
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 */
-	private boolean internalFireTransition(Transition transitionToFire, boolean perennialFire) throws  NotInitializedPetriNetException{
+	private boolean internalFireTransition(Transition transitionToFire, boolean perennialFire) throws PetriNetException, NotInitializedPetriNetException{
 		boolean releaseLock = true;
 		boolean keepFiring = true;
 		boolean sleptByItselfForThisTransition = false;
@@ -432,7 +438,7 @@ public class PetriMonitor {
 					if(e instanceof NotInitializedPetriNetException){
 						throw (NotInitializedPetriNetException)e;
 					}
-					// other instances of PetriNetException are handled in other catch clauses
+					throw e;
 				}
 			}
 			// if this is a perennial fire and the transition is not enabled, don't send the thread to sleep
@@ -461,7 +467,7 @@ public class PetriMonitor {
 	}
 	
 	/**
-	 * This method should be called only when a thread fired a timed transition before its timespan.
+	 * This method should be called only when a thread tries to fire a timed transition before its timespan.
 	 * Before calling this method release the input mutex and take it immediately after.
 	 * The calling thread will sleep by itself until the given transition's timespan is reached.
 	 * @param transitionToFire
