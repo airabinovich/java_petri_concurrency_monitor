@@ -7,11 +7,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringAfterTimespanException;
-import org.unc.lac.javapetriconcurrencymonitor.exceptions.FiringBeforeTimespanException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.parser.PnmlParser;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet;
+import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNetFireOutcome;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.factory.PetriNetFactory;
@@ -80,7 +79,7 @@ public class PetriNetTestSuite {
 			
 			Assert.assertFalse(petriNet.isEnabled(t2));
 			try {
-				Assert.assertFalse(petriNet.fire(t2));
+				Assert.assertEquals(PetriNetFireOutcome.NOT_ENABLED, petriNet.fire(t2));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -107,7 +106,7 @@ public class PetriNetTestSuite {
 			
 			Assert.assertTrue(petriNet.isEnabled(t0));
 			try {
-				Assert.assertTrue(petriNet.fire(t0));
+				Assert.assertEquals(PetriNetFireOutcome.SUCCESS, petriNet.fire(t0));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -255,7 +254,7 @@ public class PetriNetTestSuite {
 			petriNet.addGuard("test", true);
 			
 			try {
-				Assert.assertFalse(petriNet.fire(t1));
+				Assert.assertEquals(PetriNetFireOutcome.NOT_ENABLED, petriNet.fire(t1));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -298,7 +297,7 @@ public class PetriNetTestSuite {
 			petriNet.addGuard("test", true);
 			
 			try {
-				Assert.assertTrue(petriNet.fire(t0));
+				Assert.assertEquals(PetriNetFireOutcome.SUCCESS, petriNet.fire(t0));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -343,7 +342,7 @@ public class PetriNetTestSuite {
 			petriNet.addGuard("test", false);
 			
 			try {
-				Assert.assertFalse(petriNet.fire(t0));
+				Assert.assertEquals(PetriNetFireOutcome.NOT_ENABLED, petriNet.fire(t0));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -386,7 +385,7 @@ public class PetriNetTestSuite {
 			petriNet.addGuard("test", false);
 			
 			try {
-				Assert.assertTrue(petriNet.fire(t1));
+				Assert.assertEquals(PetriNetFireOutcome.SUCCESS, petriNet.fire(t1));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -481,7 +480,7 @@ public class PetriNetTestSuite {
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 			try {
-				Assert.assertFalse(petriNet.fire(t2));
+				Assert.assertEquals(PetriNetFireOutcome.NOT_ENABLED, petriNet.fire(t2));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -518,7 +517,7 @@ public class PetriNetTestSuite {
 			Assert.assertTrue(petriNet.isEnabled(t2));
 			
 			try {
-				Assert.assertTrue(petriNet.fire(t2));
+				Assert.assertEquals(PetriNetFireOutcome.SUCCESS, petriNet.fire(t2));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -561,7 +560,7 @@ public class PetriNetTestSuite {
 			Assert.assertTrue(petriNet.isEnabled(t3));
 			
 			try {
-				Assert.assertTrue(petriNet.fire(t3));
+				Assert.assertEquals(PetriNetFireOutcome.SUCCESS ,petriNet.fire(t3));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -603,7 +602,7 @@ public class PetriNetTestSuite {
 			Assert.assertFalse(petriNet.isEnabled(t3));
 			
 			try {
-				Assert.assertFalse(petriNet.fire(t3));
+				Assert.assertEquals(PetriNetFireOutcome.NOT_ENABLED, petriNet.fire(t3));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -643,7 +642,7 @@ public class PetriNetTestSuite {
 			Assert.assertTrue(petriNet.isEnabled(t0));
 			
 			try {
-				Assert.assertTrue(petriNet.fire(t0));
+				Assert.assertEquals(PetriNetFireOutcome.SUCCESS, petriNet.fire(t0));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -667,11 +666,11 @@ public class PetriNetTestSuite {
 	 * <li> And p0 has 2 tokens </li>
 	 * <li> And p2 has no tokens </li>
 	 * <li> When I fire t2 </li>
-	 * <li> Then the fire returns false </li>
+	 * <li> Then the fire returns {@link PetriNetFireOutcome#NOT_ENABLED} </li>
 	 * <li> And no tokens are drained from p0 </li>
 	 */
 	@Test
-	public void FireTransitionWithReaderArcAndNoEnoughTokensShouldReturnFalse(){
+	public void FireTransitionWithReaderArcAndNoEnoughTokensShouldReturnNotEnabled(){
 		try{
 			readFileAndMakePetriNet(PETRI_WITH_READER_01);
 			
@@ -684,7 +683,7 @@ public class PetriNetTestSuite {
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 			try {
-				Assert.assertFalse(petriNet.fire(t2));
+				Assert.assertEquals(PetriNetFireOutcome.NOT_ENABLED, petriNet.fire(t2));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -706,7 +705,7 @@ public class PetriNetTestSuite {
 	 * <li> And p1 has no tokens </li>
 	 * <li> And p2 has 1 token </li>
 	 * <li> When I fire t2 </li>
-	 * <li> Then the fire returns true </li>
+	 * <li> Then the fire returns {@link PetriNetFireOutcome#SUCCESS} </li>
 	 * <li> And one token is drained from p0 </li>
 	 * <li> And one token is put into p1 </li>
 	 * <li> And no tokens are drained from p2 </li>
@@ -720,7 +719,7 @@ public class PetriNetTestSuite {
 			
 			Transition t0 = petriNet.getTransitions()[0];
 			try {
-				Assert.assertTrue(petriNet.fire(t0));
+				Assert.assertEquals(PetriNetFireOutcome.SUCCESS, petriNet.fire(t0));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -732,7 +731,7 @@ public class PetriNetTestSuite {
 			Assert.assertArrayEquals(expectedMarking, petriNet.getCurrentMarking());
 			
 			try {
-				Assert.assertTrue(petriNet.fire(t2));
+				Assert.assertEquals(PetriNetFireOutcome.SUCCESS, petriNet.fire(t2));
 			} catch (PetriNetException e) {
 				Assert.fail("Exception should've not been thrown. Cause:" + e.getCause());
 			}
@@ -752,10 +751,10 @@ public class PetriNetTestSuite {
 	/**
 	 * <li> Given t0 is timed [500, 2000] </li>
 	 * <li> When I fire t0 before 500ms since initialization </li>
-	 * <li> Then {@link FiringBeforeTimespanException} is thrown </li>
+	 * <li> Then {@link PetriNetFireOutcome#TIMED_BEFORE_TIMESPAN} is returned </li>
 	 */
 	@Test
-	public void testFireTimedTransitionBeforeTimespanShouldThrowException(){
+	public void testFireTimedTransitionBeforeTimespanShouldReturnError(){
 		try{
 			readFileAndMakePetriNet(TIMED_PETRI_NET, petriNetType.TIMED);
 			
@@ -763,10 +762,9 @@ public class PetriNetTestSuite {
 			
 			Transition t0 = petriNet.getTransitions()[0];
 			try {
-				petriNet.fire(t0);
-				Assert.fail("Exception should've been thrown before this point");
+				Assert.assertEquals(PetriNetFireOutcome.TIMED_BEFORE_TIMESPAN, petriNet.fire(t0));
 			} catch (Exception e) {
-				Assert.assertEquals(FiringBeforeTimespanException.class, e.getClass());
+				Assert.fail("Exception thrown during test execution. " + e.getMessage());
 			}
 			
 		} catch (FileNotFoundException | SecurityException | NullPointerException e){
@@ -781,10 +779,10 @@ public class PetriNetTestSuite {
 	/**
 	 * <li> Given t0 is timed [50, 100] </li>
 	 * <li> When I fire t0 after 100ms since initialization </li>
-	 * <li> Then {@link FiringAfterTimespanException} is thrown </li>
+	 * <li> Then {@link PetriNetFireOutcome#TIMED_AFTER_TIMESPAN} is returned </li>
 	 */
 	@Test
-	public void testFireTimedTransitionAfterTimespanShouldThrowException(){
+	public void testFireTimedTransitionAfterTimespanShouldReturnError(){
 		try{
 			readFileAndMakePetriNet(TIMED_PETRI_NET_02, petriNetType.TIMED);
 			
@@ -798,10 +796,9 @@ public class PetriNetTestSuite {
 			
 			Transition t0 = petriNet.getTransitions()[0];
 			try {
-				petriNet.fire(t0);
-				Assert.fail("Exception should've been thrown before this point");
+				Assert.assertEquals(PetriNetFireOutcome.TIMED_AFTER_TIMESPAN, petriNet.fire(t0));
 			} catch (Exception e) {
-				Assert.assertEquals(FiringAfterTimespanException.class, e.getClass());
+				Assert.fail("Exception thrown during test execution. " + e.getMessage());
 			}
 			
 		} catch (FileNotFoundException | SecurityException | NullPointerException e){
