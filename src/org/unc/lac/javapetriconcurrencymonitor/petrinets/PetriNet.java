@@ -3,10 +3,13 @@ package org.unc.lac.javapetriconcurrencymonitor.petrinets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
+import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Label;
+import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.PetriNode;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
 
@@ -127,42 +130,50 @@ public abstract class PetriNet {
 	}
 
 	/**
-	 * Fires the transition t if it's enabled and updates current marking.
-	 * @param t Transition to be fired.
+	 * Fires the transition whose index is given as argument if it's enabled and updates current marking.
+	 * @param transitionIndex Transition's index to be fired.
 	 * @return true if t was fired.
-	 * @throws IllegalArgumentException If t is null or if it doesn't match any transition index
-	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
+	 * @throws IllegalArgumentException If transitionIndex is negative or greater than the last transition index.
+	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 */
-	public boolean fire(final Transition t) throws IllegalArgumentException, NotInitializedPetriNetException{
-		if(t == null){
-			throw new IllegalArgumentException("Null Transition passed as argument");
+	public PetriNetFireOutcome fire(int transitionIndex) throws IllegalArgumentException, PetriNetException{
+		if(transitionIndex < 0 || transitionIndex > transitions.length){
+			throw new IllegalArgumentException("Invalid transition index: " + transitionIndex);
 		}
-		return fire(t.getIndex());
+		return fire(transitions[transitionIndex]);
 	}
 
-	
 	/**
-	 * Fires the transition whose index is transitionIndex if it's enabled and updates current marking.
-	 * @param transitionIndex Transition's index to be fired.
-	 * @return true if transitionIndex was fired. For a perennial fire, returns true in any case.
-	 * @throws IllegalArgumentException If transitionIndex is negative or greater than the last transition index.
+	 * Fires the transition given as argument if it's enabled and updates current marking.
+	 * @param transition Transition to be fired.
+	 * @return true if transition was fired.
+	 * @throws IllegalArgumentException If transition is null or if it doesn't match any transition index
 	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
+	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 */
-	public synchronized boolean fire(int transitionIndex) throws IllegalArgumentException, NotInitializedPetriNetException{
+	public synchronized PetriNetFireOutcome fire(final Transition transition) throws IllegalArgumentException, NotInitializedPetriNetException, PetriNetException {
 		// m_(i+1) = m_i + I*d
 		// when d is a vector where every element is 0 but the nth which is 1
 		// it's equivalent to pick nth column from Incidence matrix (I) 
 		// and add it to the current marking (m_i)
 		// and if there is a reset arc, all tokens from its source place are taken.
-		if(transitionIndex < 0 || transitionIndex > transitions.length){
-			throw new IllegalArgumentException("Invalid transition index: " + transitionIndex);
+		if(transition == null){
+			throw new IllegalArgumentException("Null Transition passed as argument");
 		}
 		if(!initializedPetriNet){
 			throw new NotInitializedPetriNetException();
 		}
-		if(!isEnabled(transitionIndex)){
-			return false;
-		}		
+		
+		int transitionIndex = transition.getIndex();
+		
+		if(transitionIndex < 0 || transitionIndex > transitions.length){
+			throw new IllegalArgumentException("Index " + transitionIndex + " doesn't match any transition's index in this petri net");
+		}
+		
+		if(!isEnabled(transition)){
+			return PetriNetFireOutcome.NOT_ENABLED;
+		}
+		
 		for(int i = 0; i < currentMarking.length; i++){
 			if(resetMatrix[i][transitionIndex]){
 				currentMarking[i] = 0;
@@ -175,7 +186,7 @@ public abstract class PetriNet {
 		
 		enabledTransitions = computeEnabledTransitions();
 		
-		return true;
+		return PetriNetFireOutcome.SUCCESS;
 	}
 	
 	/**
@@ -206,10 +217,64 @@ public abstract class PetriNet {
 	}
 	
 	/**
+	 * @param placeName The name of the place to find.
+	 * @throws IllegalArgumentException If no place matches placeName
+	 * @return A copy of the place whose name is placeName
+	 */
+	public Place getPlace(final String placeName) throws IllegalArgumentException{
+		return getPetriNode(placeName, Place.class);
+	}
+	
+	/**
 	 * @return the transitions
 	 */
 	public Transition[] getTransitions() {
 		return transitions;
+	}
+	
+	/**
+	 * Looks for a transition whose name matches transitionName and returns it.
+	 * If it doesn't exist, {@link IllegalArgumentException} is thrown
+	 * @param transitionName The name of the transition to look for
+	 * @return The tansition found
+	 * @throws IllegalArgumentException if transitionName doesn't match any transition
+	 */
+	public Transition getTransition(final String transitionName) throws IllegalArgumentException{
+		return getPetriNode(transitionName, Transition.class);
+	}
+	
+	/**
+	 * Looks for a {@link Place} or {@link Transition} that matches petriNodeName name.
+	 * The second parameter is the class required for the call query. This can be either {@link Transition}.class or {@link Place}.class.
+	 * @param petriNodeName The name of the Place or Transition to look for.
+	 * @param _class The class to use as return type. i.e. {@link Transition} or {@link Place}.
+	 * @return A place or transition matching the given name.
+	 * @throws IllegalArgumentException If the given name is null, the given class is not {@link Transition} nor {@link Place} or if there isn't a match for the name.
+	 */
+	@SuppressWarnings("unchecked")
+	private <E extends PetriNode> E getPetriNode(String petriNodeName, Class<E> _class) throws IllegalArgumentException{
+		E[] arrayToFilter = null;
+		if(petriNodeName == null){
+			throw new IllegalArgumentException("Null name not supported");
+		}
+		
+		if(_class == Transition.class){
+			arrayToFilter = (E[]) transitions;
+		}
+		else if (_class == Place.class){
+			arrayToFilter = (E[]) places;
+		}
+		else {
+			throw new IllegalArgumentException("Method not supported for class " + _class.getName());
+		}
+		
+		Optional<E> filteredPetriNode = Arrays.stream(arrayToFilter)
+				.filter((E element) -> element.getName().equals(petriNodeName))
+				.findFirst();
+		
+		// if there is a matching argument return it, else throw an exception
+		return filteredPetriNode.orElseThrow(() -> new IllegalArgumentException("No " + _class.getSimpleName().toLowerCase() + " matches the name " + petriNodeName));
+		
 	}
 
 	/**

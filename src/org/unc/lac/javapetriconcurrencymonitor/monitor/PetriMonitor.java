@@ -1,16 +1,14 @@
 package org.unc.lac.javapetriconcurrencymonitor.monitor;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.unc.lac.javapetriconcurrencymonitor.errors.IllegalTransitionFiringError;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
+import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.policies.TransitionsPolicy;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet;
-import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.TimeSpan;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
 import org.unc.lac.javapetriconcurrencymonitor.queues.FairQueue;
 import org.unc.lac.javapetriconcurrencymonitor.queues.VarCondQueue;
@@ -73,7 +71,10 @@ public class PetriMonitor {
 		jsonMapper = new ObjectMapper();
 		
 		anyThreadSleepingforTransition = new AtomicBoolean[transitionsAmount];
-		Arrays.fill(anyThreadSleepingforTransition, new AtomicBoolean());
+		
+		for(int i = 0; i < transitionsAmount; i++){
+			anyThreadSleepingforTransition[i] = new AtomicBoolean(false);
+		}
 	}
 
 	/**
@@ -95,9 +96,10 @@ public class PetriMonitor {
 	 * @param transitionToFire The transition to fire
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
-	public void fireTransition(final Transition transitionToFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException{
+	public void fireTransition(final Transition transitionToFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException{
 		fireTransition(transitionToFire, false);
 	}
 
@@ -122,9 +124,10 @@ public class PetriMonitor {
 	 * @param perenialFire True indicates a perennial fire
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
-	public void fireTransition(final Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException{
+	public void fireTransition(final Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException{
 		// An attempt to fire an automatic transition is a severe error and the application should stop automatically
 		if(transitionToFire.getLabel().isAutomatic()){
 			throw new IllegalTransitionFiringError("An automatic transition has tried to be fired manually");
@@ -150,9 +153,10 @@ public class PetriMonitor {
 	 * @throws IllegalArgumentException If no transition matches transitionName
 	 * @throws IllegalTransitionFiringError If transitionName matches an automatic transition
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 * @see PetriMonitor#fireTransition(Transition)
 	 */
-	public void fireTransition(final String transitionName) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException {
+	public void fireTransition(final String transitionName) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException {
 		fireTransition(transitionName, false);
 	}
 	
@@ -162,18 +166,11 @@ public class PetriMonitor {
 	 * @throws IllegalArgumentException If no transition matches transitionName
 	 * @throws IllegalTransitionFiringError If transitionName matches an automatic transition
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 * @see PetriMonitor#fireTransition(Transition)
 	 */
-	public void fireTransition(final String transitionName, boolean perennialFire) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException {
-		Optional<Transition> filteredTransition = Arrays.stream(petri.getTransitions())
-				.filter((Transition t) -> t.getName().equals(transitionName))
-				// I can get only the first here because I made sure the name is unique in the parsing
-				.findFirst();
-		if(!filteredTransition.isPresent()){
-			throw new IllegalArgumentException("No transition matches the name " + transitionName);
-		}
-		
-		fireTransition(filteredTransition.get(), perennialFire);
+	public void fireTransition(final String transitionName, boolean perennialFire) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException {
+		fireTransition(petri.getTransition(transitionName), perennialFire);
 	}
 	
 	/**
@@ -205,10 +202,21 @@ public class PetriMonitor {
 	}
 	
 	/**
+	 * Subscribe the given observer to the transition matching the given name's events if it's informed
+	 * @param _transitionName the name of the transition to subscribe to
+	 * @param _observer the observer to subscribe
+	 * @throws IllegalArgumentException if the given transition is not informed, the name or observer is null or the name doesn't match any transition
+	 * @return a Subscription object used to unsubscribe
+	 */
+	public Subscription subscribeToTransition(final String _transitionName, final Observer<String> _observer) throws IllegalArgumentException{
+		return subscribeToTransition(petri.getTransition(_transitionName), _observer);
+	}
+	
+	/**
 	 * Subscribe the given observer to the given transition events if it's informed
 	 * @param _transition the transition to subscribe to
 	 * @param _observer the observer to subscribe
-	 * @throws IllegalArgumentException if the given transition is not informed
+	 * @throws IllegalArgumentException if the given transition is not informed or the transition or observer is null
 	 * @return a Subscription object used to unsubscribe
 	 */
 	public Subscription subscribeToTransition(final Transition _transition, final Observer<String> _observer) throws IllegalArgumentException{
@@ -238,8 +246,9 @@ public class PetriMonitor {
 	 * @throws IndexOutOfBoundsException If the guard doesn't exist
 	 * @throws NullPointerException If guardName is empty
 	 * @throws NotInitializedPetriNetException when firing a transition before initializing the petri net
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 */
-	public boolean setGuard(String guardName, boolean newValue) throws IndexOutOfBoundsException, NullPointerException, NotInitializedPetriNetException{
+	public boolean setGuard(String guardName, boolean newValue) throws IndexOutOfBoundsException, NullPointerException, NotInitializedPetriNetException, PetriNetException{
 		if(guardName == null || guardName.isEmpty()){
 			throw new NullPointerException("Empty guard name not allowed");
 		}
@@ -328,144 +337,162 @@ public class PetriMonitor {
 	 * It is intended for using internally, when a {@link #inQueue} mutex was already taken.
 	 * This method doesn't check for automatic transitions
 	 * A perennial fire doesn't send a thread to sleep.
-	 * @param transitionToFire
-	 * @param perennialFire
+	 * @param transitionToFire the transition to fire.
+	 * @param perennialFire True if the fire is perennial
 	 * @return Whether to release the mutex {@link #inQueue}
-	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
+	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method.
+	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 */
-	private boolean internalFireTransition(Transition transitionToFire, boolean perennialFire) throws  NotInitializedPetriNetException{
+	private boolean internalFireTransition(Transition transitionToFire, boolean perennialFire) throws PetriNetException, NotInitializedPetriNetException{
 		boolean releaseLock = true;
 		boolean keepFiring = true;
-		boolean insideTimeSpan = false;
-		boolean isTimed = false;
-		
+		boolean sleptByItselfForThisTransition = false;
+
 		int transitionIndex = transitionToFire.getIndex();
-		
+
 		while(keepFiring){
 			keepFiring = petri.getEnabledTransitions()[transitionToFire.getIndex()];
-			long fireAttemptTime = System.currentTimeMillis();
-			TimeSpan transitionSpan = transitionToFire.getTimeSpan();
-			if(transitionSpan != null){
-				insideTimeSpan = transitionSpan.inTimeSpan(fireAttemptTime);
-				isTimed = true;
-			}
-			if(keepFiring){
-				boolean sleptByItselfForThisTransition = false;
-				while(isTimed && !insideTimeSpan){
-					if(transitionSpan.isBeforeTimeSpan(fireAttemptTime) && anyThreadSleepingforTransition[transitionIndex].compareAndSet(false, true)){
-						// The calling thread came before time span, and there is nobody sleeping waiting for this transition,
-						// release the input mutex and sleep here until the time has come.
-						inQueue.unlock();
+			if(keepFiring){				
+				try{
+					switch(petri.fire(transitionToFire)) {
+					case SUCCESS:
+						//the transition was fired successfully. If it's informed let's send an event
+						try{
+							sendEventAfterFiring(transitionToFire);
+						} catch (IllegalArgumentException e){
+							//nothing wrong, the transition is not informed
+						}
 						
-						long enablingTime = transitionSpan.getEnableTime() + transitionSpan.getTimeBegin();
-						while(transitionSpan.isBeforeTimeSpan(fireAttemptTime)){
-							try {
-								// sleep until the time span occurs
-								Thread.sleep(enablingTime - fireAttemptTime);
-								// if the thread is not interrupted, just exit the loop after sleeping
-								break;
-							} catch (InterruptedException e) {
-								// recalculate the current time only if the thread was interrupted and sleep again if necessary
-								fireAttemptTime = System.currentTimeMillis();
-							} catch (IllegalArgumentException e){
-								// The sleeping time was negative. This shouldn't happen but if so, catch the exception and don't try to sleep again
-								break;
+						boolean automaticTransitions[] = petri.getAutomaticTransitions();
+						int nextTransitionToFireIndex = getNextTransitionAvailableToFire();
+						if(nextTransitionToFireIndex >= 0){
+							if(automaticTransitions[nextTransitionToFireIndex]){
+								transitionToFire = petri.getTransitions()[nextTransitionToFireIndex];
+							}
+							else{
+								// The transition chosen isn't automatic
+								// so wake up the associated thread to that transition
+								// and leave the monitor without releasing the input mutex
+								condVarQueue[nextTransitionToFireIndex].wakeUp();
+								releaseLock = false;
+								keepFiring = false;
 							}
 						}
-						
-						anyThreadSleepingforTransition[transitionIndex].set(false);
-						
-						// when this thread wakes up, its time to fire has come and may be short
-						// so take the lock with high priority to avoid waiting for the incoming threads
-						// This way, only as high-prioritized threads as this one may cause waiting
-						inQueue.lock(LockPriority.HIGH);
-						// If at waking time the transition has been disabled,
-						// this thread has to sleep in the condition queue with high priority
-						// to avoid a priority inversion, so set sleptByItselfForThisTransition to true
-						sleptByItselfForThisTransition = true;
-					}
-					else if(!perennialFire) {
-						// The calling thread came late, the time is over. Thus the thread releases the input mutex and goes to sleep
-						inQueue.unlock();
-						if(sleptByItselfForThisTransition){
-							// If the flag sleptByItselfForThisTransition is true, it means this thread already slept by itself for this transition
-							// which implies that no thread had tried to fire this transition when it arrived the monitor.
-							// Additionally, this thread also lost the timespan so it must have the highest priority for next enabling time
-							condVarQueue[transitionToFire.getIndex()].sleepWithHighPriority();
+						else{
+							// no transition left to fire, leave the monitor releasing the lock
+							keepFiring = false;
+							releaseLock = true;
+						}
+						break;
+					case NOT_ENABLED:
+						if(!perennialFire){
+							// if the transition wasn't fired sucessfully
+							// go to sleep in the transition queue
+							sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
+							// after waking up try to fire inside the timespan again
 						}
 						else {
-							condVarQueue[transitionToFire.getIndex()].sleep();
+							// the firing failed but since it's a perennial fire
+							// the calling thread doesn't have to sleep
+							// so return whether to release the mutex
+							return releaseLock;
 						}
-						// when waking up, don't take the input lock for the waking thread didn't release it
+						break;
+					case TIMED_BEFORE_TIMESPAN:
+						if(anyThreadSleepingforTransition[transitionIndex].compareAndSet(false, true)){
+							// The calling thread came before time span, and there is nobody sleeping waiting for this transition,
+							// release the input mutex and sleep here until the time has come.
+							inQueue.unlock();
+							
+							handleFiringBeforeTimespan(transitionToFire);
+							
+							// when this thread wakes up, its time to fire has come and may be short
+							// so take the lock with high priority to avoid waiting for the incoming threads
+							// This way, only as high-prioritized threads as this one may cause waiting
+							inQueue.lock(LockPriority.HIGH);
+							// If at waking time the transition has been disabled,
+							// this thread has to sleep in the condition queue with high priority
+							// to avoid a priority inversion, so set sleptByItselfForThisTransition to true
+							sleptByItselfForThisTransition = true;
+						} else if (!perennialFire){
+							// if any thread was already sleeping on its own for this transition, sleep in the queue
+							sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
+						} else {
+							// a perennial fire should not wait in the queue for the transition to get enabled again
+							return releaseLock;
+						}
+						break;
+					
+					case TIMED_AFTER_TIMESPAN:
+						if(perennialFire){
+							// a perennial fire should not wait in the queue for the transition to get enabled again
+							return releaseLock;
+						}
+						// The calling thread came late, the time is over. Thus the thread releases the input mutex and goes to sleep
+						sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
+						break;
 					}
-					else {
-						// a perennial fire should not wait in the queue for the transition to get enabled again
-						return releaseLock;
+				} catch (IllegalArgumentException e) {
+					throw new IllegalTransitionFiringError(e);
+				} catch (PetriNetException e) {
+					if(e instanceof NotInitializedPetriNetException){
+						throw (NotInitializedPetriNetException)e;
 					}
-					// at this point, the transition may have been disabled when the firing thread was sleeping
-					fireAttemptTime = System.currentTimeMillis();
-					insideTimeSpan = transitionSpan.inTimeSpan(fireAttemptTime);
-				}
-				
-				if(!petri.fire(transitionToFire)){
-					if(perennialFire){
-						// the firing failed but since it's a perennial fire
-						// the calling thread doesn't have to sleep
-						// so return whether to release the mutex
-						return releaseLock;
-					}
-					// if the transition wasn't fired sucessfully
-					// release the main mutex and go to sleep
-					inQueue.unlock();
-					if(sleptByItselfForThisTransition){
-						// If the flag sleptByItselfForThisTransition is true, it means the transition is timed and this thread already slept by itself for this transition
-						// which implies that no thread had tried to fire this transition when it arrived the monitor, so this thread must have the highest priority
-						condVarQueue[transitionToFire.getIndex()].sleepWithHighPriority();
-					}
-					else{
-						condVarQueue[transitionToFire.getIndex()].sleep();
-					}
-					// after waking up try to fire inside the timespan again
-					continue;
-				}
-				
-				//the transition was fired successfully. If it's informed let's send an event
-				try{
-					sendEventAfterFiring(transitionToFire);
-				} catch (IllegalArgumentException e){
-					//nothing wrong, the transition is not informed
-				}
-				
-				boolean automaticTransitions[] = petri.getAutomaticTransitions();
-				int nextTransitionToFireIndex = getNextTransitionAvailableToFire();
-				if(nextTransitionToFireIndex >= 0){
-					if(automaticTransitions[nextTransitionToFireIndex]){
-						transitionToFire = petri.getTransitions()[nextTransitionToFireIndex];
-					}
-					else{
-						// The transition chosen isn't automatic
-						// so wake up the associated thread to that transition
-						// and leave the monitor without releasing the input mutex
-						condVarQueue[nextTransitionToFireIndex].wakeUp();
-						releaseLock = false;
-						keepFiring = false;
-					}
-				}
-				else{
-					// no transition left to fire, leave the monitor releasing the lock
-					keepFiring = false;
-					releaseLock = true;
+					throw e;
 				}
 			}
 			// if this is a perennial fire and the transition is not enabled, don't send the thread to sleep
 			else if(!perennialFire){
 				// the fire failed, thus the thread releases the input mutex and goes to sleep
-				inQueue.unlock();
-				condVarQueue[transitionToFire.getIndex()].sleep();
+				sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
 				keepFiring = true;
 			}
 		}
 		return releaseLock;
+	}
+	
+	private void sleepInTransitionQueue(final Transition transitionToFire, boolean sleptByItselfForThisTransition){
+		
+		inQueue.unlock();
+		if(sleptByItselfForThisTransition){
+			// If the flag sleptByItselfForThisTransition is true, it means this thread already slept by itself for this transition
+			// which implies that no thread had tried to fire this transition when it arrived the monitor.
+			// Additionally, this thread also lost the timespan so it must have the highest priority for next enabling time
+			condVarQueue[transitionToFire.getIndex()].sleepWithHighPriority();
+		}
+		else {
+			condVarQueue[transitionToFire.getIndex()].sleep();
+		}
+		// when waking up, don't take the input lock for the waking thread didn't release it
+	}
+	
+	/**
+	 * This method should be called only when a thread tries to fire a timed transition before its timespan.
+	 * Before calling this method release the input mutex and take it immediately after.
+	 * The calling thread will sleep by itself until the given transition's timespan is reached.
+	 * @param transitionToFire
+	 */
+	private void handleFiringBeforeTimespan(Transition transitionToFire){
+		long enablingTime = transitionToFire.getEnablingTime();
+		long fireAttemptTime = System.currentTimeMillis();
+		
+		while(transitionToFire.isBeforeTimeSpan(fireAttemptTime)){
+			try {
+				// sleep until the time span occurs
+				Thread.sleep(enablingTime - fireAttemptTime);
+				// if the thread is not interrupted, just exit the loop after sleeping
+				break;
+			} catch (InterruptedException ex) {
+				// recalculate the current time only if the thread was interrupted and sleep again if necessary
+				fireAttemptTime = System.currentTimeMillis();
+			} catch (IllegalArgumentException ex){
+				// The sleeping time was negative. This shouldn't happen but if so, catch the exception and don't try to sleep again
+				break;
+			}
+		}
+		
+		anyThreadSleepingforTransition[transitionToFire.getIndex()].set(false);
+		
 	}
 	
 	/**
