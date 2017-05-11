@@ -27,7 +27,6 @@ public class PetriMonitorTimeTestSuite {
 	PetriMonitor monitor;
 	TimedPetriNet timedPetriNet;
 	static ObjectMapper jsonParser;
-	static TransitionsPolicy policy;
 	static PetriNetFactory factory;
 	
 	private static final String ID = "id";
@@ -40,7 +39,6 @@ public class PetriMonitorTimeTestSuite {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		policy = new FirstInLinePolicy();
 		jsonParser = new ObjectMapper();
 	}
 
@@ -52,7 +50,7 @@ public class PetriMonitorTimeTestSuite {
 	private void setUpMonitor(String PNML){
 		factory = new PetriNetFactory(PNML);
 		timedPetriNet = (TimedPetriNet) factory.makePetriNet(petriNetType.TIMED);
-		monitor = new PetriMonitor(timedPetriNet, policy);
+		monitor = new PetriMonitor(timedPetriNet, new FirstInLinePolicy(timedPetriNet));
 	}
 	
 	/**
