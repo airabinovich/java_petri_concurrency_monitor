@@ -820,11 +820,11 @@ public class PetriMonitorTestSuite {
 	
 	/**
 	 * <li> Given t1 is disabled </li>
-	 * <li> When th0 perennial fires t1 </li>
+	 * <li> When th0 non-perennial fires t1 </li>
 	 * <li> Then th0 doesn't go to sleep </li>
 	 */
 	@Test
-	public void testPerennialFiringShouldNotSendAThreadToSleepWhenTransitionIsDisabled(){
+	public void testNonPerennialFiringShouldNotSendAThreadToSleepWhenTransitionIsDisabled(){
 		
 		setUpMonitor(MONITOR_TEST_03_PETRI);
 		
@@ -855,12 +855,12 @@ public class PetriMonitorTestSuite {
 	 * <li> And p0 has one token </li>
 	 * <li> And p1 has no tokens </li>
 	 * <li> And obs subscribes to t1's events </li>
-	 * <li> When th0 perennial fires t1 </li>
+	 * <li> When th0 non-perennial fires t1 </li>
 	 * <li> Then obs gets no events </li>
 	 * <li> And the marking didn't change </li>
 	 */
 	@Test
-	public void testPerennialFiringShouldNotFireTransitionWhenTransitionIsDisabled(){
+	public void testNonPerennialFiringShouldNotFireTransitionWhenTransitionIsDisabled(){
 		
 		setUpMonitor(MONITOR_TEST_03_PETRI);
 		
@@ -903,13 +903,13 @@ public class PetriMonitorTestSuite {
 	 * <li> And p0 has one token </li>
 	 * <li> And p1 has no tokens </li>
 	 * <li> And obs subscribes to t0's events </li>
-	 * <li> When th0 perennial fires t0 </li>
+	 * <li> When th0 non-perennial fires t0 </li>
 	 * <li> Then obs gets one events matching t0's id </li>
 	 * <li> And p0 has no tokens </li>
 	 * <li> And p1 has one token </li>
 	 */
 	@Test
-	public void testPerennialFiringShouldFireTransitionWhenTransitionIsEnabled(){
+	public void testNonPerennialFiringShouldFireTransitionWhenTransitionIsEnabled(){
 		
 		setUpMonitor(MONITOR_TEST_03_PETRI);
 		

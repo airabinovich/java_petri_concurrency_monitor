@@ -118,16 +118,16 @@ public class PetriMonitor {
 	 * </ul>
 	 * </ul>
 	 * For timed transitions, the calling thread sleeps until the transition reaches its time span, only then fires it.
-	 * A perennial fire doesn't send a thread to sleep when the firing failed.
+	 * A perennial fire sends a thread to sleep when the firing failed.
 	 * More info in project readme file.
 	 * @param transitionToFire The transition to fire
-	 * @param perenialFire True indicates a perennial fire
+	 * @param notPerenialFire False indicates a perennial fire
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
 	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 * @see PetriNet#fire(Transition, boolean)
 	 */
-	public void fireTransition(final Transition transitionToFire, boolean perennialFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException{
+	public void fireTransition(final Transition transitionToFire, boolean notPerennialFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException{
 		// An attempt to fire an automatic transition is a severe error and the application should stop automatically
 		if(transitionToFire.getLabel().isAutomatic()){
 			throw new IllegalTransitionFiringError("An automatic transition has tried to be fired manually");
@@ -139,7 +139,7 @@ public class PetriMonitor {
 		try {
 			// take the mutex to access the monitor
 			inQueue.lock();
-			releaseLock = internalFireTransition(transitionToFire, perennialFire);
+			releaseLock = internalFireTransition(transitionToFire, notPerennialFire);
 		} finally{
 			// the firing is done, release the mutex and leave
 			if(releaseLock){
@@ -162,15 +162,15 @@ public class PetriMonitor {
 	
 	/**
 	 * @param transitionName The name of the transition to fire.
-	 * @param perennialFire True indicates a perennial fire
+	 * @param notPerennialFire False indicates a perennial fire
 	 * @throws IllegalArgumentException If no transition matches transitionName
 	 * @throws IllegalTransitionFiringError If transitionName matches an automatic transition
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
 	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 * @see PetriMonitor#fireTransition(Transition)
 	 */
-	public void fireTransition(final String transitionName, boolean perennialFire) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException {
-		fireTransition(petri.getTransition(transitionName), perennialFire);
+	public void fireTransition(final String transitionName, boolean notPerennialFire) throws IllegalArgumentException, IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException {
+		fireTransition(petri.getTransition(transitionName), notPerennialFire);
 	}
 	
 	/**
@@ -328,7 +328,11 @@ public class PetriMonitor {
 					jsonMapper.writeValueAsString(firedTransitionInfoMap));
 		} catch (JsonProcessingException e) {
 			// If there was an error processing the JSON let's send the minimal needed info hardcoded here
-			informedTransitionsObservable.onNext("{\"" + ID + "\":\"" + t.getId() + "\"}");
+			informedTransitionsObservable.onNext(
+					"{"
+					+ "\"" + ID + "\":\"" + t.getId() + "\","
+					+ "\"" + NAME + "\":\"" + t.getName() + "\","
+					+ "}");
 		}
 	}
 	
@@ -336,14 +340,14 @@ public class PetriMonitor {
 	 * This method implements the firing logic with minimal checks.
 	 * It is intended for using internally, when a {@link #inQueue} mutex was already taken.
 	 * This method doesn't check for automatic transitions
-	 * A perennial fire doesn't send a thread to sleep.
+	 * A perennial fire sends a thread to sleep when the fire fails.
 	 * @param transitionToFire the transition to fire.
-	 * @param perennialFire True if the fire is perennial
+	 * @param notPerennialFire False indicates a perennial fire
 	 * @return Whether to release the mutex {@link #inQueue}
 	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method.
 	 * @throws PetriNetException If an error regarding petri nets occurs.
 	 */
-	private boolean internalFireTransition(Transition transitionToFire, boolean perennialFire) throws PetriNetException, NotInitializedPetriNetException{
+	private boolean internalFireTransition(Transition transitionToFire, boolean notPerennialFire) throws PetriNetException, NotInitializedPetriNetException{
 		boolean releaseLock = true;
 		boolean keepFiring = true;
 		boolean sleptByItselfForThisTransition = false;
@@ -385,14 +389,14 @@ public class PetriMonitor {
 						}
 						break;
 					case NOT_ENABLED:
-						if(!perennialFire){
+						if(!notPerennialFire){
 							// if the transition wasn't fired sucessfully
 							// go to sleep in the transition queue
 							sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
 							// after waking up try to fire inside the timespan again
 						}
 						else {
-							// the firing failed but since it's a perennial fire
+							// the firing failed but since it isn't a perennial fire
 							// the calling thread doesn't have to sleep
 							// so return whether to release the mutex
 							return releaseLock;
@@ -414,18 +418,18 @@ public class PetriMonitor {
 							// this thread has to sleep in the condition queue with high priority
 							// to avoid a priority inversion, so set sleptByItselfForThisTransition to true
 							sleptByItselfForThisTransition = true;
-						} else if (!perennialFire){
+						} else if (!notPerennialFire){
 							// if any thread was already sleeping on its own for this transition, sleep in the queue
 							sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
 						} else {
-							// a perennial fire should not wait in the queue for the transition to get enabled again
+							// a non-perennial fire should not wait in the queue for the transition to get enabled again
 							return releaseLock;
 						}
 						break;
 					
 					case TIMED_AFTER_TIMESPAN:
-						if(perennialFire){
-							// a perennial fire should not wait in the queue for the transition to get enabled again
+						if(notPerennialFire){
+							// a non-perennial fire should not wait in the queue for the transition to get enabled again
 							return releaseLock;
 						}
 						// The calling thread came late, the time is over. Thus the thread releases the input mutex and goes to sleep
@@ -441,8 +445,8 @@ public class PetriMonitor {
 					throw e;
 				}
 			}
-			// if this is a perennial fire and the transition is not enabled, don't send the thread to sleep
-			else if(!perennialFire){
+			// if this is not a perennial fire and the transition is not enabled, don't send the thread to sleep
+			else if(!notPerennialFire){
 				// the fire failed, thus the thread releases the input mutex and goes to sleep
 				sleepInTransitionQueue(transitionToFire, sleptByItselfForThisTransition);
 				keepFiring = true;
