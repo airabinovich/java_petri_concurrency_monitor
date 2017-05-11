@@ -10,7 +10,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lac.javapetriconcurrencymonitor.test.utils.TransitionEventObserver;
 import org.unc.lac.javapetriconcurrencymonitor.errors.IllegalTransitionFiringError;
-import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.PetriMonitor;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.policies.FirstInLinePolicy;

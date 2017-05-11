@@ -10,6 +10,7 @@ import org.javatuples.Triplet;
 import org.unc.lac.javapetriconcurrencymonitor.errors.CannotCreatePetriNetError;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.BadPnmlFormatException;
 import org.unc.lac.javapetriconcurrencymonitor.parser.PnmlParser;
+import org.unc.lac.javapetriconcurrencymonitor.parser.TinaPnmlParser;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PlaceTransitionPetriNet;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.TimedPetriNet;
@@ -37,7 +38,8 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc.ArcType;
 		
 		public PetriNetFactory(String pathToPNML) throws NullPointerException{
 			try {
-				this.reader = new PnmlParser(pathToPNML);
+				// TODO: add some way to check what parser should be used. Since TINA is the only one accepted by now it remains hardcoded.
+				this.reader = new TinaPnmlParser(pathToPNML);
 			} catch (FileNotFoundException | SecurityException e) {
 				e.printStackTrace();
 			}

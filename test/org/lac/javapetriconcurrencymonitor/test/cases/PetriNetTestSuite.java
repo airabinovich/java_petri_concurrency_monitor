@@ -9,6 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.parser.PnmlParser;
+import org.unc.lac.javapetriconcurrencymonitor.parser.TinaPnmlParser;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNetFireOutcome;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place;
@@ -59,7 +60,7 @@ public class PetriNetTestSuite {
 	}
 	
 	private void readFileAndMakePetriNet(String PNMLFile, petriNetType type) throws FileNotFoundException, SecurityException, NullPointerException{
-		PnmlParser reader = new PnmlParser(PNMLFile);
+		PnmlParser reader = new TinaPnmlParser(PNMLFile);
 		factory = new PetriNetFactory(reader);
 		petriNet = factory.makePetriNet(type);
 	}
