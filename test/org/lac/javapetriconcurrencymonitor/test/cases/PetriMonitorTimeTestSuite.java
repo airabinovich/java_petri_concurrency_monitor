@@ -264,14 +264,14 @@ public class PetriMonitorTimeTestSuite {
 	 * <li> And t0 is timed [a,b], a>0, b>a </li>
 	 * <li> And t0 has not reached its time span </li>
 	 * <li> And obs is subscript to t0's events </li>
-	 * <li> When th0 tries to perennial fire t0 </li>
+	 * <li> When th0 tries to non-perennial fire t0 </li>
 	 * <li> Then th0 sleeps on its own waiting for t0's time span </li>
 	 * <li> And th0 wakes up at time (ti + a) </li>
 	 * <li> And th0 fires t0 </li>
 	 * <li> And obs gets one event matching t0's id </li>
 	 */
 	@Test
-	public void testThreadPerennialFiringATransitionBeforeItsTimeSpanShouldSleepOnItsOwnAndThenFire(){
+	public void testThreadNonPerennialFiringATransitionBeforeItsTimeSpanShouldSleepOnItsOwnAndThenFire(){
 		
 		setUpMonitor(TIMED_PETRI_NET);
 		timedPetriNet.initializePetriNet();
@@ -330,13 +330,13 @@ public class PetriMonitorTimeTestSuite {
 	 * <li> And t0 is timed [a,b], a>0, b>a </li>
 	 * <li> And t0 has past its time span </li>
 	 * <li> And obs is subscript to t0's events </li>
-	 * <li> When th0 tries to perennial fire t0 </li>
+	 * <li> When th0 tries to non-perennial fire t0 </li>
 	 * <li> Then th0 doesn't go to sleep in t0's queue </li>
 	 * <li> And th0 wakes up at time (ti + a) </li>
 	 * <li> And obs gets no events </li>
 	 */
 	@Test
-	public void testThreadPerennialFiringATransitionAfterItsTimeSpanShouldNotSleepInQueue(){
+	public void testThreadNonPerennialFiringATransitionAfterItsTimeSpanShouldNotSleepInQueue(){
 		
 		setUpMonitor(TIMED_PETRI_NET);
 		timedPetriNet.initializePetriNet();
