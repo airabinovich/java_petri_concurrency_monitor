@@ -12,14 +12,14 @@ import org.junit.Test;
 import org.unc.lac.javapetriconcurrencymonitor.errors.DuplicatedIdError;
 import org.unc.lac.javapetriconcurrencymonitor.errors.DuplicatedNameError;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.BadPnmlFormatException;
-import org.unc.lac.javapetriconcurrencymonitor.parser.PnmlParser;
+import org.unc.lac.javapetriconcurrencymonitor.parser.TinaPnmlParser;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Label;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc.ArcType;
 
-public class PnmlParserTestSuite {
+public class TinaPnmlParserTestSuite {
 
 	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
 	private static final String READER_WRITER= TEST_PETRI_FOLDER + "readerWriter.pnml";
@@ -38,9 +38,9 @@ public class PnmlParserTestSuite {
 
 	@Test
 	public void testParseFileAndGetPetriComponentsShouldGetAllPlacesCorrectly() {
-		PnmlParser reader = null;
+		TinaPnmlParser reader = null;
 		try {
-			reader = new PnmlParser(READER_WRITER);
+			reader = new TinaPnmlParser(READER_WRITER);
 
 			Triplet<Place[], Transition[], Arc[]> petriComponents = reader.parseFileAndGetPetriComponents();
 			
@@ -64,9 +64,9 @@ public class PnmlParserTestSuite {
 	
 	@Test
 	public void testParseFileAndGetPetriComponentsShouldGetAllTransitionsCorrectly() {
-		PnmlParser reader = null;
+		TinaPnmlParser reader = null;
 		try {
-			reader = new PnmlParser(READER_WRITER);
+			reader = new TinaPnmlParser(READER_WRITER);
 			
 			Triplet<Place[], Transition[], Arc[]> petriComponents = reader.parseFileAndGetPetriComponents();
 			
@@ -91,9 +91,9 @@ public class PnmlParserTestSuite {
 	
 	@Test
 	public void testParseFileAndGetPetriComponentsShouldGetAllArcsCorrectly() {
-		PnmlParser reader = null;
+		TinaPnmlParser reader = null;
 		try {
-			reader = new PnmlParser(READER_WRITER);
+			reader = new TinaPnmlParser(READER_WRITER);
 			
 			Triplet<Place[], Transition[], Arc[]> petriComponents = reader.parseFileAndGetPetriComponents();
 			
@@ -146,7 +146,7 @@ public class PnmlParserTestSuite {
 	public void PNMLreaderShouldThrowFileNotFoundExceptionWhenFileDoesNotExist() {
 		try {
 			@SuppressWarnings("unused")
-			PnmlParser reader = new PnmlParser("nonExistingFile");
+			TinaPnmlParser reader = new TinaPnmlParser("nonExistingFile");
 			fail("Exception should've be thrown before this point");
 		} catch (Exception e) {
 			assertEquals(e.getClass().getSimpleName(), "FileNotFoundException");
@@ -156,7 +156,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void ParseFileAndGetPetriComponentsShouldThrowExceptionWhenFileIsNotPNML() {
 		try {
-			PnmlParser reader = new PnmlParser(READER_WRITER_NON_PNML);
+			TinaPnmlParser reader = new TinaPnmlParser(READER_WRITER_NON_PNML);
 			assertEquals(null, reader.parseFileAndGetPetriComponents());
 		} catch (Exception e) {
 			assertEquals(e.getClass().getSimpleName(), "SAXParseException");
@@ -168,7 +168,7 @@ public class PnmlParserTestSuite {
 		long max = Long.MAX_VALUE;
 		long min = 1;
 		try {
-			PnmlParser reader = new PnmlParser(TIMED_PETRI_NET);
+			TinaPnmlParser reader = new TinaPnmlParser(TIMED_PETRI_NET);
 			
 			Triplet<Place[], Transition[], Arc[]> petriComponents = reader.parseFileAndGetPetriComponents();
 			Transition[] transitions = petriComponents.getValue1();
@@ -200,7 +200,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void testParseFileAndGetTransitionsWithGuard() {
 		try {
-			PnmlParser reader = new PnmlParser(PETRI_WITH_GUARD_01);
+			TinaPnmlParser reader = new TinaPnmlParser(PETRI_WITH_GUARD_01);
 			
 			Triplet<Place[], Transition[], Arc[]> petriComponents = reader.parseFileAndGetPetriComponents();
 			Transition[] transitions = petriComponents.getValue1();
@@ -232,7 +232,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void testGuardWithBadFormatShouldThrowException() {
 		try {
-			PnmlParser reader = new PnmlParser(PETRI_WITH_GUARD_BAD_FORMAT_01);
+			TinaPnmlParser reader = new TinaPnmlParser(PETRI_WITH_GUARD_BAD_FORMAT_01);
 			
 			Triplet<Place[], Transition[], Arc[]> petriComponents = reader.parseFileAndGetPetriComponents();
 			
@@ -257,7 +257,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void testPnmlParserShouldRecognizeInhibiterArcs() {
 		try {
-			PnmlParser reader = new PnmlParser(PETRI_WITH_INHIBITOR_01);
+			TinaPnmlParser reader = new TinaPnmlParser(PETRI_WITH_INHIBITOR_01);
 			
 			Triplet<Place[], Transition[], Arc[]> petriComponents = reader.parseFileAndGetPetriComponents();
 			
@@ -295,7 +295,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void testParsePetriWithCustomNamesShouldStoreCustomNamesInPlacesAndTransitions(){
 		try{
-			PnmlParser reader = new PnmlParser(PETRI_WITH_CUSTOM_NAMES);
+			TinaPnmlParser reader = new TinaPnmlParser(PETRI_WITH_CUSTOM_NAMES);
 			
 			String[] expectedTransitionNames = {
 				"build 02 from input 01",
@@ -347,7 +347,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void testParserShouldGenerateConsecutiveIndexed(){
 		try{
-			PnmlParser reader = new PnmlParser(PETRI_WITH_CUSTOM_NAMES);
+			TinaPnmlParser reader = new TinaPnmlParser(PETRI_WITH_CUSTOM_NAMES);
 			
 			Triplet<Place[], Transition[], Arc[]> petriComponents = reader.parseFileAndGetPetriComponents();
 			
@@ -377,7 +377,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void testParserShouldThrowErrorWhenPlaceNamesAreDuplicated(){
 		try{
-			PnmlParser reader = new PnmlParser(PETRI_WITH_DUPLICATED_NAMES_PLACE);
+			TinaPnmlParser reader = new TinaPnmlParser(PETRI_WITH_DUPLICATED_NAMES_PLACE);
 			
 			reader.parseFileAndGetPetriComponents();
 			
@@ -397,7 +397,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void testParserShouldThrowErrorWhenTransitionNamesAreDuplicated(){
 		try{
-			PnmlParser reader = new PnmlParser(PETRI_WITH_DUPLICATED_NAMES_TRANSITION);
+			TinaPnmlParser reader = new TinaPnmlParser(PETRI_WITH_DUPLICATED_NAMES_TRANSITION);
 			
 			reader.parseFileAndGetPetriComponents();
 			
@@ -417,7 +417,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void testParserShouldThrowErrorWhenPlaceIdsAreDuplicated(){
 		try{
-			PnmlParser reader = new PnmlParser(PETRI_WITH_DUPLICATED_IDS_PLACE);
+			TinaPnmlParser reader = new TinaPnmlParser(PETRI_WITH_DUPLICATED_IDS_PLACE);
 			
 			reader.parseFileAndGetPetriComponents();
 			
@@ -437,7 +437,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void testParserShouldThrowErrorWhenTransitionIdsAreDuplicated(){
 		try{
-			PnmlParser reader = new PnmlParser(PETRI_WITH_DUPLICATED_IDS_TRANSITION);
+			TinaPnmlParser reader = new TinaPnmlParser(PETRI_WITH_DUPLICATED_IDS_TRANSITION);
 			
 			reader.parseFileAndGetPetriComponents();
 			
@@ -458,7 +458,7 @@ public class PnmlParserTestSuite {
 	@Test
 	public void testPnmlParserShouldRecognizeReaderArcs() {
 		try {
-			PnmlParser reader = new PnmlParser(PETRI_WITH_READER_01);
+			TinaPnmlParser reader = new TinaPnmlParser(PETRI_WITH_READER_01);
 			
 			Triplet<Place[], Transition[], Arc[]> petriComponents = reader.parseFileAndGetPetriComponents();
 			

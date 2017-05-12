@@ -13,6 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.unc.lac.javapetriconcurrencymonitor.parser.PnmlParser;
+import org.unc.lac.javapetriconcurrencymonitor.parser.TinaPnmlParser;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Label;
@@ -198,7 +199,7 @@ public class PetriNetFactoryTestSuite {
 	public void petriNetFactoryShouldThrowErrorWhenTransitionWithInputResetArcHasInhibitorInput() {
 		try{
 			String PNMLFile = TEST_PETRI_FOLDER + "petriWithResetAndOtherWrongArcs01.pnml";
-			PnmlParser reader = new PnmlParser(PNMLFile);
+			PnmlParser reader = new TinaPnmlParser(PNMLFile);
 			new PetriNetFactory(reader).makePetriNet(petriNetType.PLACE_TRANSITION);
 			fail("Error should've be thrown before this point");
 		} catch(Error e){
@@ -218,7 +219,7 @@ public class PetriNetFactoryTestSuite {
 	public void petriNetFactoryShouldThrowErrorWhenTransitionWithInputResetArcHasNormalInput() {
 		try{
 			String PNMLFile = TEST_PETRI_FOLDER + "petriWithResetAndOtherWrongArcs02.pnml";
-			PnmlParser reader = new PnmlParser(PNMLFile);
+			PnmlParser reader = new TinaPnmlParser(PNMLFile);
 			new PetriNetFactory(reader).makePetriNet(petriNetType.PLACE_TRANSITION);
 			fail("Error should've be thrown before this point");
 		} catch(Error e){
