@@ -10,11 +10,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lac.javapetriconcurrencymonitor.test.utils.TransitionEventObserver;
 import org.unc.lac.javapetriconcurrencymonitor.errors.IllegalTransitionFiringError;
-import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.PetriMonitor;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.policies.FirstInLinePolicy;
-import org.unc.lac.javapetriconcurrencymonitor.monitor.policies.TransitionsPolicy;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.factory.PetriNetFactory;
@@ -29,7 +27,6 @@ public class PetriMonitorTestSuite {
 	
 	PetriMonitor monitor;
 	PetriNet petri;
-	static TransitionsPolicy policy;
 	static PetriNetFactory factory;
 	
 	static ObjectMapper jsonParser;
@@ -47,7 +44,6 @@ public class PetriMonitorTestSuite {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		policy = new FirstInLinePolicy();
 		jsonParser = new ObjectMapper();
 	}
 
@@ -59,7 +55,7 @@ public class PetriMonitorTestSuite {
 	private void setUpMonitor(String PNML, petriNetType type){
 		factory = new PetriNetFactory(PNML);
 		petri = factory.makePetriNet(type);
-		monitor = new PetriMonitor(petri, policy);
+		monitor = new PetriMonitor(petri, new FirstInLinePolicy(petri));
 		petri.initializePetriNet();
 	}
 	
@@ -302,7 +298,7 @@ public class PetriMonitorTestSuite {
 	@Test
 	public void testCreatingMonitorWithoutPetriShouldThrowException(){
 		try{
-			PetriMonitor aMonitor = new PetriMonitor(null, policy);
+			PetriMonitor aMonitor = new PetriMonitor(null, new FirstInLinePolicy(petri));
 			Assert.fail("An exception should've been thrown before this point");
 		} catch (Exception e){
 			Assert.assertEquals("IllegalArgumentException", e.getClass().getSimpleName());

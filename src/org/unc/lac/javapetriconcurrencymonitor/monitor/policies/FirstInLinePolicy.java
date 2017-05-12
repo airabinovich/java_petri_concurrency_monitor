@@ -1,10 +1,16 @@
 package org.unc.lac.javapetriconcurrencymonitor.monitor.policies;
 
+import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet;
+
 /**
- * Implements the TransitionsPolicy interface and decides based on the first transition found;
+ * Extends the TransitionsPolicy abstract class and decides based on the first transition found;
  *
  */
-public class FirstInLinePolicy implements TransitionsPolicy {
+public class FirstInLinePolicy extends TransitionsPolicy {
+
+	public FirstInLinePolicy(PetriNet _petri) {
+		super(_petri);
+	}
 
 	@Override
 	public int which(boolean[] enabled){
