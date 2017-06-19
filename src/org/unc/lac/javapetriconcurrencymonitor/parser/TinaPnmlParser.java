@@ -75,8 +75,8 @@ public class TinaPnmlParser extends PnmlParser {
 			Triplet<Place[], Transition[], Arc[]> ret = null;
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(pnmlFile);
-					
+			Document doc = dBuilder.parse(pnmlFileStream);
+
 			// normalize converts 
 			// 		<foo>hello 
 			// 		wor
