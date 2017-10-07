@@ -7,16 +7,16 @@ JPCM is orchestrated by a user-defiend Petri Net and it's intended to be importe
   A Petri net is a graphical and mathematical model which is a generalization of state machines.  
   Petri nets offer a graphical notation for stepwise processes that include choice, iteration, and concurrent execution. Unlike other standard models, Petri nets have an exact mathematical definition of their execution semantics, with a well-developed mathematical theory for process analysis.  
 For further information:
-- [Petri Net in Wikipedia] (https://en.wikipedia.org/wiki/Petri_net)
+- [Petri Net in Wikipedia](https://en.wikipedia.org/wiki/Petri_net)
 - Petri Nets, Fundamental Models, Verification and Applications - Michel Diaz - 2009, ISBN:18482107959781848210790 
 
 ## Monitor
 In concurrent programming, a monitor is a thread-safe class, object, or module that uses wrapped mutual exclusion in order to safely allow access to a method or variable by more than one thread. The defining characteristic of a monitor is that its methods are executed with mutual exclusion: At each point in time, at most one thread may be executing any of its methods.  
 For further information:
-- [Monitor in Wikipedia] (https://en.wikipedia.org/wiki/Monitor_(synchronization))
+- [Monitor in Wikipedia](https://en.wikipedia.org/wiki/Monitor_(synchronization))
 
 ## Key Features:
-- Import from PNML format files ([TINA] (http://projects.laas.fr/tina/) dialect)
+- Import from PNML format files ([TINA](http://projects.laas.fr/tina/) dialect)
 - Support for several arc types:
   - Inhibitor arcs
   - Normal arcs
@@ -29,7 +29,7 @@ For further information:
 - Support for automatic/fired transitions:
   - Fired transitions are explicitly fired by a method call
   - Automatic transitions are fired whenever it's possible
-- Support for event listening for informed transitions (through RxJava: https://github.com/ReactiveX/RxJava)
+- Support for event listening for informed transitions (through [RxJava](https://github.com/ReactiveX/RxJava))
   - Events are sent with transition firing information in JSON format
 - Custom thread priority management policies
 
@@ -40,7 +40,7 @@ File format is the PNML dialect used by TINA.
 Since TINA doesn't support reset arcs, the user has to change the arc _type_ value to _reset_ manually as in the following example:
 ```xml
 <arc id="e-1" source="p-1" target="t-1">
-<type value="reset"/>
+  <type value="reset"/>
 </arc>
 ```
 
