@@ -1,7 +1,7 @@
 # Java Petri Concurrency Monitor
 
 This project implements a concurrency monitor written in Java 8.  
-JPCM is orchestrated by a user-defiend Petri Net and it's intended to be imported as a library for Java projects.
+JPCM is orchestrated by a user-defined Petri Net and it's intended to be imported as a library for Java projects.
 
 ## Petri Nets:
   A Petri net is a graphical and mathematical model which is a generalization of state machines.  
@@ -72,7 +72,7 @@ For instance, the label `<F,I,(~foobar)>` specifies the related transition is _f
 
 All values are optional for labels. To specify any value, all values to its left must be explicit.  
 The default values are:
-- automatic_value: __A__
+- automatic_value: __F__
 - informed_value: __N__
 - guard: __None__
 
