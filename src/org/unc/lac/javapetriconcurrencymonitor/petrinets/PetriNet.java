@@ -3,6 +3,7 @@ package org.unc.lac.javapetriconcurrencymonitor.petrinets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
@@ -48,8 +49,8 @@ public abstract class PetriNet {
 	
 	protected boolean initializedPetriNet;
 	
-	/** HashMap for guards. These variables can enable or disable associated transitions */
-	protected HashMap<String, Boolean> guards;
+	/** Map for guards. These variables can enable or disable associated transitions */
+	protected Map<String, Boolean> guards;
 	
 	/**
 	 * Makes a PetriNet Object. This is intended to be used by PetriNetFactory

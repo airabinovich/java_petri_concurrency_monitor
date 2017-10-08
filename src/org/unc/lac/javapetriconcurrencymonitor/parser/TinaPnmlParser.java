@@ -26,6 +26,7 @@ import org.w3c.dom.NamedNodeMap;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -120,10 +121,10 @@ public class TinaPnmlParser extends PnmlParser {
 	 * @throws DuplicatedIdError If two or more places or transitions share ids
 	 */
 	private Triplet<Place[], Transition[], Arc[]> getPetriComponentsFromNodeList(NodeList netElements) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIdError{
-		ArrayList<Place> places = new ArrayList<Place>();
-		ArrayList<Transition> transitions = new ArrayList<Transition>();
-		ArrayList<Arc> arcs = new ArrayList<Arc>();
-		ArrayList<Triplet<String, Node, NodeList>> pendingArcs = new ArrayList<Triplet<String, Node, NodeList>>();
+		List<Place> places = new ArrayList<Place>();
+		List<Transition> transitions = new ArrayList<Transition>();
+		List<Arc> arcs = new ArrayList<Arc>();
+		List<Triplet<String, Node, NodeList>> pendingArcs = new ArrayList<Triplet<String, Node, NodeList>>();
 		for(int index = 0; index < netElements.getLength(); index++){
 			Node child = netElements.item(index);
 			if(child.getNodeType() == Node.ELEMENT_NODE ){
@@ -174,7 +175,7 @@ public class TinaPnmlParser extends PnmlParser {
 	 * @throws DuplicatedIdError If the new place has the same id as any created before
 	 * @see {@link org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place}
 	 */
-	private Place getPlace(String id, Node placeNode, NodeList nl, final ArrayList<Place> places) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIdError{
+	private Place getPlace(String id, Node placeNode, NodeList nl, final List<Place> places) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIdError{
 		Integer m_inicial = 0;
 		Integer placeIndex = this.placesIndex++;
 		String placeName = "";
@@ -221,7 +222,7 @@ public class TinaPnmlParser extends PnmlParser {
 	 * @throws DuplicatedIdError If the new transition has the same id as any created before 
 	 * @see {@link org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition}
 	 */
-	private Transition getTransition(String id, Node transitionNode, NodeList nl, ArrayList<Transition> transitions) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIdError{
+	private Transition getTransition(String id, Node transitionNode, NodeList nl, List<Transition> transitions) throws BadPnmlFormatException, DuplicatedNameError, DuplicatedIdError{
 		
 		TimeSpan timeSpan = null;
 		Label label = null;
@@ -303,7 +304,7 @@ public class TinaPnmlParser extends PnmlParser {
 	 * <li> A non-normal arc goes from transition to place </li>
 	 * @see {@link org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc}
 	 */
-	private Arc getArc(String id, Node arcNode, NodeList nl, ArrayList<Place> places, ArrayList<Transition> transitions) throws BadPnmlFormatException{
+	private Arc getArc(String id, Node arcNode, NodeList nl, List<Place> places, List<Transition> transitions) throws BadPnmlFormatException{
 		Element arcElement = (Element)arcNode;
 		String sourceId = arcElement.getAttribute(SOURCE);
 		String targetId = arcElement.getAttribute(TARGET);
@@ -387,7 +388,7 @@ public class TinaPnmlParser extends PnmlParser {
 	 * @param predicate The filtering function
 	 * @return A PetriNode object matching the predicate condition or null if none matches
 	 */
-	private <E extends PetriNode> E getFirstFromFilteredList(ArrayList<E> list, Predicate<E> predicate){
+	private <E extends PetriNode> E getFirstFromFilteredList(List<E> list, Predicate<E> predicate){
 		
 		Stream<E> streamList = list.stream();
 		

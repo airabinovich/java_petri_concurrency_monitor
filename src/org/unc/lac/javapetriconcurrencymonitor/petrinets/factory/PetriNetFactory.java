@@ -3,6 +3,7 @@ package org.unc.lac.javapetriconcurrencymonitor.petrinets.factory;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.javatuples.Quartet;
 import org.javatuples.Sextet;
@@ -193,7 +194,7 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc.ArcType;
 		 * @return place's initial marking
 		 */
 		protected Integer[] getMarkingFromPlaces(Place[] places){
-			ArrayList<Integer> initialMarking = new ArrayList<Integer>(places.length);
+			List<Integer> initialMarking = new ArrayList<Integer>(places.length);
 			for(Place place : places){
 				initialMarking.add(place.getMarking());
 			}

@@ -4,6 +4,7 @@ package org.lac.javapetriconcurrencymonitor.test.cases;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -169,7 +170,7 @@ public class PetriMonitorTestSuite {
 			e.printStackTrace();
 		}
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Assert.assertEquals(2, events.size());
 		try {
@@ -254,7 +255,7 @@ public class PetriMonitorTestSuite {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Assert.assertEquals(1, events.size());
 		try {
@@ -346,7 +347,7 @@ public class PetriMonitorTestSuite {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Assert.assertEquals(1, events.size());
 		
@@ -390,7 +391,7 @@ public class PetriMonitorTestSuite {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Assert.assertEquals(1, events.size());
 		try {
@@ -457,8 +458,8 @@ public class PetriMonitorTestSuite {
 			Assert.fail("Exception thrown in test execution");
 		}
 		
-		ArrayList<String> events0 = obs0.getEvents();
-		ArrayList<String> events1 = obs1.getEvents();
+		List<String> events0 = obs0.getEvents();
+		List<String> events1 = obs1.getEvents();
 		
 		
 		Assert.assertEquals(1, events0.size());
@@ -539,7 +540,7 @@ public class PetriMonitorTestSuite {
 		expectedMarking[2] = 0;
 		Assert.assertArrayEquals(expectedMarking, petri.getCurrentMarking());
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Assert.assertEquals(1, events.size());
 		
@@ -620,7 +621,7 @@ public class PetriMonitorTestSuite {
 			Assert.fail("Error sleeping main thread");
 		}
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		Assert.assertEquals(1, events.size());
 		
 		try {
@@ -684,7 +685,7 @@ public class PetriMonitorTestSuite {
 			Assert.fail("Error sleeping main thread");
 		}
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Assert.assertEquals(1, events.size());
 		try {
@@ -783,7 +784,7 @@ public class PetriMonitorTestSuite {
 			Assert.fail("Interrupted thread: " + e.getMessage());
 		}
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Assert.assertTrue(events.isEmpty());
 		
@@ -867,7 +868,7 @@ public class PetriMonitorTestSuite {
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t1, obs);
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Assert.assertTrue(events.isEmpty());
 		
@@ -916,7 +917,7 @@ public class PetriMonitorTestSuite {
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t0, obs);
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Assert.assertTrue(events.isEmpty());
 		
@@ -966,7 +967,7 @@ public class PetriMonitorTestSuite {
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t0, obs);
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Assert.assertTrue(events.isEmpty());
 		
@@ -1005,7 +1006,7 @@ public class PetriMonitorTestSuite {
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t0.getName(), obs);
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		Assert.assertTrue(events.isEmpty());
 		
 		try {

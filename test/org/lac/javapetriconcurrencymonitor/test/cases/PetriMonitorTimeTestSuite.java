@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -14,7 +15,6 @@ import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNet
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.PetriMonitor;
 import org.unc.lac.javapetriconcurrencymonitor.monitor.policies.FirstInLinePolicy;
-import org.unc.lac.javapetriconcurrencymonitor.monitor.policies.TransitionsPolicy;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.TimedPetriNet;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.factory.PetriNetFactory;
@@ -283,7 +283,7 @@ public class PetriMonitorTimeTestSuite {
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t0, obs);
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		Thread th0 = new Thread(() -> {
 			try {
@@ -349,7 +349,7 @@ public class PetriMonitorTimeTestSuite {
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t0, obs);
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		try {
 			// let's wait for t0 to get past its time span
@@ -541,7 +541,7 @@ public class PetriMonitorTimeTestSuite {
 			}
 		});
 		
-		ArrayList<Thread> workers = new ArrayList<Thread>();
+		List<Thread> workers = new ArrayList<Thread>();
 		for(int i = 0; i < 500; i++){
 			Thread worker = new Thread(() -> {
 				try {
@@ -557,7 +557,7 @@ public class PetriMonitorTimeTestSuite {
 		monitor.subscribeToTransition(t0, obs);
 		monitor.subscribeToTransition(t2, obs);
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		timedPetriNet.initializePetriNet();
 		
@@ -645,7 +645,7 @@ public class PetriMonitorTimeTestSuite {
 			}
 		});
 		
-		ArrayList<Thread> workers = new ArrayList<Thread>();
+		List<Thread> workers = new ArrayList<Thread>();
 		for(int i = 0; i < 10; i++){
 			Thread worker = new Thread(() -> {
 				try {
@@ -660,7 +660,7 @@ public class PetriMonitorTimeTestSuite {
 		TransitionEventObserver obs = new TransitionEventObserver();
 		monitor.subscribeToTransition(t0, obs);
 		
-		ArrayList<String> events = obs.getEvents();
+		List<String> events = obs.getEvents();
 		
 		timedPetriNet.initializePetriNet();
 		

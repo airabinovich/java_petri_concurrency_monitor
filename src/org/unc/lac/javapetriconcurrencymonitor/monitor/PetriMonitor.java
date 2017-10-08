@@ -97,7 +97,7 @@ public class PetriMonitor {
 	 * @throws NotInitializedPetriNetException when firing a timed transition before initializing the petri net
 	 * @throws IllegalTransitionFiringError when an request to fire an automatic transition arrives
 	 * @throws PetriNetException If an error regarding petri nets occurs.
-	 * @see PetriNet#fire(Transition, boolean)
+	 * @see PetriNet#fire(Transition)
 	 */
 	public void fireTransition(final Transition transitionToFire) throws IllegalTransitionFiringError, NotInitializedPetriNetException, PetriNetException{
 		fireTransition(transitionToFire, false);
