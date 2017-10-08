@@ -30,12 +30,11 @@ public class PetriMonitorTimeTestSuite {
 	static PetriNetFactory factory;
 	
 	private static final String ID = "id";
-	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
-	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetri.pnml";
-	private static final String TIMED_PETRI_NET_02 = TEST_PETRI_FOLDER + "timedPetri02.pnml";
-	private static final String TIMED_PETRI_NET_04 = TEST_PETRI_FOLDER + "timedPetri04.pnml";
-	private static final String PETRI_FOR_INITIALIZATION_TIME = TEST_PETRI_FOLDER + "timedPetriForInitializationTime.pnml";
-	private static final String PETRI_FOR_INITIALIZATION_TIME2 = TEST_PETRI_FOLDER + "timedPetriForInitializationTime2.pnml";
+	private static final String TIMED_PETRI_NET = "timedPetri.pnml";
+	private static final String TIMED_PETRI_NET_02 = "timedPetri02.pnml";
+	private static final String TIMED_PETRI_NET_04 = "timedPetri04.pnml";
+	private static final String PETRI_FOR_INITIALIZATION_TIME = "timedPetriForInitializationTime.pnml";
+	private static final String PETRI_FOR_INITIALIZATION_TIME2 = "timedPetriForInitializationTime2.pnml";
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {

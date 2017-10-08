@@ -19,16 +19,15 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.factory.PetriNetFactory
 
 public class PetriNetTestSuite {
 
-	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
-	private static final String READER_WRITER= TEST_PETRI_FOLDER + "readerWriter.pnml";
-	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
-	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
-	private static final String PETRI_WITH_RESET_01 = TEST_PETRI_FOLDER + "petriWithReset01.pnml";
-	private static final String PETRI_WITH_RESET_02 = TEST_PETRI_FOLDER + "petriWithReset02.pnml";
-	private static final String PETRI_WITH_RESET_03 = TEST_PETRI_FOLDER + "petriWithReset03.pnml";
-	private static final String PETRI_WITH_READER_01 = TEST_PETRI_FOLDER + "petriWithReader01.pnml";
-	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetri.pnml";
-	private static final String TIMED_PETRI_NET_02 = TEST_PETRI_FOLDER + "timedPetri02.pnml";
+	private static final String READER_WRITER = "readerWriter.pnml";
+	private static final String PETRI_WITH_GUARD_01 = "petriWithGuard01.pnml";
+	private static final String PETRI_WITH_INHIBITOR_01 = "petriWithInhibitor01.pnml";
+	private static final String PETRI_WITH_RESET_01 = "petriWithReset01.pnml";
+	private static final String PETRI_WITH_RESET_02 = "petriWithReset02.pnml";
+	private static final String PETRI_WITH_RESET_03 = "petriWithReset03.pnml";
+	private static final String PETRI_WITH_READER_01 = "petriWithReader01.pnml";
+	private static final String TIMED_PETRI_NET = "timedPetri.pnml";
+	private static final String TIMED_PETRI_NET_02 = "timedPetri02.pnml";
 	
 	private static PetriNetFactory factory;
 	private PetriNet petriNet;

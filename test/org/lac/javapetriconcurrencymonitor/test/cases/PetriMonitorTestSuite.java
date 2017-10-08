@@ -31,13 +31,12 @@ public class PetriMonitorTestSuite {
 	
 	static ObjectMapper jsonParser;
 	
-	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
-	private static final String MONITOR_TEST_01_PETRI = TEST_PETRI_FOLDER + "monitorTest01.pnml";
-	private static final String MONITOR_TEST_02_PETRI = TEST_PETRI_FOLDER + "monitorTest02.pnml";
-	private static final String MONITOR_TEST_03_PETRI = TEST_PETRI_FOLDER + "monitorTest03.pnml";
-	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
-	private static final String PETRI_WITH_GUARD_02 = TEST_PETRI_FOLDER + "petriWithGuard02.pnml";
-	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
+	private static final String MONITOR_TEST_01_PETRI = "monitorTest01.pnml";
+	private static final String MONITOR_TEST_02_PETRI = "monitorTest02.pnml";
+	private static final String MONITOR_TEST_03_PETRI = "monitorTest03.pnml";
+	private static final String PETRI_WITH_GUARD_01 = "petriWithGuard01.pnml";
+	private static final String PETRI_WITH_GUARD_02 = "petriWithGuard02.pnml";
+	private static final String PETRI_WITH_INHIBITOR_01 = "petriWithInhibitor01.pnml";
 	
 	private static final String ID = "id";
 	private static final String NAME = "name";

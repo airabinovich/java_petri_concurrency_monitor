@@ -21,19 +21,18 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc.ArcType;
 
 public class TinaPnmlParserTestSuite {
 
-	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
-	private static final String READER_WRITER= TEST_PETRI_FOLDER + "readerWriter.pnml";
-	private static final String READER_WRITER_NON_PNML = TEST_PETRI_FOLDER + "readerWriter.ndr";
-	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetriForReader.pnml";
-	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
-	private static final String PETRI_WITH_GUARD_BAD_FORMAT_01 = TEST_PETRI_FOLDER + "petriWithGuardBadFormat01.pnml";
-	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";
-	private static final String PETRI_WITH_READER_01 = TEST_PETRI_FOLDER + "petriWithReader01.pnml";
-	private static final String PETRI_WITH_CUSTOM_NAMES = TEST_PETRI_FOLDER + "petriWithCustomNames.pnml";
-	private static final String PETRI_WITH_DUPLICATED_NAMES_PLACE = TEST_PETRI_FOLDER + "petriWithDuplicatedNamesPlace.pnml";
-	private static final String PETRI_WITH_DUPLICATED_NAMES_TRANSITION = TEST_PETRI_FOLDER + "petriWithDuplicatedNamesTransition.pnml";
-	private static final String PETRI_WITH_DUPLICATED_IDS_PLACE = TEST_PETRI_FOLDER + "petriWithDuplicatedIdsPlace.pnml";
-	private static final String PETRI_WITH_DUPLICATED_IDS_TRANSITION = TEST_PETRI_FOLDER + "petriWithDuplicatedIdsTransition.pnml";
+	private static final String READER_WRITER= "readerWriter.pnml";
+	private static final String READER_WRITER_NON_PNML = "readerWriter.ndr";
+	private static final String TIMED_PETRI_NET = "timedPetriForReader.pnml";
+	private static final String PETRI_WITH_GUARD_01 = "petriWithGuard01.pnml";
+	private static final String PETRI_WITH_GUARD_BAD_FORMAT_01 = "petriWithGuardBadFormat01.pnml";
+	private static final String PETRI_WITH_INHIBITOR_01 = "petriWithInhibitor01.pnml";
+	private static final String PETRI_WITH_READER_01 = "petriWithReader01.pnml";
+	private static final String PETRI_WITH_CUSTOM_NAMES = "petriWithCustomNames.pnml";
+	private static final String PETRI_WITH_DUPLICATED_NAMES_PLACE = "petriWithDuplicatedNamesPlace.pnml";
+	private static final String PETRI_WITH_DUPLICATED_NAMES_TRANSITION = "petriWithDuplicatedNamesTransition.pnml";
+	private static final String PETRI_WITH_DUPLICATED_IDS_PLACE = "petriWithDuplicatedIdsPlace.pnml";
+	private static final String PETRI_WITH_DUPLICATED_IDS_TRANSITION = "petriWithDuplicatedIdsTransition.pnml";
 	
 
 	@Test
@@ -149,7 +148,7 @@ public class TinaPnmlParserTestSuite {
 			TinaPnmlParser reader = new TinaPnmlParser("nonExistingFile");
 			fail("Exception should've be thrown before this point");
 		} catch (Exception e) {
-			assertEquals(e.getClass().getSimpleName(), "FileNotFoundException");
+			assertEquals(FileNotFoundException.class, e.getClass());
 		}
 	}
 	

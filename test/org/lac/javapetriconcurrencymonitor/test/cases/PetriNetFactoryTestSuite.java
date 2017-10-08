@@ -25,7 +25,6 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.factory.PetriNetFactory
 
 public class PetriNetFactoryTestSuite {
 
-	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
 	private static PnmlParser parser;
 	private static Triplet<Place[], Transition[], Arc[]> mockPetriComponents;
 	private static Integer[] expectedMarking;
@@ -198,7 +197,7 @@ public class PetriNetFactoryTestSuite {
 	@Test
 	public void petriNetFactoryShouldThrowErrorWhenTransitionWithInputResetArcHasInhibitorInput() {
 		try{
-			String PNMLFile = TEST_PETRI_FOLDER + "petriWithResetAndOtherWrongArcs01.pnml";
+			String PNMLFile = "petriWithResetAndOtherWrongArcs01.pnml";
 			PnmlParser reader = new TinaPnmlParser(PNMLFile);
 			new PetriNetFactory(reader).makePetriNet(petriNetType.PLACE_TRANSITION);
 			fail("Error should've be thrown before this point");
@@ -218,7 +217,7 @@ public class PetriNetFactoryTestSuite {
 	@Test
 	public void petriNetFactoryShouldThrowErrorWhenTransitionWithInputResetArcHasNormalInput() {
 		try{
-			String PNMLFile = TEST_PETRI_FOLDER + "petriWithResetAndOtherWrongArcs02.pnml";
+			String PNMLFile = "petriWithResetAndOtherWrongArcs02.pnml";
 			PnmlParser reader = new TinaPnmlParser(PNMLFile);
 			new PetriNetFactory(reader).makePetriNet(petriNetType.PLACE_TRANSITION);
 			fail("Error should've be thrown before this point");

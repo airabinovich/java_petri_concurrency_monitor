@@ -1,7 +1,9 @@
 package org.unc.lac.javapetriconcurrencymonitor.parser;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.URL;
 
 import org.javatuples.Triplet;
 import org.unc.lac.javapetriconcurrencymonitor.errors.DuplicatedIdError;
@@ -19,10 +21,11 @@ public abstract class PnmlParser {
 	protected InputStream pnmlFileStream;
 	
 	public PnmlParser(String pnmlPath) throws FileNotFoundException, SecurityException, NullPointerException {
-		pnmlFileStream = this.getClass().getResourceAsStream(pnmlPath);
-		if(pnmlFileStream == null){
-			throw new FileNotFoundException("File " + pnmlPath + " not found");
+		URL pnmlUrl = Thread.currentThread().getContextClassLoader().getResource(pnmlPath);
+		if(pnmlUrl == null){
+			throw new FileNotFoundException("File " + pnmlPath);
 		}
+		pnmlFileStream = new FileInputStream(pnmlUrl.getPath());
 	}
 	
 	/**
