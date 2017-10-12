@@ -21,7 +21,7 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc.ArcType;
 
 public class TinaPnmlParserTest {
 
-	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
+	private static final String TEST_PETRI_FOLDER = "/org/lac/javapetriconcurrencymonitor/test/resources/";
 	private static final String READER_WRITER= TEST_PETRI_FOLDER + "readerWriter.pnml";
 	private static final String READER_WRITER_NON_PNML = TEST_PETRI_FOLDER + "readerWriter.ndr";
 	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetriForReader.pnml";

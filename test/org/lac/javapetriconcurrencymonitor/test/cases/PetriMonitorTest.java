@@ -31,7 +31,7 @@ public class PetriMonitorTest {
 	
 	static ObjectMapper jsonParser;
 	
-	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
+	private static final String TEST_PETRI_FOLDER = "/org/lac/javapetriconcurrencymonitor/test/resources/";
 	private static final String MONITOR_TEST_01_PETRI = TEST_PETRI_FOLDER + "monitorTest01.pnml";
 	private static final String MONITOR_TEST_02_PETRI = TEST_PETRI_FOLDER + "monitorTest02.pnml";
 	private static final String MONITOR_TEST_03_PETRI = TEST_PETRI_FOLDER + "monitorTest03.pnml";

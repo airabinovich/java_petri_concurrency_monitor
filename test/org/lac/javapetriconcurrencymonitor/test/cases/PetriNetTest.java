@@ -19,7 +19,7 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.factory.PetriNetFactory
 
 public class PetriNetTest {
 
-	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
+	private static final String TEST_PETRI_FOLDER = "/org/lac/javapetriconcurrencymonitor/test/resources/";
 	private static final String READER_WRITER= TEST_PETRI_FOLDER + "readerWriter.pnml";
 	private static final String PETRI_WITH_GUARD_01 = TEST_PETRI_FOLDER + "petriWithGuard01.pnml";
 	private static final String PETRI_WITH_INHIBITOR_01 = TEST_PETRI_FOLDER + "petriWithInhibitor01.pnml";

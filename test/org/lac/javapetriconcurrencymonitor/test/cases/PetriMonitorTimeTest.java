@@ -30,7 +30,7 @@ public class PetriMonitorTimeTest {
 	static PetriNetFactory factory;
 	
 	private static final String ID = "id";
-	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
+	private static final String TEST_PETRI_FOLDER = "/org/lac/javapetriconcurrencymonitor/test/resources/";
 	private static final String TIMED_PETRI_NET = TEST_PETRI_FOLDER + "timedPetri.pnml";
 	private static final String TIMED_PETRI_NET_02 = TEST_PETRI_FOLDER + "timedPetri02.pnml";
 	private static final String TIMED_PETRI_NET_04 = TEST_PETRI_FOLDER + "timedPetri04.pnml";

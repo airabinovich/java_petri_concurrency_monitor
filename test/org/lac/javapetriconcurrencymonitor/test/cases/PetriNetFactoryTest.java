@@ -25,7 +25,7 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.factory.PetriNetFactory
 
 public class PetriNetFactoryTest {
 
-	private static final String TEST_PETRI_FOLDER = "test/org/lac/javapetriconcurrencymonitor/test/resources/";
+	private static final String TEST_PETRI_FOLDER = "/org/lac/javapetriconcurrencymonitor/test/resources/";
 	private static PnmlParser parser;
 	private static Triplet<Place[], Transition[], Arc[]> mockPetriComponents;
 	private static Integer[] expectedMarking;
