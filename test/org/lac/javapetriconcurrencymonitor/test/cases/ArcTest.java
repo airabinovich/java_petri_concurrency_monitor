@@ -9,7 +9,7 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Label;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
 
-public class ArcTestSuite {
+public class ArcTest {
 
 	@Before
 	public void setUp() throws Exception {
