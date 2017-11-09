@@ -1,9 +1,5 @@
 package org.unc.lac.javapetriconcurrencymonitor.petrinets;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Optional;
 
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.NotInitializedPetriNetException;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.PetriNetException;
@@ -12,6 +8,13 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Label;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.PetriNode;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Place;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Transition;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Implementation for petri net model.
@@ -49,7 +52,7 @@ public abstract class PetriNet {
 	protected boolean initializedPetriNet;
 	
 	/** HashMap for guards. These variables can enable or disable associated transitions */
-	protected HashMap<String, Boolean> guards;
+	protected Map<String, Boolean> guards;
 	
 	/**
 	 * Makes a PetriNet Object. This is intended to be used by PetriNetFactory
@@ -71,8 +74,8 @@ public abstract class PetriNet {
 		this.transitions = _transitions;
 		
 		// this sorting allows using indexes to access these arrays and avoid searching for an index
-		Arrays.sort(_transitions, (Transition t0, Transition t1) -> t0.getIndex() - t1.getIndex());
-		Arrays.sort(_places, (Place p0, Place p1) -> p0.getIndex() - p1.getIndex());
+		Arrays.sort(_transitions, Comparator.comparingInt(PetriNode::getIndex));
+		Arrays.sort(_places, Comparator.comparingInt(PetriNode::getIndex));
 		
 		computeAutomaticAndInformed();
 		fillGuardsMap();
@@ -119,7 +122,7 @@ public abstract class PetriNet {
 	
 	private void fillGuardsMap(){
 		if(guards == null){
-			guards = new HashMap<String, Boolean>();
+			guards = new HashMap<>();
 		}
 		for(Transition t : transitions){
 			if(t.hasGuard()){
@@ -151,7 +154,7 @@ public abstract class PetriNet {
 	 * @throws NotInitializedPetriNetException If the net hasn't been initialized before calling this method
 	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 */
-	public synchronized PetriNetFireOutcome fire(final Transition transition) throws IllegalArgumentException, NotInitializedPetriNetException, PetriNetException {
+	public synchronized PetriNetFireOutcome fire(final Transition transition) throws IllegalArgumentException, PetriNetException {
 		// m_(i+1) = m_i + I*d
 		// when d is a vector where every element is 0 but the nth which is 1
 		// it's equivalent to pick nth column from Incidence matrix (I) 
@@ -206,13 +209,9 @@ public abstract class PetriNet {
 	}
 	
 	/**
-	 * @return a copy of the places
+	 * @return the petri net places
 	 */
 	public Place[] getPlaces() {
-		Place[] retPlaces = new Place[this.places.length];
-		for(int i = 0; i< this.places.length; i++){
-			retPlaces[i] = new Place(this.places[i]); 
-		}
 		return places;
 	}
 	
@@ -253,7 +252,7 @@ public abstract class PetriNet {
 	 */
 	@SuppressWarnings("unchecked")
 	private <E extends PetriNode> E getPetriNode(String petriNodeName, Class<E> _class) throws IllegalArgumentException{
-		E[] arrayToFilter = null;
+		E[] arrayToFilter;
 		if(petriNodeName == null){
 			throw new IllegalArgumentException("Null name not supported");
 		}
@@ -408,7 +407,7 @@ public abstract class PetriNet {
 	 */
 	public boolean readGuard(String guard) throws IndexOutOfBoundsException {
 		try{
-			return guards.get(guard).booleanValue();
+			return guards.get(guard);
 		} catch (NullPointerException e){
 			throw new IndexOutOfBoundsException("No guard registered for " + guard + " name");
 		}
@@ -432,12 +431,12 @@ public abstract class PetriNet {
 		// the net does not have the type of arcs described by the matrix semantics
 		try{
 			// this trivial comparison is to throw a NullPointerException if matrix is null
-			matrix.equals(matrix);
+			Arrays.deepEquals(matrix, matrix);
 			boolean allFalse = true;
 			for( Boolean[] row : matrix ){
 				// if hashset size is 1 all elements are equal
 				allFalse &= !row[0] &&
-						new HashSet<Boolean>(Arrays.asList(row)).size() == 1;
+						new HashSet<>(Arrays.asList(row)).size() == 1;
 				if(!allFalse){
 					return true;
 				}
@@ -464,7 +463,7 @@ public abstract class PetriNet {
 			for( Integer[] row : matrix ){
 				// if hashset size is 1 all elements are equal
 				allZeros &= row[0] == 0 &&
-						new HashSet<Integer>(Arrays.asList(row)).size() == 1;
+						new HashSet<>(Arrays.asList(row)).size() == 1;
 				if(!allZeros){
 					return true;
 				}

@@ -28,7 +28,7 @@ public class Transition extends PetriNode{
 		this.label = _label;
 		this.interval = _interval;
 		if(_guard == null){
-			_guard = new Pair<String, Boolean>("", false);
+			_guard = new Pair<>("", false);
 		}
 		this.guardName = _guard.getValue0() == null ? "" : _guard.getValue0();
 		this.guardEnablingValue = _guard.getValue1() == null ? false : _guard.getValue1();
@@ -50,7 +50,8 @@ public class Transition extends PetriNode{
 	}
 	
 	/**
-	 * This constructor is intended for timed transitions only. If this transition is not timed use {@link Transition#Transition(String, Label, int)}
+	 * This constructor is intended for timed transitions only. If this transition is not timed use
+	 * {@link Transition#Transition(String, Label, int, String)}
 	 * @param _id The transition id
 	 * @param _label The transition label object
 	 * @param _index The transition index. It must match the petri's column which correspond to this transition 
@@ -122,12 +123,8 @@ public class Transition extends PetriNode{
 	 * @param timestamp the time in the format given by {@link System#currentTimeMillis()}
 	 * @return true is timestamp is inside the span
 	 */
-	public boolean insideTimeSpan(long timestamp){
-		if(isTimed()){
-			return interval.inTimeSpan(timestamp);
-		}
-		
-		return true;
+	public boolean insideTimeSpan(long timestamp) {
+		return !isTimed() || interval.inTimeSpan(timestamp);
 	}
 	
 	/**
@@ -136,12 +133,9 @@ public class Transition extends PetriNode{
 	 * @param timestamp the time in the format given by {@link System#currentTimeMillis()}
 	 * @return true is timestamp is before the span
 	 */
-	public boolean isBeforeTimeSpan(long timestamp){
-		if(isTimed()){
-			return interval.isBeforeTimeSpan(timestamp);
-		}
-		
-		return false;
+	public boolean isBeforeTimeSpan(long timestamp) {
+		return isTimed() && interval.isBeforeTimeSpan(timestamp);
+
 	}
 	
 	/**
