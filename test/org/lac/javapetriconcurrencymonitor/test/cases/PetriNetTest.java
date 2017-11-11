@@ -848,4 +848,41 @@ public class PetriNetTest {
 			Assert.assertEquals(IllegalArgumentException.class, e.getClass());
 		}
 	}
+
+	/**
+	 * <li> Given petriNet has reader arcs </li>
+	 * <li> When I ask if it has reader arcs </li>
+	 * <li> THen petriNet answers it has reader arcs</li>
+	 */
+	@Test
+	public void testPetriNetWithReaderArcHasReaderArcs() throws FileNotFoundException {
+		readFileAndMakePetriNet(PETRI_WITH_READER_01);
+		petriNet.initializePetriNet();
+		Assert.assertTrue(petriNet.hasReaderArcs());
+
+	}
+
+	/**
+	 * <li> Given petriNet has inhibitor arcs </li>
+	 * <li> When I ask if it has inhibitor arcs </li>
+	 * <li> THen petriNet answers it has inhibitor arcs</li>
+	 */
+	@Test
+	public void testPetriNetWithInhibitorArcHasInhibitorArcs() throws FileNotFoundException {
+		readFileAndMakePetriNet(PETRI_WITH_INHIBITOR_01);
+		petriNet.initializePetriNet();
+		Assert.assertTrue(petriNet.hasInhibitionArcs());
+	}
+
+	/**
+	 * <li> Given petriNet has reset arcs </li>
+	 * <li> When I ask if it has reset arcs </li>
+	 * <li> THen petriNet answers it has reset arcs</li>
+	 */
+	@Test
+	public void testPetriNetWithResetArcHasResetArcs() throws FileNotFoundException {
+		readFileAndMakePetriNet(PETRI_WITH_RESET_01);
+		petriNet.initializePetriNet();
+		Assert.assertTrue(petriNet.hasResetArcs());
+	}
 }
