@@ -25,7 +25,7 @@ public abstract class PetriNode {
 	 */
 	public String getId(){
 		return this.id;
-	};
+	}
 	
 	/** 
 	 * @return Index used either as row or column index for the petri matrixes

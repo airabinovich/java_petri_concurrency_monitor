@@ -50,7 +50,7 @@ public class Arc {
 			return NORMAL;
 		}
 		
-	};
+	}
 	
 	private String id;
 	private PetriNode source;
