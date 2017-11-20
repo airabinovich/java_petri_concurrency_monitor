@@ -1,5 +1,7 @@
 # Java Petri Concurrency Monitor
 
+[![](doc/img/JPCM_javadoc.svg)](https://airabinovich.github.io/java_petri_engine)
+
 This project implements a concurrency monitor written in Java 8.  
 JPCM is orchestrated by a user-defined Petri Net and it's intended to be imported as a library for Java projects.
 
