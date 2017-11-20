@@ -5,29 +5,29 @@ public interface VarCondQueue{
 	/**
 	 * Sends the calling thread to sleep
 	 */
-	public void sleep();
+	void sleep();
 	
 	/**
 	 * Sends the calling thread to sleep with the guarantee
 	 * that a {@link #wakeUp()} call will signal it before any other
 	 * thread who called {@link #sleep()}
 	 */
-	public void sleepWithHighPriority();
+	void sleepWithHighPriority();
 	
 	/**
 	 * Wakes a sleeping thread up if there is any.
 	 * The woken thread is the one that has been waiting the longer
 	 */
-	public void wakeUp();
+	void wakeUp();
 	
 	/**
 	 * @return whether the queue has any sleeping thread
 	 */
-	public boolean isEmpty();
-	
+	boolean isEmpty();
+
 	/**
-	 * @return the amount of threads sleeping in queue 
+	 * @return the amount of threads sleeping in queue
 	 */
-	public int getSize();
+	int getSize();
 
 }

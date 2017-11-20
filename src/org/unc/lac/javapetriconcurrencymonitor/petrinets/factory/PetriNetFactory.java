@@ -10,6 +10,7 @@ import org.javatuples.Triplet;
 import org.unc.lac.javapetriconcurrencymonitor.errors.CannotCreatePetriNetError;
 import org.unc.lac.javapetriconcurrencymonitor.exceptions.BadPnmlFormatException;
 import org.unc.lac.javapetriconcurrencymonitor.parser.PnmlParser;
+import org.unc.lac.javapetriconcurrencymonitor.parser.TinaPnmlParser;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PetriNet;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.PlaceTransitionPetriNet;
 import org.unc.lac.javapetriconcurrencymonitor.petrinets.TimedPetriNet;
@@ -30,14 +31,15 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc.ArcType;
 		/**
 		 * Types accepted by {@link PetriNetFactory#makePetriNet(petriNetType)}
 		 */
-		public static enum petriNetType {
+		public enum petriNetType {
 			PLACE_TRANSITION,
 			TIMED
-		};
+		}
 		
 		public PetriNetFactory(String pathToPNML) throws NullPointerException{
 			try {
-				this.reader = new PnmlParser(pathToPNML);
+				// TODO: add some way to check what parser should be used. Since TINA is the only one accepted by now it remains hardcoded.
+				this.reader = new TinaPnmlParser(pathToPNML);
 			} catch (FileNotFoundException | SecurityException e) {
 				e.printStackTrace();
 			}
@@ -53,7 +55,7 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc.ArcType;
 		/**
 		 * makes and returns the petri described in the PNML file passed to the factory
 		 * @return PetriNet object containing info described in PNML file
-		 * @param petriNetType petri net type from enum type {@link petriNetType}
+		 * @param type petri net type from enum type {@link petriNetType}
 		 * @throws CannotCreatePetriNetError If any a non supported arc type is given,
 		 * or if a transition that has a reset arc as input has another arc as input
 		 */
@@ -167,7 +169,7 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc.ArcType;
 			
 			Arc[] resetArcs = Arrays.stream(arcs)
 					.filter((Arc a) -> a.getType() == ArcType.RESET)
-					.toArray((int size) -> new Arc[size]);
+					.toArray(Arc[]::new);
 			for(Arc resetArc : resetArcs){
 				int placeIndex = resetArc.getSource().getIndex();
 				int transitionIndex = resetArc.getTarget().getIndex();
@@ -182,7 +184,7 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc.ArcType;
 				}
 			}
 			
-			return new Sextet<Integer[][], Integer[][], Integer[][], Boolean[][], Boolean[][], Integer[][]>(pre, pos, inc, inhibition, resetMatrix, readerMatrix);
+			return new Sextet<>(pre, pos, inc, inhibition, resetMatrix, readerMatrix);
 		}
 		
 		/**
@@ -191,7 +193,7 @@ import org.unc.lac.javapetriconcurrencymonitor.petrinets.components.Arc.ArcType;
 		 * @return place's initial marking
 		 */
 		protected Integer[] getMarkingFromPlaces(Place[] places){
-			ArrayList<Integer> initialMarking = new ArrayList<Integer>(places.length);
+			ArrayList<Integer> initialMarking = new ArrayList<>(places.length);
 			for(Place place : places){
 				initialMarking.add(place.getMarking());
 			}

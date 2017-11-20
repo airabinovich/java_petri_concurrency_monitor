@@ -28,7 +28,7 @@ public class PriorityBinaryLock {
 	 * The container to organize the sleeping threads.
 	 * This is ordered by priority and by arrival time among same priority level threads
 	 */
-	private final PriorityBlockingQueue<PrioritizedThread> queue = new PriorityBlockingQueue<PrioritizedThread>();
+	private final PriorityBlockingQueue<PrioritizedThread> queue = new PriorityBlockingQueue<>();
 	
 	/** A counter for low priority sleeping threads */
 	private AtomicLong lowPriorityThreadsSleeping = new AtomicLong(0);

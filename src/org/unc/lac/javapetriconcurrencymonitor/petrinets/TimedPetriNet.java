@@ -29,10 +29,8 @@ public class TimedPetriNet extends PetriNet{
 	/**
 	 * Fires the transition specified by transitionIndex and updates the enabled transitions with their timestamps.
 	 * If the petri net was not initialized before calling this method, {@link NotInitializedPetriNetException} is thrown.
-	 * If the fire time is before the timespan, {@link FiringBeforeTimespanException} is thrown,
-	 * and if it's after the timespan, {@link FiringAfterTimespanException} is thrown
 	 * @param transitionIndex The index of the transition to be fired
-	 * @return True if the fire was successful
+	 * @return A status code indicating the if the fire was successful, or the failure cause
 	 * @throws IllegalArgumentException If the index is negative or greater than the last transition index.
 	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 * @see TimedPetriNet#initializePetriNet()
@@ -50,10 +48,8 @@ public class TimedPetriNet extends PetriNet{
 	/**
 	 * Fires the specified transition and updates the enabled transitions with their timestamps.
 	 * If the petri net was not initialized before calling this method, {@link NotInitializedPetriNetException} is thrown.
-	 * If the fire time is before the timespan, {@link FiringBeforeTimespanException} is thrown,
-	 * and if it's after the timespan, {@link FiringAfterTimespanException} is thrown
 	 * @param t The transition to be fired
-	 * @return True if the fire was successful
+	 * @return A status code indicating the if the fire was successful, or the failure cause
 	 * @throws PetriNetException If an error regarding the petri occurs, for instance if the net hasn't been initialized before calling this method.
 	 * @throws IllegalArgumentException If the given transition is null or its index doesn't match any existing transition
 	 * @see TimedPetriNet#initializePetriNet()
@@ -98,9 +94,4 @@ public class TimedPetriNet extends PetriNet{
 		}
 		return _enabledTransitions;
 	}
-	
-	public boolean isTimedPetriNetInitialized() {
-		return initializedPetriNet;
-	}
-
 }

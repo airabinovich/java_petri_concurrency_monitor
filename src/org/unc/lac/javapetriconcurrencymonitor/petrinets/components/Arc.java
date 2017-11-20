@@ -50,7 +50,7 @@ public class Arc {
 			return NORMAL;
 		}
 		
-	};
+	}
 	
 	private String id;
 	private PetriNode source;
@@ -136,7 +136,7 @@ public class Arc {
 	 * @return True if the weight is valid for the arc type
 	 */
 	private boolean isValidWeightForArc(Integer _weight, ArcType _type){
-		if(type == ArcType.INHIBITOR){
+		if(_type.equals(ArcType.INHIBITOR)){
 			return _weight == 1;
 		}
 		

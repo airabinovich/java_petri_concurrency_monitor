@@ -26,6 +26,10 @@ local.properties
 .settings/
 .loadpath
 
+# IDEA project files
+*.iml
+.idea
+
 # Locally stored "Eclipse launch configurations"
 *.launch
 
@@ -37,3 +41,4 @@ local.properties
 # ignore compiled javadoc
 
 doc/javadoc/
+/target/
